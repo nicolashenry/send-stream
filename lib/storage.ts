@@ -62,6 +62,12 @@ export interface PrepareResponseOptions {
 	 * false to remove filename from header
 	 */
 	contentDispositionFilename?: string | false;
+	/**
+	 * Disable conditional GET and partial responses
+	 *
+	 * Defaults to false
+	 */
+	fullResponse?: boolean;
 }
 
 /**
@@ -299,20 +305,6 @@ export abstract class Storage<Reference, AttachedData> {
 			);
 		}
 		try {
-			const lastModified = opts.lastModified !== undefined
-				? opts.lastModified
-				: this.createLastModified(storageInfo);
-			if (lastModified) {
-				responseHeaders['Last-Modified'] = lastModified;
-			}
-
-			const etag = opts.etag !== undefined
-				? opts.etag
-				: this.createEtag(storageInfo);
-			if (etag) {
-				responseHeaders['ETag'] = etag;
-			}
-
 			const cacheControl = opts.cacheControl !== undefined
 				? opts.cacheControl
 				: this.createCacheControl(storageInfo);
@@ -324,32 +316,48 @@ export abstract class Storage<Reference, AttachedData> {
 				responseHeaders['Vary'] = storageInfo.vary;
 			}
 
-			const freshStatus = getFreshStatus(method, requestHeaders, responseHeaders);
-			switch (freshStatus) {
-			case 304:
-				earlyClose = true;
-				// Not Modified
-				return new StreamResponse(
-					304,
-					responseHeaders,
-					new EmptyStream(),
-					storageInfo
-				);
-			case 412:
-				earlyClose = true;
-				// Precondition Failed
-				// tslint:disable-next-line: no-non-null-assertion
-				const statusMessageBuffer = Buffer.from(http.STATUS_CODES[412]!);
-				return new StreamResponse(
-					412,
-					{
-						...responseHeaders,
-						'Content-Type': 'text/plain; charset=utf-8',
-						'Content-Length': String(statusMessageBuffer.byteLength)
-					},
-					new BufferStream(statusMessageBuffer),
-					storageInfo
-				);
+			if (!opts.fullResponse) {
+				const lastModified = opts.lastModified !== undefined
+					? opts.lastModified
+					: this.createLastModified(storageInfo);
+				if (lastModified) {
+					responseHeaders['Last-Modified'] = lastModified;
+				}
+
+				const etag = opts.etag !== undefined
+					? opts.etag
+					: this.createEtag(storageInfo);
+				if (etag) {
+					responseHeaders['ETag'] = etag;
+				}
+
+				const freshStatus = getFreshStatus(method, requestHeaders, responseHeaders);
+				switch (freshStatus) {
+				case 304:
+					earlyClose = true;
+					// Not Modified
+					return new StreamResponse(
+						304,
+						responseHeaders,
+						new EmptyStream(),
+						storageInfo
+					);
+				case 412:
+					earlyClose = true;
+					// Precondition Failed
+					// tslint:disable-next-line: no-non-null-assertion
+					const statusMessageBuffer = Buffer.from(http.STATUS_CODES[412]!);
+					return new StreamResponse(
+						412,
+						{
+							...responseHeaders,
+							'Content-Type': 'text/plain; charset=utf-8',
+							'Content-Length': String(statusMessageBuffer.byteLength)
+						},
+						new BufferStream(statusMessageBuffer),
+						storageInfo
+					);
+				}
 			}
 
 			if (storageInfo.contentEncoding && storageInfo.contentEncoding !== 'identity') {
@@ -382,14 +390,18 @@ export abstract class Storage<Reference, AttachedData> {
 			const maxRanges = this.maxRanges;
 			const size = storageInfo.size;
 			let contentLength;
-			if (maxRanges <= 0) {
+			if (maxRanges <= 0 || opts.fullResponse) {
 				responseHeaders['Accept-Ranges'] = 'none';
 				rangeToUse = { start: 0, end: size - 1 };
 				contentLength = size;
 			} else {
 				responseHeaders['Accept-Ranges'] = 'bytes';
 				const rangeHeader = requestHeaders['range'];
-				if (method !== 'GET' || !rangeHeader || !isRangeFresh(requestHeaders, responseHeaders)) {
+				if (
+					(method !== 'GET' && method !== 'HEAD')
+					|| !rangeHeader
+					|| !isRangeFresh(requestHeaders, responseHeaders)
+				) {
 					rangeToUse = { start: 0, end: size - 1 };
 					contentLength = size;
 				} else {

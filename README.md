@@ -249,6 +249,19 @@ Example:
 await storage.prepareResponse(req.url, req, { contentDispositionFilename: 'file.txt' })
 ```
 
+##### fullResponse
+
+Disable conditional GET and partial responses in order to obtains the full content
+
+`false` by default
+
+Example:
+
+```js
+await storage.prepareResponse(req.url, req, { fullResponse: true })
+```
+
+
 ### streamResponse.send(res)
 
 Send the current response through the given response

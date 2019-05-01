@@ -505,6 +505,34 @@ describe('send(file).pipe(res)', () => {
 					.expect(200, done);
 			});
 		});
+
+		it('fullResponse option should disable 304', done => {
+			const server = createServer({ root: fixtures, fullResponse: true });
+
+			request(server)
+				.get('/name.txt')
+				.expect(shouldNotHaveHeader('ETag'))
+				.expect(shouldNotHaveHeader('Last-Modified'))
+				.expect(200, err => {
+					if (err) {
+						done(err);
+						return;
+					}
+					request(mainApp)
+					.get('/name.txt')
+					.expect(200, (mainErr, res) => {
+						if (mainErr) {
+							done(mainErr);
+							return;
+						}
+						request(server)
+							.get('/name.txt')
+							// tslint:disable-next-line: no-unsafe-any
+							.set('If-None-Match', res.header.etag)
+							.expect(200, done);
+					});
+				});
+		});
 	});
 
 	describe('with Range request', () => {
@@ -754,6 +782,14 @@ describe('send(file).pipe(res)', () => {
 					.set('Range', 'bytes=0-0')
 					.expect(200, '123456789', done);
 			});
+		});
+
+		it('fullResponse should disable byte ranges', done => {
+			const server = createServer({ root: fixtures, fullResponse: true });
+			request(server)
+				.get('/nums.txt')
+				.set('Range', 'bytes=0-4')
+				.expect(200, '123456789', done);
 		});
 	});
 
