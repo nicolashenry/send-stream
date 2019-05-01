@@ -3,7 +3,8 @@
 
 `send-stream` is a library for streaming files from the file system or any other source.
 
-It supports partial responses (Ranges including multipart) and conditional-GET negotiation (If-Match, If-Unmodified-Since, If-None-Match, If-Modified-Since).
+It supports partial responses (Ranges including multipart), conditional-GET negotiation (If-Match, If-Unmodified-Since, If-None-Match, If-Modified-Since) and precompressed content
+encoding negociation.
 
 It also have high test coverage, typescript typings
 and has multiple examples using Express, Koa, Fastify or pure NodeJS http/http2 modules.
@@ -61,14 +62,32 @@ The `options` parameter let you add some addition options.
 
 ##### mimeModule
 
-In order to return the content type, the storage will try to guess the content type thanks to the `mime` module.
+In order to return the content type, the storage will try to guess the content type thanks to the `mime` module
+(see [mime module documentation](https://github.com/broofa/node-mime)).
 This option override the mime module instance which will be used for this purpose.
+
+Example:
+
+```js
+const Mime = require('mime/Mime');
+const myMime = new Mime({
+  'text/abc': ['abc', 'alpha', 'bet'],
+  'text/def': ['leppard']
+});
+new FileSystemStorage(directory, { mimeModule: myMime })
+```
 
 ##### defaultContentType
 
 Configures the default content type that will be used if the content type is unknown.
 
 `undefined` by default
+
+Example:
+
+```js
+new FileSystemStorage(directory, { defaultContentType: 'application/octet-stream' })
+```
 
 ##### defaultCharsets
 
@@ -77,6 +96,12 @@ Configures the default charset that will be appended to the content type header.
 `false` will disable it
 
 The default is `[{ matcher: /^(?:text\/.+|application\/(?:javascript|json))$/, charset: 'utf-8' }]`
+
+Example:
+
+```js
+new FileSystemStorage(directory, { defaultCharsets: [{ matcher: /^(?:text\/html$/, charset: 'utf-8' }] })
+```
 
 ##### maxRanges
 
@@ -88,11 +113,33 @@ Setting it to `1` will disable multipart/byteranges
 
 Setting it to `0` or less will disable range requests
 
+Example:
+
+```js
+new FileSystemStorage(directory, { maxRanges: 10 })
+```
+
 ##### contentEncodingMappings
 
-Configure content encoding file mappings, e.g. `[{ matcher: /^(.+\\.json)$/, encodings: [{ name: 'gzip', path: '$1.gz' }] }]`
+Configure content encoding file mappings.
 
 `undefined` by default
+
+Example:
+
+```js
+new FileSystemStorage(
+  directory,
+  {
+    contentEncodingMappings: [
+      {
+        matcher: /^(.+\\.(?:html|js|css))$/,
+        encodings: [{ name: 'gzip', path: '$1.gz' }, { name: 'br', path: '$1.br' }]
+      }
+    ]
+  }
+)
+```
 
 ##### ignorePattern
 
@@ -102,9 +149,23 @@ The storage will ignore files which have any parts of the path matching this pat
 
 Defaults to `/^\../` (files/folders beginning with a dot)
 
+Example:
+
+```js
+new FileSystemStorage(directory, { ignorePattern: /^myPrivateFolder$/ })
+```
+
 ##### fsModule
 
 Let you override the `fs` module that will be used to retrieve files.
+
+Example:
+
+```js
+const memfs = require('memfs');
+memfs.fs.writeFileSync('/hello.txt', 'world');
+new FileSystemStorage(directory, { fsModule: memfs })
+```
 
 ### storage.prepareResponse(path, req, [options])
 
@@ -120,27 +181,51 @@ The `options` parameter let you add some addition options.
 
 ##### cacheControl
 
-Custom cache-control header value, overrides storage value
+Custom cache-control header value, overrides storage value (`max-age=0` by default)
 
 `false` to remove header
+
+Example:
+
+```js
+await storage.prepareResponse(req.url, req, { cacheControl: 'public, max-age=31536000' })
+```
 
 ##### lastModified
 
-Custom last-modified header value, overrides storage value
+Custom last-modified header value, overrides storage value (defaults to mtimeMs converted to UTC)
 
 `false` to remove header
+
+Example:
+
+```js
+await storage.prepareResponse(req.url, req, { lastModified: 'Wed, 21 Oct 2015 07:28:00 GMT' })
+```
 
 ##### etag
 
-Custom etag header value, overrides storage value
+Custom etag header value, overrides storage value (defaults to size + mtimeMs + content encoding)
 
 `false` to remove header
+
+Example:
+
+```js
+await storage.prepareResponse(req.url, req, { etag: '"123"' })
+```
 
 ##### contentType
 
-Custom content-type header value, overrides storage value
+Custom content-type header value, overrides storage value (defaults to storage content type)
 
 `false` to remove header
+
+Example:
+
+```js
+await storage.prepareResponse(req.url, req, { contentType: 'text/plain' })
+```
 
 ##### contentDispositionType
 
@@ -148,11 +233,23 @@ Custom content-disposition header type value, overrides storage value
 
 `false` to remove header
 
+Example:
+
+```js
+await storage.prepareResponse(req.url, req, { contentDispositionType: 'attachment' })
+```
+
 ##### contentDispositionFilename
 
 Custom content-disposition header filename value, overrides storage value
 
 `false` to remove filename from header
+
+Example:
+
+```js
+await storage.prepareResponse(req.url, req, { contentDispositionFilename: 'file.txt' })
+```
 
 ### streamResponse.send(res)
 
