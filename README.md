@@ -33,16 +33,15 @@ const app = express();
 const storage = new FileSystemStorage(__dirname);
 
 app.get('*', async (req, res, next) => {
-    try {
-        // prepare response from url path and transfert it to response
-        (await storage.prepareResponse(req.url, req)).send(res);
-    }
-    catch (err) {
-        next(err);
-    }
+  try {
+    // prepare response from url path and transfert it to response
+    (await storage.prepareResponse(req.url, req)).send(res);
+  } catch (err) {
+    next(err);
+  }
 });
 app.listen(3000, () => {
-    console.info('listening on http://localhost:3000');
+  console.info('listening on http://localhost:3000');
 });
 ```
 
