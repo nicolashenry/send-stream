@@ -68,11 +68,11 @@ export class StreamResponse<AttachedData> extends EventEmitter {
 	 * @param error error
 	 */
 	constructor(
-		readonly statusCode: 200 | 206 | 304 | 404 | 405 | 412 | 416,
-		readonly headers: ResponseHeaders,
-		readonly stream: Readable,
-		readonly storageInfo?: StorageInfo<AttachedData>,
-		readonly error?: StorageError<unknown>
+		public statusCode: number,
+		public headers: ResponseHeaders,
+		public stream: Readable,
+		public storageInfo?: StorageInfo<AttachedData>,
+		public error?: StorageError<unknown>
 	) {
 		super();
 	}
