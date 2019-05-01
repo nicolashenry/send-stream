@@ -197,11 +197,7 @@
       "allow-mix"
     ],
     "no-magic-numbers": false,
-    "import-blacklist": [
-      true,
-      "@angular/material",
-      "@angular/cdk"
-    ],
+    "import-blacklist": false,
     "promise-function-async": true,
     "no-inferred-empty-object-type": true,
     "no-string-throw": true,
