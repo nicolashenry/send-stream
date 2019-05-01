@@ -70,8 +70,7 @@ Example:
 ```js
 const Mime = require('mime/Mime');
 const myMime = new Mime({
-  'text/abc': ['abc', 'alpha', 'bet'],
-  'text/def': ['leppard']
+  'text/abc': ['abc']
 });
 new FileSystemStorage(directory, { mimeModule: myMime })
 ```
