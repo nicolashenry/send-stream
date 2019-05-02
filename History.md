@@ -1,4 +1,9 @@
 
+0.0.4
+==================
+
+ * keep compatibility with disabled allowSyntheticDefaultImports
+
 0.0.3
 ==================
 
