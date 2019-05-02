@@ -131,8 +131,11 @@ new FileSystemStorage(
   {
     contentEncodingMappings: [
       {
-        matcher: /^(.+\\.(?:html|js|css))$/,
-        encodings: [{ name: 'gzip', path: '$1.gz' }, { name: 'br', path: '$1.br' }]
+        matcher: /^(.+\.(?:html|js|css))$/,
+        encodings: [
+          { name: 'br', path: '$1.br' },
+          { name: 'gzip', path: '$1.gz' }
+        ]
       }
     ]
   }
