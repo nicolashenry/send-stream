@@ -2,7 +2,7 @@
 0.0.5
 ==================
 
- * Fix content-encoding when pre-compressed files does not exist
+ * Fix content-encoding when pre-compressed files do not exist
  * Fix crypto warning
 
 0.0.4
