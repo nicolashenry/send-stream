@@ -117,6 +117,18 @@ Example:
 new FileSystemStorage(directory, { maxRanges: 10 })
 ```
 
+##### weakEtags
+
+The storage will generate strong etags by default, when set to true the storage will generate weak etags instead.
+
+`false` by default
+
+Example:
+
+```js
+new FileSystemStorage(directory, { weakEtags: true })
+```
+
 ##### contentEncodingMappings
 
 Configure content encoding file mappings.

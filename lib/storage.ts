@@ -108,6 +108,12 @@ export interface StorageOptions {
 	 * 1 to disable multipart/byteranges, 0 or less to disable range requests
 	 */
 	maxRanges?: number;
+	/**
+	 * Set weak etags by default instead strong ones
+	 *
+	 * Defaults to false
+	 */
+	weakEtags?: boolean;
 }
 
 const defaultCharset = [{ matcher: /^(?:text\/.+|application\/(?:javascript|json))$/, charset: 'utf-8' }];
@@ -120,6 +126,7 @@ export abstract class Storage<Reference, AttachedData> {
 	readonly defaultContentType?: string;
 	readonly defaultCharsets: CharsetMapping[] | false;
 	readonly maxRanges: number;
+	readonly weakEtags: boolean;
 
 	/**
 	 * Create storage
@@ -132,6 +139,7 @@ export abstract class Storage<Reference, AttachedData> {
 			? opts.defaultCharsets
 			: defaultCharset;
 		this.maxRanges = opts.maxRanges !== undefined ? opts.maxRanges : 200;
+		this.weakEtags = opts.weakEtags === true;
 	}
 
 	/**
@@ -181,7 +189,7 @@ export abstract class Storage<Reference, AttachedData> {
 	 * @returns etag header
 	 */
 	createEtag(storageInfo: StorageInfo<AttachedData>): string | false {
-		return statsToEtag(storageInfo.size, storageInfo.mtimeMs, storageInfo.contentEncoding);
+		return statsToEtag(storageInfo.size, storageInfo.mtimeMs, storageInfo.contentEncoding, this.weakEtags);
 	}
 
 	/**

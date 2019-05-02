@@ -121,10 +121,27 @@ describe('send(file).pipe(res)', () => {
 			.end(done);
 	});
 
-	it('should add an weak ETag header field', done => {
+	it('should add a strong ETag header field', done => {
 		request(mainApp)
 			.get('/name.txt')
 			.expect('etag', /^"[^"]+"$/)
+			.end(done);
+	});
+
+	it('should add a weak ETag header field when weakEtags is set to true', done => {
+		const storage = new FileSystemStorage(fixtures, { weakEtags: true });
+		const app = http.createServer(async (req, res) => {
+			try {
+				// tslint:disable-next-line: no-non-null-assertion
+				(await storage.prepareResponse(req.url!, req)).send(res);
+			} catch (err) {
+				res.statusCode = 500;
+				res.end(String(err));
+			}
+		});
+		request(app)
+			.get('/name.txt')
+			.expect('etag', /^W\/"[^"]+"$/)
 			.end(done);
 	});
 
@@ -361,10 +378,11 @@ describe('send(file).pipe(res)', () => {
 			});
 
 			it('should respond with 412 when weak ETag matched', done => {
+				const storage = new FileSystemStorage(fixtures, { weakEtags: true });
 				const app = http.createServer(async (req, res) => {
 					try {
 						// tslint:disable-next-line: no-non-null-assertion
-						(await mainStorage.prepareResponse(req.url!, req, { etag: 'W/"123"' })).send(res);
+						(await storage.prepareResponse(req.url!, req)).send(res);
 					} catch (err) {
 						res.statusCode = 500;
 						res.end(String(err));
@@ -685,10 +703,11 @@ describe('send(file).pipe(res)', () => {
 
 		describe('when if-range present', () => {
 			it('should not respond with parts when weak etag unchanged', done => {
+				const storage = new FileSystemStorage(fixtures, { weakEtags: true });
 				const app = http.createServer(async (req, res) => {
 					try {
 						// tslint:disable-next-line: no-non-null-assertion
-						(await mainStorage.prepareResponse(req.url!, req, { etag: 'W/"123"' })).send(res);
+						(await storage.prepareResponse(req.url!, req)).send(res);
 					} catch (err) {
 						res.statusCode = 500;
 						res.end(String(err));
