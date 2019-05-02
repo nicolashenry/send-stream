@@ -1,4 +1,11 @@
 
+0.0.6
+==================
+
+* Add weakEtags option
+* Add path parts documentation
+* Add pre compressed example
+
 0.0.5
 ==================
 
