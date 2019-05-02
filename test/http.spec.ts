@@ -80,6 +80,19 @@ describe('send(file).pipe(res)', () => {
 			.expect(200, '...', done);
 	});
 
+	it('should serve files with unicode character', done => {
+		request(mainApp)
+			.get('/%E2%AD%90.txt')
+			.expect('Content-Disposition', 'inline; filename="?.txt"; filename*=UTF-8\'\'%E2%AD%90.txt')
+			.expect(200, '⭐', done);
+	});
+
+	it('should serve files in folder with unicode character', done => {
+		request(mainApp)
+			.get('/snow%20%E2%98%83/index.html')
+			.expect(200, done);
+	});
+
 	it('should treat a malformed URI as a bad request', done => {
 		request(mainApp)
 			.get('/some%99thing.txt')

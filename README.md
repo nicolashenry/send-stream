@@ -53,9 +53,9 @@ See [examples](#examples) part for more advanced usages
 
 Create a new `FileSystemStorage` which is a stream storage giving access to the files inside the given root folder.
 
-The `root` parameter is a the absolute path from which the storage takes the files.
+The **`root`** parameter is a the absolute path from which the storage takes the files.
 
-The `options` parameter let you add some addition options.
+The **`options`** parameter let you add some addition options.
 
 #### Options
 
@@ -172,11 +172,13 @@ new FileSystemStorage(directory, { fsModule: memfs })
 
 Create asynchronously a new `StreamResponse` for the given path relative to root ready to be sent to a server response.
 
-The `path` parameter is a urlencoded path (urlencoded) or an array of path parts.
+The **`path`** parameter is a urlencoded path (urlencoded) or an array of path parts (should always start with '').
 
-The `req` is the related request, it can be a `http.IncomingMessage` or a `http2.Http2ServerRequest` or a `http2.IncomingHttpHeaders`.
+For example, `'/my%20directory/index.html'` is the equivalent of `['', 'my directory', 'index.html']`.
 
-The `options` parameter let you add some addition options.
+The **`req`** is the related request, it can be a `http.IncomingMessage` or a `http2.Http2ServerRequest` or a `http2.IncomingHttpHeaders`.
+
+The **`options`** parameter let you add some addition options.
 
 #### Options
 
@@ -372,7 +374,7 @@ if (
   )
 ) {
   result.stream.destroy();
-  result = await storage.prepareResponse(['index.html'], req);
+  result = await storage.prepareResponse(['', 'index.html'], req);
 }
 result.send(res);
 ```

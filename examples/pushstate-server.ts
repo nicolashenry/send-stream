@@ -20,7 +20,7 @@ app.use(async (req, res, next) => {
 				)
 		) {
 			result.stream.destroy();
-			result = await storage.prepareResponse(['index.html'], req);
+			result = await storage.prepareResponse(['', 'index.html'], req);
 		}
 		result.send(res);
 	} catch (err) {

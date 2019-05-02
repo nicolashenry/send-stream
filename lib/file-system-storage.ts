@@ -1,6 +1,6 @@
 
 import * as fs from 'fs';
-import { basename, join } from 'path';
+import { join } from 'path';
 import { Readable } from 'stream';
 import { promisify } from 'util';
 
@@ -186,7 +186,11 @@ export class FileSystemStorage extends Storage<FilePath, FileData> {
 		try {
 			if (Array.isArray(path)) {
 				pathParts = path;
-				if (pathParts.includes('.') || pathParts.includes('..')) {
+				if (
+					pathParts.length === 0
+					|| pathParts[0] !== ''
+					|| pathParts.findIndex(part => /^\.\.?$/.test(part)) !== -1
+				) {
 					notNormalized = true;
 				}
 			} else {
@@ -204,11 +208,6 @@ export class FileSystemStorage extends Storage<FilePath, FileData> {
 			);
 		}
 
-		// ignore first slash
-		if (pathParts.length > 0 && pathParts[0] === '') {
-			pathParts.splice(0, 1);
-		}
-
 		if (notNormalized) {
 			throw new FileSystemStorageError(
 				'not_normalized_path',
@@ -219,7 +218,7 @@ export class FileSystemStorage extends Storage<FilePath, FileData> {
 		}
 
 		// slashes or null bytes
-		if (pathParts.find(v => /[/\\\u0000]/.test(v))) {
+		if (pathParts.find(v => /[\/\?<>\\:\*\|":\x00-\x1f\x80-\x9f]/.test(v))) {
 			throw new FileSystemStorageError(
 				'forbidden_characters',
 				`${path} has forbidden characters`,
@@ -228,21 +227,21 @@ export class FileSystemStorage extends Storage<FilePath, FileData> {
 			);
 		}
 
-		const emptyPartIndex = pathParts.indexOf('');
-		// trailing slash
-		if (emptyPartIndex === pathParts.length - 1) {
+		const emptyPartIndex = pathParts.indexOf('', 1);
+
+		// trailing or consecutive slashes
+		if (emptyPartIndex !== -1) {
+			if (emptyPartIndex !== pathParts.length - 1) {
+				throw new FileSystemStorageError(
+					'consecutive_slashes',
+					`${path} have two consecutive slashes`,
+					path,
+					pathParts
+				);
+			}
 			throw new FileSystemStorageError(
 				'trailing_slash',
 				`${path} have a trailing slash`,
-				path,
-				pathParts
-			);
-		}
-		// consecutive slashes
-		if (emptyPartIndex !== -1) {
-			throw new FileSystemStorageError(
-				'consecutive_slashes',
-				`${path} have two consecutive slashes`,
 				path,
 				pathParts
 			);
@@ -313,7 +312,7 @@ export class FileSystemStorage extends Storage<FilePath, FileData> {
 		let stats;
 		let vary;
 		let contentEncoding = 'identity';
-		const fileName = basename(resolvedPath);
+		const fileName = pathParts[pathParts.length - 1];
 		const encodingsMappings = this.contentEncodingMappings;
 		let selectedEncodingMapping;
 		// test path against encoding map

@@ -1641,7 +1641,7 @@ describe('send(ctx, file)', () => {
 			const app = new Koa<object>();
 
 			app.use(async ctx => {
-				await send(ctx, __dirname, ['fixtures-koa', 'hello.txt']);
+				await send(ctx, __dirname, ['', 'fixtures-koa', 'hello.txt']);
 			});
 
 			request(app.listen())
