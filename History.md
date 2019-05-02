@@ -3,6 +3,7 @@
 ==================
 
  * Fix content-encoding when pre-compressed files does not exist
+ * Fix crypto warning
 
 0.0.4
 ==================
