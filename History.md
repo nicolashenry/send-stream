@@ -1,4 +1,9 @@
 
+0.0.5
+==================
+
+ * Fix content-encoding when pre-compressed files does not exist
+
 0.0.4
 ==================
 
