@@ -1,6 +1,6 @@
 
-import assert from 'assert';
-import fs from 'fs';
+import * as assert from 'assert';
+import * as fs from 'fs';
 // tslint:disable-next-line:no-implicit-dependencies
 import { decompressStream } from 'iltorb';
 // tslint:disable-next-line:no-implicit-dependencies
@@ -11,7 +11,7 @@ import { Readable } from 'stream';
 // tslint:disable-next-line:no-implicit-dependencies
 import request from 'supertest';
 // tslint:disable-next-line:no-implicit-dependencies
-import memfs from 'memfs';
+import * as memfs from 'memfs';
 
 import {
 	PrepareResponseOptions,

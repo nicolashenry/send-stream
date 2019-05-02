@@ -1,5 +1,5 @@
 
-import fs from 'fs';
+import * as fs from 'fs';
 import { basename, join } from 'path';
 import { Readable } from 'stream';
 import { promisify } from 'util';

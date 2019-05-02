@@ -1,10 +1,10 @@
 
 // tslint:disable-next-line:no-implicit-dependencies
-import assert from 'assert';
+import * as assert from 'assert';
 // tslint:disable-next-line:no-implicit-dependencies
 import express from 'express';
 // tslint:disable-next-line:no-implicit-dependencies
-import mongodb, { Cursor, ObjectID } from 'mongodb';
+import * as mongodb from 'mongodb';
 import { Readable } from 'stream';
 import { basename } from 'path';
 
@@ -14,7 +14,7 @@ const uri = 'mongodb://localhost:27017';
 const dbName = 'test';
 
 interface File {
-	_id: ObjectID;
+	_id: mongodb.ObjectID;
 	length: number;
 	chunkSize: number;
 	uploadDate: Date;
@@ -32,7 +32,7 @@ class GridFSStorage extends Storage<string, File> {
 	}
 
 	async open(reference: string, _requestHeaders: StorageRequestHeaders) {
-		const files = await (<Cursor<File>> this.bucket.find(
+		const files = await (<mongodb.Cursor<File>> this.bucket.find(
 			{ filename: reference }, { limit: 1 }
 		)).toArray();
 		if (files.length === 0) {

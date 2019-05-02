@@ -1,7 +1,7 @@
 
 import { EventEmitter } from 'events';
-import http from 'http';
-import http2 from 'http2';
+import * as http from 'http';
+import * as http2 from 'http2';
 import { Readable } from 'stream';
 
 import { ResponseHeaders } from './utils';

@@ -2,8 +2,8 @@
 // tslint:disable-next-line:no-implicit-dependencies
 import express from 'express';
 import { join } from 'path';
-import fs from 'fs';
-import util from 'util';
+import * as fs from 'fs';
+import * as util from 'util';
 
 import { FileSystemStorage, FileSystemStorageError } from '../lib';
 

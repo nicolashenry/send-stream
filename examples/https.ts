@@ -1,6 +1,6 @@
 
-import fs from 'fs';
-import https from 'https';
+import * as fs from 'fs';
+import * as https from 'https';
 import { join } from 'path';
 
 import { FileSystemStorage, FileSystemStorageError } from '../lib';

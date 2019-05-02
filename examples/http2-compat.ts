@@ -1,6 +1,6 @@
 
-import fs from 'fs';
-import http2 from 'http2';
+import * as fs from 'fs';
+import * as http2 from 'http2';
 import { join } from 'path';
 
 import { FileSystemStorage, FileSystemStorageError } from '../lib';

@@ -1,7 +1,7 @@
 
-import assert from 'assert';
-import http from 'http';
-import http2 from 'http2';
+import * as assert from 'assert';
+import * as http from 'http';
+import * as http2 from 'http2';
 import { normalize, join } from 'path';
 // tslint:disable-next-line:no-implicit-dependencies
 import request from 'supertest';

@@ -1,8 +1,8 @@
 
 // tslint:disable-next-line:no-implicit-dependencies
 import Koa from 'koa';
-import https from 'https';
-import fs from 'fs';
+import * as https from 'https';
+import * as fs from 'fs';
 import { join } from 'path';
 
 import { FileSystemStorage, FileSystemStorageError } from '../lib';

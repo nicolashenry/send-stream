@@ -1,7 +1,7 @@
 
 // tslint:disable-next-line:no-implicit-dependencies
 import fastify from 'fastify';
-import fs from 'fs';
+import * as fs from 'fs';
 import { join } from 'path';
 
 import { FileSystemStorage, FileSystemStorageError } from '../lib';

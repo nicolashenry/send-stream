@@ -1,9 +1,8 @@
 
 import contentDisposition from 'content-disposition';
-import http from 'http';
-import http2 from 'http2';
+import * as http from 'http';
+import * as http2 from 'http2';
 import mime from 'mime';
-import Mime from 'mime/Mime';
 import parseRange from 'range-parser';
 import { Readable } from 'stream';
 
@@ -78,13 +77,20 @@ export interface StorageRequestHeaders {
 }
 
 /**
+ * Mime module type
+ */
+export interface MimeModule {
+	getType(path: string): string | null;
+}
+
+/**
  * Storage options
  */
 export interface StorageOptions {
 	/**
 	 * "mime" module instance to use
 	 */
-	mimeModule?: Pick<Mime, 'getType'>;
+	mimeModule?: MimeModule;
 	/**
 	 * Default content type, e.g. "application/octet-stream"
 	 */
@@ -110,7 +116,7 @@ const defaultCharset = [{ matcher: /^(?:text\/.+|application\/(?:javascript|json
  * send-stream storage base class
  */
 export abstract class Storage<Reference, AttachedData> {
-	readonly mimeModule: Pick<Mime, 'getType'>;
+	readonly mimeModule: MimeModule;
 	readonly defaultContentType?: string;
 	readonly defaultCharsets: CharsetMapping[] | false;
 	readonly maxRanges: number;

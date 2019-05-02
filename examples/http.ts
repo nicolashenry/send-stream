@@ -1,5 +1,5 @@
 
-import http from 'http';
+import * as http from 'http';
 import { join } from 'path';
 
 import { FileSystemStorage, FileSystemStorageError } from '../lib';

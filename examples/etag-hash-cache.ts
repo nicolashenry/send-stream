@@ -2,8 +2,8 @@
 // tslint:disable-next-line:no-implicit-dependencies
 import express from 'express';
 import { join } from 'path';
-import crypto from 'crypto';
-import fs from 'fs';
+import * as crypto from 'crypto';
+import * as fs from 'fs';
 import { promisify } from 'util';
 
 import {
