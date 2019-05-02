@@ -284,6 +284,8 @@ describe('send(ctx, file)', () => {
 			request(app.listen())
 				.get('/')
 				.set('Accept-Encoding', 'br, gzip, identity')
+				.expect('Content-Length', '18')
+				.expect('{ "name": "tobi" }')
 				.expect(200, done);
 		});
 
@@ -348,6 +350,8 @@ describe('send(ctx, file)', () => {
 			request(app.listen())
 				.get('/')
 				.set('Accept-Encoding', 'br, gzip, identity')
+				.expect('Content-Length', '5')
+				.expect('world')
 				.expect(200, done);
 		});
 

@@ -233,7 +233,7 @@ export function acceptEncodings(requestHeaders: RequestHeaders, preferences: str
 	if (values.length === 0) {
 		return defaultAcceptedContentEncoding;
 	}
-	const result: { encoding: string; weight: number }[] = [];
+	const result = new Map<string, number>();
 	for (const value of values) {
 		const match = value.match(
 			/^([-!#$%&'*+.^_`|~A-Za-z0-9]+)(?:[ \t]*;[ \t]*q=(0(?:\.\d{1,3})?|1(?:\.0{1,3})?))?$/
@@ -255,35 +255,37 @@ export function acceptEncodings(requestHeaders: RequestHeaders, preferences: str
 				preferences.includes(encoding)
 				|| encoding === '*'
 			)
-			&& result.find(v => v.encoding === encoding) === undefined
 		) {
-			result.push({ encoding, weight });
+			result.set(encoding, weight);
 		}
 	}
-	if (result.length === 0) {
+	if (result.size === 0) {
 		return defaultAcceptedContentEncoding;
 	}
-	const indexOfAsterisk = result.findIndex(v => v.encoding === '*');
-	if (indexOfAsterisk !== -1) {
-		const asteriskVal = result[indexOfAsterisk];
-		result.splice(
-			indexOfAsterisk,
-			1,
-			...preferences
-				.filter(p => result.find(v => v.encoding === p) === undefined)
-				.map(p => ({ encoding: p, weight: asteriskVal.weight }))
-		);
+	const asterisk = result.get('*');
+	if (asterisk !== undefined) {
+		result.delete('*');
+		for (const p of preferences.filter(pref => !result.has(pref))) {
+			result.set(p, asterisk);
+		}
+	}
+	const identity = result.get('identity');
+	if (identity === undefined) {
+		result.set('identity', 0);
+	} else if (identity === 0) {
+		result.delete('identity');
 	}
 
-	result.sort((a, b) => {
-		let diff = b.weight - a.weight;
+	const resultEntries = Array.from(result.entries());
+	resultEntries.sort(([aEncoding, aWeight], [bEncoding, bWeight]) => {
+		let diff = bWeight - aWeight;
 		if (diff === 0) {
-			diff = preferences.indexOf(a.encoding) - preferences.indexOf(b.encoding);
+			diff = preferences.indexOf(aEncoding) - preferences.indexOf(bEncoding);
 		}
 		return diff;
 	});
 
-	return result.map(v => v.encoding);
+	return resultEntries.map(([encoding]) => encoding);
 }
 
 /**
