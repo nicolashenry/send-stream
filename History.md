@@ -1,4 +1,11 @@
 
+0.0.7
+==================
+
+* Change default charset from utf-8 to UTF-8
+* Add public in cache control by default
+* Remove options method handling
+
 0.0.6
 ==================
 

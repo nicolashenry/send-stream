@@ -124,7 +124,7 @@ describe('send(ctx, file)', () => {
 
 			request(app.listen())
 				.get('/')
-				.expect('content-type', 'text/html; charset=utf-8')
+				.expect('content-type', 'text/html; charset=UTF-8')
 				.expect('content-length', '10')
 				.expect(200, done);
 		});
@@ -887,7 +887,7 @@ describe('send(ctx, file)', () => {
 				.end(done);
 		});
 
-		it('should set the Content-Type with utf-8 charset for html', done => {
+		it('should set the Content-Type with UTF-8 charset for html', done => {
 			const app = new Koa<object>();
 
 			app.use(async ctx => {
@@ -896,7 +896,7 @@ describe('send(ctx, file)', () => {
 
 			request(app.listen())
 				.get('/')
-				.expect('Content-Type', 'text/html; charset=utf-8')
+				.expect('Content-Type', 'text/html; charset=UTF-8')
 				.end(done);
 		});
 
@@ -1268,7 +1268,7 @@ describe('send(ctx, file)', () => {
 				})
 				.expect(res => {
 					if (// tslint:disable-next-line:max-line-length ter-max-len
-						!/^--[^\r\n]+\r\ncontent-type: text\/plain; charset=utf-8\r\ncontent-range: bytes 0-0\/5\r\n\r\nw\r\n--[^\r\n]+\r\ncontent-type: text\/plain; charset=utf-8\r\ncontent-range: bytes 2-2\/5\r\n\r\nr\r\n--[^\r\n]+--$/
+						!/^--[^\r\n]+\r\ncontent-type: text\/plain; charset=UTF-8\r\ncontent-range: bytes 0-0\/5\r\n\r\nw\r\n--[^\r\n]+\r\ncontent-type: text\/plain; charset=UTF-8\r\ncontent-range: bytes 2-2\/5\r\n\r\nr\r\n--[^\r\n]+--$/
 						.test(<string> res.body)
 					) {
 						throw new Error('multipart/byteranges seems invalid');

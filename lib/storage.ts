@@ -96,7 +96,7 @@ export interface StorageOptions {
 	 */
 	defaultContentType?: string;
 	/**
-	 * Default charsets mapping, defaults to utf-8 for text/* and application/(javascript|json) content types,
+	 * Default charsets mapping, defaults to UTF-8 for text/* and application/(javascript|json) content types,
 	 * e.g. [{ matcher: /^text\/.*\/, charset: 'windows-1252' }]
 	 *
 	 * Can be disabled by setting it to false
@@ -116,7 +116,7 @@ export interface StorageOptions {
 	weakEtags?: boolean;
 }
 
-const defaultCharset = [{ matcher: /^(?:text\/.+|application\/(?:javascript|json))$/, charset: 'utf-8' }];
+const defaultCharset = [{ matcher: /^(?:text\/.+|application\/(?:javascript|json))$/, charset: 'UTF-8' }];
 
 /**
  * send-stream storage base class
@@ -193,12 +193,12 @@ export abstract class Storage<Reference, AttachedData> {
 	}
 
 	/**
-	 * Create cache-control header value from storage information (return always max-age=0 unless overriden)
+	 * Create cache-control header value from storage information (return always public, max-age=0 unless overriden)
 	 * @param _storageInfo storage information (unused unless overriden)
 	 * @returns cache-control header
 	 */
 	createCacheControl(_storageInfo: StorageInfo<AttachedData>): string | false {
-		return 'max-age=0';
+		return 'public, max-age=0';
 	}
 
 	/**
@@ -265,18 +265,6 @@ export abstract class Storage<Reference, AttachedData> {
 			method = req[':method'];
 			requestHeaders = req;
 		}
-		if (method === 'OPTIONS') {
-			// Ok for OPTIONS method
-			return new StreamResponse<AttachedData>(
-				200,
-				{
-					'Content-Length': '0',
-					Allow: 'GET, HEAD',
-					'Cache-Control': 'max-age=0'
-				},
-				new EmptyStream()
-			);
-		}
 		if (method !== 'GET' && method !== 'HEAD') {
 			// Method Not Allowed
 			// tslint:disable-next-line: no-non-null-assertion
@@ -285,7 +273,7 @@ export abstract class Storage<Reference, AttachedData> {
 				405,
 				{
 					'Content-Length': String(statusMessageBuffer.byteLength),
-					'Content-Type': 'text/plain; charset=utf-8',
+					'Content-Type': 'text/plain; charset=UTF-8',
 					Allow: 'GET, HEAD',
 					'Cache-Control': 'max-age=0'
 				},
@@ -310,7 +298,7 @@ export abstract class Storage<Reference, AttachedData> {
 				404,
 				{
 					'Content-Length': String(statusMessageBuffer.byteLength),
-					'Content-Type': 'text/plain; charset=utf-8',
+					'Content-Type': 'text/plain; charset=UTF-8',
 					'Cache-Control': 'max-age=0'
 				},
 				new BufferStream(statusMessageBuffer),
@@ -365,7 +353,7 @@ export abstract class Storage<Reference, AttachedData> {
 						412,
 						{
 							...responseHeaders,
-							'Content-Type': 'text/plain; charset=utf-8',
+							'Content-Type': 'text/plain; charset=UTF-8',
 							'Content-Length': String(statusMessageBuffer.byteLength)
 						},
 						new BufferStream(statusMessageBuffer),
@@ -429,7 +417,7 @@ export abstract class Storage<Reference, AttachedData> {
 							416,
 							{
 								'Content-Range': contentRange('bytes', size),
-								'Content-Type': 'text/plain; charset=utf-8',
+								'Content-Type': 'text/plain; charset=UTF-8',
 								'Content-Length': String(statusMessageBuffer.byteLength)
 							},
 							new BufferStream(statusMessageBuffer),

@@ -93,12 +93,12 @@ Configures the default charset that will be appended to the content type header.
 
 `false` will disable it
 
-The default is `[{ matcher: /^(?:text\/.+|application\/(?:javascript|json))$/, charset: 'utf-8' }]`
+The default is `[{ matcher: /^(?:text\/.+|application\/(?:javascript|json))$/, charset: 'UTF-8' }]`
 
 Example:
 
 ```js
-new FileSystemStorage(directory, { defaultCharsets: [{ matcher: /^(?:text\/html$/, charset: 'utf-8' }] })
+new FileSystemStorage(directory, { defaultCharsets: [{ matcher: /^(?:text\/html$/, charset: 'UTF-8' }] })
 ```
 
 ##### maxRanges
@@ -196,7 +196,7 @@ The **`options`** parameter let you add some addition options.
 
 ##### cacheControl
 
-Custom cache-control header value, overrides storage value (`max-age=0` by default)
+Custom cache-control header value, overrides storage value (`public, max-age=0` by default)
 
 `false` to remove header
 

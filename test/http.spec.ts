@@ -117,7 +117,10 @@ describe('send(file).pipe(res)', () => {
 			.head('/name.txt')
 			.expect(200)
 			.expect('Content-Length', '4')
-			.expect(shouldNotHaveBody())
+			.expect(res => {
+				// tslint:disable-next-line: strict-type-predicates
+				assert.ok(res.text === undefined, 'should not have body');
+			})
 			.end(done);
 	});
 
@@ -172,7 +175,7 @@ describe('send(file).pipe(res)', () => {
 	it('should set Content-Type via mime map', done => {
 		request(mainApp)
 			.get('/name.txt')
-			.expect('Content-Type', 'text/plain; charset=utf-8')
+			.expect('Content-Type', 'text/plain; charset=UTF-8')
 			.expect(200, err => {
 				if (err) {
 					done(err);
@@ -180,7 +183,7 @@ describe('send(file).pipe(res)', () => {
 				}
 				request(mainApp)
 					.get('/tobi.html')
-					.expect('Content-Type', 'text/html; charset=utf-8')
+					.expect('Content-Type', 'text/html; charset=UTF-8')
 					.expect(200, done);
 			});
 	});
@@ -683,7 +686,7 @@ describe('send(file).pipe(res)', () => {
 					})
 					.expect(res => {
 						if (// tslint:disable-next-line:max-line-length ter-max-len
-							!/^--[^\r\n]+\r\ncontent-type: text\/plain; charset=utf-8\r\ncontent-range: bytes 1-1\/9\r\n\r\n2\r\n--[^\r\n]+\r\ncontent-type: text\/plain; charset=utf-8\r\ncontent-range: bytes 3-8\/9\r\n\r\n456789\r\n--[^\r\n]+--$/
+							!/^--[^\r\n]+\r\ncontent-type: text\/plain; charset=UTF-8\r\ncontent-range: bytes 1-1\/9\r\n\r\n2\r\n--[^\r\n]+\r\ncontent-type: text\/plain; charset=UTF-8\r\ncontent-range: bytes 3-8\/9\r\n\r\n456789\r\n--[^\r\n]+--$/
 							.test(<string> res.body)
 						) {
 							throw new Error('multipart/byteranges seems invalid');
@@ -848,7 +851,7 @@ describe('send(file).pipe(res)', () => {
 		it('should default to 0', done => {
 			request(mainApp)
 				.get('/name.txt')
-				.expect('Cache-Control', 'max-age=0', done);
+				.expect('Cache-Control', 'public, max-age=0', done);
 		});
 
 		it('should be configurable', done => {
@@ -1098,16 +1101,17 @@ describe('send(file, options)', () => {
 		});
 	});
 	describe('other methods', () => {
-		it('should 200 with allowed methods on options', done => {
+		it('should 405 when OPTIONS request', done => {
 			request(mainApp)
 				.options('/name.txt')
 				.expect('Allow', 'GET, HEAD')
-				.expect(200, '', done);
+				.expect(405, done);
 		});
 
 		it('should 405 on post', done => {
 			request(mainApp)
 				.post('/name.txt')
+				.expect('Allow', 'GET, HEAD')
 				.expect(405, done);
 		});
 	});
@@ -1432,17 +1436,14 @@ function createServer(
 	});
 }
 
-function shouldNotHaveBody() {
-	return (res: request.Response) => {
-		// tslint:disable-next-line: strict-type-predicates
-		assert.ok(res.text === undefined);
-	};
-}
-
 function shouldNotHaveHeader(header: string) {
 	return (res: request.Response) => {
 		// tslint:disable-next-line: no-unsafe-any
-		assert.ok(!(header.toLowerCase() in res.header), `should not have header ${ header }`);
+		const value = res.header[header.toLowerCase()];
+		assert.strictEqual(
+			value, undefined,
+			`should not have header ${ header } (actual value: "${ value }")`
+		);
 	};
 }
 
