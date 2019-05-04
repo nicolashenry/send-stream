@@ -4,6 +4,8 @@
 ==================
 
 * Change fullReponse option to statusCode option
+* Add clarification on query params in path
+* Enhance mongodb/gridfs example
 
 0.0.7
 ==================
