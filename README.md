@@ -188,6 +188,8 @@ The **`path`** parameter is a urlencoded path (urlencoded) or an array of path p
 
 For example, `'/my%20directory/index.html'` is the equivalent of `['', 'my directory', 'index.html']`.
 
+Query params will be ignored if present.
+
 The **`req`** is the related request, it can be a `http.IncomingMessage` or a `http2.Http2ServerRequest` or a `http2.IncomingHttpHeaders`.
 
 The **`options`** parameter let you add some addition options.
