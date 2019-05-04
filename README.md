@@ -266,16 +266,17 @@ Example:
 await storage.prepareResponse(req.url, req, { contentDispositionFilename: 'file.txt' })
 ```
 
-##### fullResponse
+##### statusCode
 
-Disable conditional GET and partial responses in order to obtains the full content
+Defines the statusCode that will be used in response (instead of 200/206)
+Setting this will disable conditional GET and partial responses
 
-`false` by default
+`undefined` by default
 
 Example:
 
 ```js
-await storage.prepareResponse(req.url, req, { fullResponse: true })
+await storage.prepareResponse(req.url, req, { statusCode: 404 })
 ```
 
 

@@ -540,14 +540,14 @@ describe('send(file).pipe(res)', () => {
 			});
 		});
 
-		it('fullResponse option should disable 304', done => {
-			const server = createServer({ root: fixtures, fullResponse: true });
+		it('statusCode option should disable 304 and always return statusCode', done => {
+			const server = createServer({ root: fixtures, statusCode: 418 });
 
 			request(server)
 				.get('/name.txt')
 				.expect(shouldNotHaveHeader('ETag'))
 				.expect(shouldNotHaveHeader('Last-Modified'))
-				.expect(200, err => {
+				.expect(418, err => {
 					if (err) {
 						done(err);
 						return;
@@ -563,7 +563,7 @@ describe('send(file).pipe(res)', () => {
 							.get('/name.txt')
 							// tslint:disable-next-line: no-unsafe-any
 							.set('If-None-Match', res.header.etag)
-							.expect(200, done);
+							.expect(418, done);
 					});
 				});
 		});
@@ -819,12 +819,12 @@ describe('send(file).pipe(res)', () => {
 			});
 		});
 
-		it('fullResponse should disable byte ranges', done => {
-			const server = createServer({ root: fixtures, fullResponse: true });
+		it('statusCode should disable byte ranges', done => {
+			const server = createServer({ root: fixtures, statusCode: 418 });
 			request(server)
 				.get('/nums.txt')
 				.set('Range', 'bytes=0-4')
-				.expect(200, '123456789', done);
+				.expect(418, '123456789', done);
 		});
 	});
 

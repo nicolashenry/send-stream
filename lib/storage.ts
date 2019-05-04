@@ -34,39 +34,40 @@ export interface PrepareResponseOptions {
 	/**
 	 * Custom last-modified header value, overrides storage value
 	 *
-	 * false to remove header
+	 * `false` to remove header
 	 */
 	lastModified?: string | false;
 	/**
 	 * Custom etag header value, overrides storage value
 	 *
-	 * false to remove header
+	 * `false` to remove header
 	 */
 	etag?: string | false;
 	/**
 	 * Custom content-type header value, overrides storage value
 	 *
-	 * false to remove header
+	 * `false` to remove header
 	 */
 	contentType?: string | false;
 	/**
 	 * Custom content-disposition header type value, overrides storage value
 	 *
-	 * false to remove header
+	 * `false` to remove header
 	 */
 	contentDispositionType?: 'inline' | 'attachment' | false;
 	/**
 	 * Custom content-disposition header filename value, overrides storage value
 	 *
-	 * false to remove filename from header
+	 * `false` to remove filename from header
 	 */
 	contentDispositionFilename?: string | false;
 	/**
-	 * Disable conditional GET and partial responses
+	 * Status code that will be returned in stream response
+	 * Setting this will disable conditional GET and partial responses for this request
 	 *
-	 * Defaults to false
+	 * Defaults to `undefined`
 	 */
-	fullResponse?: boolean;
+	statusCode?: number;
 }
 
 /**
@@ -97,21 +98,21 @@ export interface StorageOptions {
 	defaultContentType?: string;
 	/**
 	 * Default charsets mapping, defaults to UTF-8 for text/* and application/(javascript|json) content types,
-	 * e.g. [{ matcher: /^text\/.*\/, charset: 'windows-1252' }]
+	 * e.g. `[{ matcher: /^text\/.*\/, charset: 'windows-1252' }]`
 	 *
-	 * Can be disabled by setting it to false
+	 * Can be disabled by setting it to `false`
 	 */
 	defaultCharsets?: CharsetMapping[] | false;
 	/**
-	 * Maximum ranges supported for range requests (default is 200)
+	 * Maximum ranges supported for range requests (default is `200`)
 	 *
-	 * 1 to disable multipart/byteranges, 0 or less to disable range requests
+	 * `1` to disable multipart/byteranges, `0` or less to disable range requests
 	 */
 	maxRanges?: number;
 	/**
 	 * Set weak etags by default instead strong ones
 	 *
-	 * Defaults to false
+	 * Defaults to `false`
 	 */
 	weakEtags?: boolean;
 }
@@ -239,7 +240,6 @@ export abstract class Storage<Reference, AttachedData> {
 
 	/**
 	 * Prepare to send file
-	 *
 	 * @param reference file reference
 	 * @param req request headers or request objects
 	 * @param [opts] options
@@ -281,7 +281,8 @@ export abstract class Storage<Reference, AttachedData> {
 			);
 		}
 		let rangeToUse: Range | (Range | Buffer)[];
-		let statusCode: 200 | 206 = 200;
+		const fullResponse = opts.statusCode !== undefined;
+		let statusCode = opts.statusCode !== undefined ? opts.statusCode : 200;
 		const responseHeaders: ResponseHeaders = { };
 		let earlyClose = false;
 		let storageInfo;
@@ -318,7 +319,7 @@ export abstract class Storage<Reference, AttachedData> {
 				responseHeaders['Vary'] = storageInfo.vary;
 			}
 
-			if (!opts.fullResponse) {
+			if (!fullResponse) {
 				const lastModified = opts.lastModified !== undefined
 					? opts.lastModified
 					: this.createLastModified(storageInfo);
@@ -392,7 +393,7 @@ export abstract class Storage<Reference, AttachedData> {
 			const maxRanges = this.maxRanges;
 			const size = storageInfo.size;
 			let contentLength;
-			if (maxRanges <= 0 || opts.fullResponse) {
+			if (maxRanges <= 0 || fullResponse) {
 				responseHeaders['Accept-Ranges'] = 'none';
 				rangeToUse = { start: 0, end: size - 1 };
 				contentLength = size;

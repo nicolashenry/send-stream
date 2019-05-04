@@ -1,4 +1,10 @@
 
+
+0.0.8
+==================
+
+* Change fullReponse option to statusCode option
+
 0.0.7
 ==================
 

@@ -210,15 +210,6 @@ describe('serveStatic()', () => {
 					.get('/users/../../todo.txt')
 					.expect(404, done);
 			});
-
-			it('should 400 when URL too long', done => {
-				request(server)
-					.get(`/${ Array(8192).join('foobar') }`)
-					.expect(400)
-					.catch(() => {
-						done();
-					});
-			});
 		});
 	});
 
