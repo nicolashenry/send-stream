@@ -31,12 +31,13 @@ class GridFSStorage extends Storage<string, File> {
 		super(opts);
 	}
 
-	async open(reference: string, _requestHeaders: StorageRequestHeaders) {
+	async open(path: string, _requestHeaders: StorageRequestHeaders) {
+		const filename = decodeURIComponent(new URL(path, 'http://localhost').pathname);
 		const files = await (<mongodb.Cursor<File>> this.bucket.find(
-			{ filename: reference }, { limit: 1 }
+			{ filename }, { limit: 1 }
 		)).toArray();
 		if (files.length === 0) {
-			throw new StorageError('not_found', `filename ${ reference } not found`, reference);
+			throw new StorageError('not_found', `filename ${ filename } not found`, path);
 		}
 		const file = files[0];
 		return {
