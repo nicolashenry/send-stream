@@ -1,4 +1,8 @@
 
+0.0.9
+==================
+
+* Add some documentation on response and errors
 
 0.0.8
 ==================
