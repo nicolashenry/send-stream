@@ -281,12 +281,66 @@ Example:
 await storage.prepareResponse(req.url, req, { statusCode: 404 })
 ```
 
+### streamResponse.statusCode
+
+The status code that match the required resource.
+
+For example, it can be 200 if the file is found, 206 for a range request, 404 if the file does not exists, ...
+
+### streamResponse.headers
+
+The headers that match the required resource.
+
+### streamResponse.error
+
+If an error occured while reading (e.g. if the file is not found),
+a 404 status is returned and this property will contains the error
+which have been returned by the storage. See [errors](#errors)
 
 ### streamResponse.send(res)
 
-Send the current response through the given response
+Send the current response through the response in parameter
 
 The `res` is the related response, it can be a `http.ServerResponse` or a `http2.Http2ServerResponse` or a `http2.ServerHttp2Stream`.
+
+## Errors
+
+### error.code = 'malformed_path'
+
+The path cannot be parsed for some reason.
+
+### error.code = 'not_normalized_path'
+
+Storages only accept normalized paths for security reasons.
+For example, `'/../index.html'` will be refused.
+
+### error.code = 'forbidden_characters'
+
+Storages refuse some forbidden characters like encoded slashes.
+
+### error.code = 'consecutive_slashes'
+
+Storages refuse pathes like `'/dir//index.html'` because it should not contain two consecutive slashes.
+
+### error.code = 'trailing_slash'
+
+Storages refuse pathes like `'/dir/'` because it is probably pointing to a directory.
+
+### error.code = 'ignored_files'
+
+Storages can ignore some files/folders composing the path (see [ignorePattern](#ignorePattern)).
+
+### error.code = 'is_directory'
+
+Storages refuse pathes matching directories.
+
+### error.code = 'does_not_exist'
+
+When the file can not be found.
+
+### error.code = 'unknown_error'
+
+When any other error occurs.
 
 ## Examples
 

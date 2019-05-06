@@ -61,11 +61,11 @@ export interface StorageInfo<AttachedData> {
 export class StreamResponse<AttachedData> extends EventEmitter {
 	/**
 	 * Create stream response
-	 * @param statusCode status code
-	 * @param headers headers
-	 * @param stream stream
-	 * @param storageInfo storage info
-	 * @param error error
+	 * @param statusCode the status code matching the required resource
+	 * @param headers the response headers to be sent for the required resource
+	 * @param stream the response stream to be sent for the required resource
+	 * @param storageInfo the storage information for the required resource (if existing)
+	 * @param error the error if the resource can not be found or openned for any reason
 	 */
 	constructor(
 		public statusCode: number,
