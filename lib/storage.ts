@@ -274,8 +274,7 @@ export abstract class Storage<Reference, AttachedData> {
 				{
 					'Content-Length': String(statusMessageBuffer.byteLength),
 					'Content-Type': 'text/plain; charset=UTF-8',
-					Allow: 'GET, HEAD',
-					'Cache-Control': 'max-age=0'
+					Allow: 'GET, HEAD'
 				},
 				new BufferStream(statusMessageBuffer)
 			);
@@ -299,8 +298,7 @@ export abstract class Storage<Reference, AttachedData> {
 				404,
 				{
 					'Content-Length': String(statusMessageBuffer.byteLength),
-					'Content-Type': 'text/plain; charset=UTF-8',
-					'Cache-Control': 'max-age=0'
+					'Content-Type': 'text/plain; charset=UTF-8'
 				},
 				new BufferStream(statusMessageBuffer),
 				undefined,
