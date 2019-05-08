@@ -31,11 +31,16 @@ app.on('stream', async (stream, headers) => {
 	} catch (err) {
 		console.error(err);
 		if (!stream.headersSent) {
+			const message = 'Internal Server Error';
 			stream.respond({
-				':status': 500
+				':status': 500,
+				'Content-Type': 'text/plain; charset=UTF-8',
+				'Content-Length': Buffer.byteLength(message)
 			});
-			stream.end('Internal Server Error');
+			stream.end(message);
+			return;
 		}
+		stream.destroy(err instanceof Error ? err : new Error(String(err)));
 	}
 });
 
