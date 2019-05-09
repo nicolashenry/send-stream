@@ -7,6 +7,8 @@ import * as util from 'util';
 
 import { FileSystemStorage, FileSystemStorageError } from '../lib';
 
+const readdir = util.promisify(fs.readdir);
+
 const app = express();
 
 const storage = new FileSystemStorage(join(__dirname, 'assets'));
@@ -19,23 +21,22 @@ app.get('*', async (req, res, next) => {
 			const pathParts = result.error.pathParts;
 			let files;
 			try {
-				files = await util.promisify(fs.readdir)(join(storage.root, ...pathParts), { withFileTypes: true });
+				files = await readdir(join(storage.root, ...pathParts), { withFileTypes: true });
 			} catch (err) {
-				if ((<NodeJS.ErrnoException> err).code === 'ENOENT') {
-					next();
-				} else {
-					next(err);
+				(await storage.prepareResponse([...pathParts.slice(0, -1), 'index.html'], req)).send(res);
+				if ((<NodeJS.ErrnoException> err).code !== 'ENOENT') {
+					console.error(err);
 				}
 				return;
 			}
 
-			const display = pathParts.length > 1 ? pathParts[pathParts.length - 2] : '/';
+			const display = pathParts.length > 2 ? pathParts[pathParts.length - 2] : '/';
 
 			let html = `<!DOCTYPE html><html><head><meta charset="utf-8"><title>${ display }</title>`;
 			html += '<meta name="viewport" content="width=device-width"></head>';
-			html += `<body><h1>Directory: /${ pathParts.join('/') }</h1><ul>`;
+			html += `<body><h1>Directory: ${ pathParts.join('/') }</h1><ul>`;
 
-			if (pathParts.length > 1) {
+			if (pathParts.length > 2) {
 				html += '<li><a href="..">..</a></li>';
 			}
 

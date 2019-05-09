@@ -19,27 +19,29 @@ This is a [Node.js](https://nodejs.org/en/) module available through the
 $ npm install send-stream
 ```
 
-## Getting start using express
+## Getting start
 
 Serve all files from a directory
 
 ```js
 const { FileSystemStorage } = require('send-stream');
 
-const express = require('express');
-const app = express();
+const http = require('http');
 
 // create new storage
 const storage = new FileSystemStorage(__dirname);
 
-app.get('*', async (req, res, next) => {
+const app = http.createServer(async (req, res) => {
   try {
     // prepare response from url path and transfert it to response
     (await storage.prepareResponse(req.url, req)).send(res);
   } catch (err) {
-    next(err);
+    // error handling
+    console.error(err);
+    res.destroy(err);
   }
 });
+
 app.listen(3000, () => {
   console.info('listening on http://localhost:3000');
 });
@@ -346,106 +348,154 @@ When any other error occurs.
 
 See `examples/` folder in this repository for full examples
 
-### Directory index.html
+### Serve directory with index.html
 
 ```js
-let result = (await storage.prepareResponse(req.url, req));
-const error = result.error;
-// instead of returning 404 on trailing slash
-// search for index.html using the same path
-if (
-  error
-  && error instanceof FileSystemStorageError
-  && error.code === 'trailing_slash'
-) {
-  result.stream.destroy();
-  result = await storage.prepareResponse(
-    [...error.pathParts.slice(0, -1), 'index.html'],
-    req
-  );
-}
-result.send(res);
+const { FileSystemStorage } = require('send-stream');
+
+const http = require('http');
+
+const storage = new FileSystemStorage(__dirname);
+
+const app = http.createServer(async (req, res) => {
+  try {
+    let result = (await storage.prepareResponse(req.url, req));
+    const error = result.error;
+    if (error && error instanceof FileSystemStorageError) {
+      if (error.code === 'trailing_slash') {
+        // use index.html on trailing slash
+        result.stream.destroy();
+        result = await storage.prepareResponse([...error.pathParts.slice(0, -1), 'index.html'], req);
+      } else if (error.code === 'is_directory') {
+        // redirect if the trailing slash is missing
+        result.stream.destroy();
+        res.writeHead(301, { Location: [...error.pathParts, ''].join('/') });
+        res.end();
+      }
+    }
+    result.send(res);
+  } catch (err) {
+    console.error(err);
+    res.destroy(err);
+  }
+});
+
+app.listen(3000, () => {
+  console.info('listening on http://localhost:3000');
+});
 ```
 
-### Custom directory index listing files
+### Serve directory with file listing
 
 ```js
+const { FileSystemStorage } = require('send-stream');
+
+const http = require('http');
 const { join } = require('path');
 const fs = require('fs');
 const util = require('util');
 
-const result = await storage.prepareResponse(req.url, req);
-if (
-  result.error
-  && result.error instanceof FileSystemStorageError
-  && result.error.code === 'trailing_slash'
-) {
-  result.stream.destroy();
-  const pathParts = result.error.pathParts;
-  let files;
+const storage = new FileSystemStorage(__dirname);
+
+const app = http.createServer(async (req, res) => {
   try {
-    files = await util.promisify(fs.readdir)(
-      join(storage.root, ...pathParts),
-      { withFileTypes: true }
-    );
+    const result = await storage.prepareResponse(req.url, req);
+    if (
+      result.error
+      && result.error instanceof FileSystemStorageError
+      && result.error.code === 'trailing_slash'
+    ) {
+      // custom file listing
+      result.stream.destroy();
+      const pathParts = result.error.pathParts;
+      let files;
+      try {
+        files = await util.promisify(fs.readdir)(
+          join(storage.root, ...pathParts),
+          { withFileTypes: true }
+        );
+      } catch (err) {
+        // search index.html if the folder can not be read
+        (await storage.prepareResponse([...pathParts.slice(0, -1), 'index.html'], req)).send(res);
+        if (err.code !== 'ENOENT') {
+          console.log(err);
+        }
+        return;
+      }
+
+      const display = pathParts.length > 2 ? pathParts[pathParts.length - 2] : '/';
+
+      let html = `<!DOCTYPE html><html><head><meta charset="utf-8"><title>${ display }</title>`;
+      html += '<meta name="viewport" content="width=device-width"></head>';
+      html += `<body><h1>Directory: ${ pathParts.join('/') }</h1><ul>`;
+
+      if (pathParts.length > 2) {
+        html += '<li><a href="..">..</a></li>';
+      }
+
+      for (const file of files) {
+        const ignorePattern = storage.ignorePattern;
+        if (ignorePattern && ignorePattern.test(file.name)) {
+          continue;
+        }
+        const filename = file.name + (file.isDirectory() ? '/' : '');
+        html += `<li><a href="./${ filename }">${ filename }</a></li>`;
+      }
+
+      html += '</ul></body></html>';
+
+      res.setHeader('Cache-Control', 'max-age=0');
+      res.send(html);
+      return;
+    }
+    result.send(res);
   } catch (err) {
-    if (err.code === 'ENOENT') {
-      next();
-    } else {
-      next(err);
-    }
-    return;
+    console.error(err);
+    res.destroy(err);
   }
+});
 
-  const display = pathParts.length > 1 ? pathParts[pathParts.length - 2] : '/';
-
-  let html = `<!DOCTYPE html><html><head><meta charset="utf-8"><title>${ display }</title>`;
-  html += '<meta name="viewport" content="width=device-width"></head>';
-  html += `<body><h1>Directory: /${ pathParts.join('/') }</h1><ul>`;
-
-  if (pathParts.length > 1) {
-    html += '<li><a href="..">..</a></li>';
-  }
-
-  for (const file of files) {
-    const ignorePattern = storage.ignorePattern;
-    if (ignorePattern && ignorePattern.test(file.name)) {
-      continue;
-    }
-    const filename = file.name + (file.isDirectory() ? '/' : '');
-    html += `<li><a href="./${ filename }">${ filename }</a></li>`;
-  }
-
-  html += '</ul></body></html>';
-
-  res.setHeader('Cache-Control', 'max-age=0');
-  res.send(html);
-  return;
-}
-result.send(res);
+app.listen(3000, () => {
+  console.info('listening on http://localhost:3000');
+});
 ```
 
-### pushState index.html
+### Serve index.html for history.pushState application
 
 ```js
+const { FileSystemStorage } = require('send-stream');
+
+const http = require('http');
 const { extname } = require('path');
 
-let result = await storage.prepareResponse(req.url, req);
-const error = result.error;
-// instead of returning 404 on error
-// search for index.html in root unless path has extension
-if (
-  error
-  && error instanceof FileSystemStorageError
-  && (
-    error.pathParts.length === 0
-    || extname(error.pathParts[error.pathParts.length - 1]) === ''
-  )
-) {
-  result.stream.destroy();
-  result = await storage.prepareResponse(['', 'index.html'], req);
-}
-result.send(res);
+const storage = new FileSystemStorage(__dirname);
+
+const app = http.createServer(async (req, res) => {
+  try {
+    let result = await storage.prepareResponse(req.url, req);
+    const error = result.error;
+    // serve root index.html unless path has extension
+    if (
+      error
+      && error instanceof FileSystemStorageError
+      && (
+        error.pathParts.length === 0
+        || extname(error.pathParts[error.pathParts.length - 1]) === ''
+      )
+    ) {
+      result.stream.destroy();
+      result = await storage.prepareResponse(['', 'index.html'], req);
+    }
+    result.send(res);
+  } catch (err) {
+    console.error(err);
+    res.destroy(err);
+  }
+});
+
+app.listen(3000, () => {
+  console.info('listening on http://localhost:3000');
+});
 ```
 
 ## License
