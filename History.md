@@ -1,4 +1,10 @@
 
+0.0.10
+==================
+
+* Remove max-age on error
+* Enhance examples
+
 0.0.9
 ==================
 
