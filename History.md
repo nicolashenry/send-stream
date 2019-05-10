@@ -1,4 +1,11 @@
 
+0.0.11
+==================
+
+* Fix some examples
+* Enhance code coverage
+* Fix minor issues
+
 0.0.10
 ==================
 
