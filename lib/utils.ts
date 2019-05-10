@@ -90,7 +90,7 @@ export function getContentTypeWithCharset(contentType: string, charsetMappings: 
  * @returns etag
  */
 export function statsToEtag(size: number, mtimeMs: number, contentEncoding?: string, weak = false) {
-	const encoding = contentEncoding !== 'identity'
+	const encoding = contentEncoding && contentEncoding !== 'identity'
 		? `-${ contentEncoding }`
 		: '';
 	return `${

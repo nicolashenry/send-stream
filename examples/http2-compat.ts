@@ -27,7 +27,7 @@ const app = http2.createSecureServer(options, async (req, res) => {
 			const message = 'Internal Server Error';
 			res.writeHead(500, {
 				'Content-Type': 'text/plain; charset=UTF-8',
-				'Content-Length': Buffer.byteLength(message)
+				'Content-Length': String(Buffer.byteLength(message))
 			});
 			res.end(message);
 			return;

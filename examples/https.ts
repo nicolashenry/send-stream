@@ -26,9 +26,15 @@ const app = https.createServer(options, async (req, res) => {
 	} catch (err) {
 		console.error(err);
 		if (!res.headersSent) {
-			res.statusCode = 500;
-			res.end('Internal Server Error');
+			const message = 'Internal Server Error';
+			res.writeHead(500, {
+				'Content-Type': 'text/plain; charset=UTF-8',
+				'Content-Length': String(Buffer.byteLength(message))
+			});
+			res.end(message);
+			return;
 		}
+		res.destroy(err instanceof Error ? err : new Error(String(err)));
 	}
 });
 

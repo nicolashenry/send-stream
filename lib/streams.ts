@@ -4,10 +4,10 @@ import { Readable, PassThrough } from 'stream';
  * Single buffer stream
  */
 export class BufferStream extends Readable {
-	private str?: Buffer;
-	constructor(str: Buffer) {
+	private buffer?: Buffer;
+	constructor(buffer: Buffer) {
 		super();
-		this.str = str;
+		this.buffer = buffer;
 		const end = () => {
 			this.destroy();
 		};
@@ -18,14 +18,10 @@ export class BufferStream extends Readable {
 	}
 	// tslint:disable-next-line: function-name
 	_read() {
-		if (!this.str) {
-			this.push(null);
-		}
-		const str = this.str;
-		this.str = undefined;
-		if (this.push(str)) {
-			this.push(null);
-		}
+		const buffer = this.buffer;
+		this.buffer = undefined;
+		this.push(buffer);
+		this.push(null);
 	}
 }
 

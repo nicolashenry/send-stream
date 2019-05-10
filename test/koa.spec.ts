@@ -46,6 +46,7 @@ export async function sendStorage<Reference, AttachedData>(
 	reference: Reference,
 	opts: PrepareResponseOptions = { }
 ) {
+	const connection = ctx.res.connection;
 	const result = await storage.prepareResponse(
 		reference,
 		ctx.req,
@@ -55,13 +56,17 @@ export async function sendStorage<Reference, AttachedData>(
 	ctx.response.set(<{ [key: string]: string }> result.headers);
 	result.stream.on('error', err => {
 		console.error(err);
-		if (ctx.res.connection.destroyed) {
+		if (connection.destroyed) {
 			return;
 		}
 		if (!ctx.headerSent) {
+			const message = 'Internal Server Error';
 			ctx.response.status = 500;
-			ctx.response.set({});
-			ctx.response.body = 'Internal Server Error';
+			ctx.response.set({
+				'Content-Type': 'text/plain; charset=UTF-8',
+				'Content-Length': String(Buffer.byteLength(message))
+			});
+			ctx.response.body = message;
 			return;
 		}
 		ctx.res.destroy(err);
@@ -76,6 +81,7 @@ async function send(
 	path: string | string[],
 	opts?: PrepareResponseOptions & FileSystemStorageOptions
 ) {
+	const connection = ctx.res.connection;
 	const storage = new FileSystemStorage(root, opts);
 	const result = await storage.prepareResponse(
 		path,
@@ -86,13 +92,17 @@ async function send(
 	ctx.response.set(<{ [key: string]: string }> result.headers);
 	result.stream.on('error', err => {
 		console.error(err);
-		if (ctx.res.connection.destroyed) {
+		if (connection.destroyed) {
 			return;
 		}
 		if (!ctx.headerSent) {
+			const message = 'Internal Server Error';
 			ctx.response.status = 500;
-			ctx.response.set({});
-			ctx.response.body = 'Internal Server Error';
+			ctx.response.set({
+				'Content-Type': 'text/plain; charset=UTF-8',
+				'Content-Length': String(Buffer.byteLength(message))
+			});
+			ctx.response.body = message;
 			return;
 		}
 		ctx.res.destroy(err);
@@ -1607,6 +1617,68 @@ describe('send(ctx, file)', () => {
 
 			app.use(async ctx => {
 				storage.result = await sendStorage(ctx, storage, '/fixtures-koa/hello.txt');
+			});
+
+			request(app.listen())
+				.get('/')
+				.set('Range', 'bytes=0-0,2-2')
+				.expect(500)
+				.catch(() => {
+					done();
+				});
+		});
+
+		it('should handle close error', done => {
+			const app = new Koa<object>();
+
+			// tslint:disable-next-line: max-classes-per-file
+			class ErrorStorage extends FileSystemStorage {
+				async close(
+					_si: StorageInfo<FileData>
+				) {
+					throw new Error('oops');
+				}
+			}
+			const storage = new ErrorStorage(__dirname);
+
+			app.use(async ctx => {
+				await sendStorage(ctx, storage, '/fixtures-koa/hello.txt');
+			});
+
+			request(app.listen())
+				.get('/')
+				.set('Range', 'bytes=0-0,2-2')
+				.expect(206)
+				.end(done);
+		});
+
+		it('should handle close error after read error', done => {
+			const app = new Koa<object>();
+
+			// tslint:disable-next-line: max-classes-per-file
+			class ErrorStorage extends FileSystemStorage {
+				createReadableStream(
+					_si: StorageInfo<FileData>,
+					_start: number,
+					_end: number,
+					_autoclose: boolean
+				) {
+					return new Readable({
+						read() {
+							process.nextTick(() => this.emit('error', new Error('ooops')));
+						}
+					});
+				}
+				async close(
+					_si: StorageInfo<FileData>
+				) {
+					throw new Error('oops');
+				}
+			}
+			const storage = new ErrorStorage(__dirname);
+
+			app.use(async ctx => {
+				await sendStorage(ctx, storage, '/fixtures-koa/hello.txt');
 			});
 
 			request(app.listen())
