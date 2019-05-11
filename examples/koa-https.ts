@@ -1,5 +1,4 @@
 
-// tslint:disable-next-line:no-implicit-dependencies
 import Koa from 'koa';
 import * as https from 'https';
 import * as fs from 'fs';

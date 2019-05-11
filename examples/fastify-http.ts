@@ -1,5 +1,4 @@
 
-// tslint:disable-next-line:no-implicit-dependencies
 import fastify from 'fastify';
 import { join } from 'path';
 

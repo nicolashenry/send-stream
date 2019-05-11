@@ -1,9 +1,6 @@
 
-// tslint:disable-next-line:no-implicit-dependencies
 import * as assert from 'assert';
-// tslint:disable-next-line:no-implicit-dependencies
 import express from 'express';
-// tslint:disable-next-line:no-implicit-dependencies
 import * as mongodb from 'mongodb';
 import { Readable } from 'stream';
 import { basename } from 'path';

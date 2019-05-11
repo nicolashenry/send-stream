@@ -1,5 +1,4 @@
 
-// tslint:disable-next-line:no-implicit-dependencies
 import Koa from 'koa';
 import { join } from 'path';
 

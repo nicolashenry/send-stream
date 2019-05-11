@@ -2,7 +2,6 @@
 import * as assert from 'assert';
 import * as http from 'http';
 import * as path from 'path';
-// tslint:disable-next-line: no-implicit-dependencies
 import request from 'supertest';
 
 import {

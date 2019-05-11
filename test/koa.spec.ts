@@ -1,16 +1,12 @@
 
 import * as assert from 'assert';
 import * as fs from 'fs';
-// tslint:disable-next-line:no-implicit-dependencies
 import { decompressStream } from 'iltorb';
-// tslint:disable-next-line:no-implicit-dependencies
 import Koa from 'koa';
 import Mime from 'mime/Mime';
 import { join } from 'path';
 import { Readable } from 'stream';
-// tslint:disable-next-line:no-implicit-dependencies
 import request from 'supertest';
-// tslint:disable-next-line:no-implicit-dependencies
 import * as memfs from 'memfs';
 
 import {
