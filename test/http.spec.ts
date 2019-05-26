@@ -105,7 +105,8 @@ describe('send(file).pipe(res)', () => {
 	});
 
 	it('should treat an ENAMETOOLONG as a 404', done => {
-		const path = Array(100).join('foobar');
+		// tslint:disable-next-line: prefer-array-literal
+		const path = new Array(100).join('foobar');
 		request(mainApp)
 			.get(`/${ path }`)
 			.expect(404, done);
