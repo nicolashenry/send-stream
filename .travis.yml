@@ -7,3 +7,10 @@ node_js:
 cache:
   directories:
     - node_modules
+
+after_script:
+  - |
+    # Upload coverage to coveralls
+    if [[ -f ./coverage/lcov.info ]]; then
+      coveralls < ./coverage/lcov.info
+    fi

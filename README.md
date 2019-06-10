@@ -2,6 +2,7 @@
 # send-stream
 
 [![Build Status](https://travis-ci.com/nicolashenry/send-stream.svg?branch=master)](https://travis-ci.com/nicolashenry/send-stream)
+[![Coverage Status](https://coveralls.io/repos/github/nicolashenry/send-stream/badge.svg?branch=master)](https://coveralls.io/github/nicolashenry/send-stream?branch=master)
 
 `send-stream` is a library for streaming files from the file system or any other source.
 
