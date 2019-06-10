@@ -1,4 +1,10 @@
 
+0.1.0
+==================
+
+* Remove 1 minute freshness condition
+* Add badges in documentation
+
 0.0.11
 ==================
 
