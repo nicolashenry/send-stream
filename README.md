@@ -1,6 +1,8 @@
 
 # send-stream
 
+[![Build Status](https://travis-ci.com/nicolashenry/send-stream.svg?branch=master)](https://travis-ci.com/nicolashenry/send-stream)
+
 `send-stream` is a library for streaming files from the file system or any other source.
 
 It supports partial responses (Ranges including multipart), conditional-GET negotiation (If-Match, If-Unmodified-Since, If-None-Match, If-Modified-Since) and precompressed content
