@@ -1,6 +1,7 @@
 
 # send-stream
 
+[![NPM](https://img.shields.io/npm/v/send-stream.svg)](https://www.npmjs.com/package/send-stream)
 [![Build Status](https://travis-ci.com/nicolashenry/send-stream.svg?branch=master)](https://travis-ci.com/nicolashenry/send-stream)
 [![Coverage Status](https://coveralls.io/repos/github/nicolashenry/send-stream/badge.svg?branch=master)](https://coveralls.io/github/nicolashenry/send-stream?branch=master)
 
