@@ -116,10 +116,15 @@ export function millisecondsToUTCString(timeMs: number) {
 /**
  * Check if range is fresh
  * @param requestHeaders request headers
- * @param responseHeaders response headers
+ * @param etag etag response header
+ * @param lastModified last modified response header
  * @returns true if range fresh
  */
-export function isRangeFresh(requestHeaders: RequestHeaders, responseHeaders: ResponseHeaders) {
+export function isRangeFresh(
+	requestHeaders: RequestHeaders,
+	etag: string | false,
+	lastModified: string | false
+) {
 	const ifRange = requestHeaders['if-range'];
 
 	if (!ifRange) {
@@ -128,16 +133,15 @@ export function isRangeFresh(requestHeaders: RequestHeaders, responseHeaders: Re
 
 	// If-Range as etag
 	if (isStrongEtag(ifRange)) {
-		return responseHeaders['ETag'] ? ifRange === responseHeaders['ETag'] : false;
+		return etag ? ifRange === etag : false;
 	}
 
 	// If-Range as modified date
-	const lastModified = responseHeaders['Last-Modified'];
 	if (!lastModified) {
 		return false;
 	}
 	const parsedLastModified = Date.parse(lastModified);
-	return parsedLastModified === Date.parse(ifRange) && Date.now() >= parsedLastModified + (60 * 1000);
+	return parsedLastModified === Date.parse(ifRange);
 }
 
 /**
@@ -292,20 +296,20 @@ export function acceptEncodings(requestHeaders: RequestHeaders, preferences: str
  * Get fresh status (ETag, Last-Modified handling)
  * @param method http method
  * @param requestHeaders request headers
- * @param responseHeaders response headers
+ * @param etag etag response header
+ * @param lastModified last modified response header
  * @returns status code
  */
 export function getFreshStatus(
 	method: string,
 	requestHeaders: RequestHeaders,
-	responseHeaders: ResponseHeaders
+	etag: string | false,
+	lastModified: string | false
 ) {
 	const ifMatch = requestHeaders['if-match'];
 	const ifNoneMatch = requestHeaders['if-none-match'];
 	const ifModifiedSince = requestHeaders['if-modified-since'];
 	const ifUnmodifiedSince = requestHeaders['if-unmodified-since'];
-	const etag = responseHeaders['ETag'];
-	const lastModified = responseHeaders['Last-Modified'];
 	if (ifMatch) {
 		if (
 			!etag
@@ -317,7 +321,11 @@ export function getFreshStatus(
 		) {
 			return 412;
 		}
-	} else if (ifUnmodifiedSince && lastModified && Date.parse(lastModified) > Date.parse(ifUnmodifiedSince)) {
+	} else if (
+		ifUnmodifiedSince
+		&& lastModified
+		&& Date.parse(lastModified) > Date.parse(ifUnmodifiedSince)
+	) {
 		return 412;
 	}
 	if (ifNoneMatch) {
@@ -333,10 +341,11 @@ export function getFreshStatus(
 				? 304
 				: 412;
 		}
-	} else if (ifModifiedSince
-		&& (method === 'GET' || method === 'HEAD')
+	} else if (
+		ifModifiedSince
 		&& lastModified
 		&& Date.parse(lastModified) <= Date.parse(ifModifiedSince)
+		&& (method === 'GET' || method === 'HEAD')
 	) {
 		return 304;
 	}

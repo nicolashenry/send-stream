@@ -317,22 +317,24 @@ export abstract class Storage<Reference, AttachedData> {
 				responseHeaders['Vary'] = storageInfo.vary;
 			}
 
+			const lastModified = opts.lastModified !== undefined
+				? opts.lastModified
+				: this.createLastModified(storageInfo);
+
+			const etag = opts.etag !== undefined
+				? opts.etag
+				: this.createEtag(storageInfo);
+
 			if (!fullResponse) {
-				const lastModified = opts.lastModified !== undefined
-					? opts.lastModified
-					: this.createLastModified(storageInfo);
 				if (lastModified) {
 					responseHeaders['Last-Modified'] = lastModified;
 				}
 
-				const etag = opts.etag !== undefined
-					? opts.etag
-					: this.createEtag(storageInfo);
 				if (etag) {
 					responseHeaders['ETag'] = etag;
 				}
 
-				const freshStatus = getFreshStatus(method, requestHeaders, responseHeaders);
+				const freshStatus = getFreshStatus(method, requestHeaders, etag, lastModified);
 				switch (freshStatus) {
 				case 304:
 					earlyClose = true;
@@ -399,9 +401,9 @@ export abstract class Storage<Reference, AttachedData> {
 				responseHeaders['Accept-Ranges'] = 'bytes';
 				const rangeHeader = requestHeaders['range'];
 				if (
-					(method !== 'GET' && method !== 'HEAD')
-					|| !rangeHeader
-					|| !isRangeFresh(requestHeaders, responseHeaders)
+					!rangeHeader
+					|| !isRangeFresh(requestHeaders, etag, lastModified)
+					|| (method !== 'GET' && method !== 'HEAD')
 				) {
 					rangeToUse = { start: 0, end: size - 1 };
 					contentLength = size;

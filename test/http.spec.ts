@@ -492,7 +492,8 @@ describe('send(file).pipe(res)', () => {
 			});
 
 			it('should respond with 412 when ETag matched on not GET or HEAD', done => {
-				assert.strictEqual(getFreshStatus('POST', { 'if-none-match': '"123"' }, { ETag: '"123"' }), 412);
+				assert.strictEqual(
+					getFreshStatus('POST', { 'if-none-match': '"123"' }, '"123"', false), 412);
 				done();
 			});
 		});
