@@ -18,7 +18,7 @@
     "@types/mime": "2.0.1",
     "@types/mocha": "5.2.7",
     "@types/mongodb": "3.1.28",
-    "@types/node": "12.6.2",
+    "@types/node": "12.6.3",
     "@types/range-parser": "1.2.3",
     "@types/supertest": "2.0.8",
     "coveralls": "3.0.5",
