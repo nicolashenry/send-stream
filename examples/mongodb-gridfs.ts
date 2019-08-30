@@ -75,6 +75,7 @@ class GridFSStorage extends Storage<string, File> {
 		return result;
 	}
 
+	// tslint:disable-next-line: no-async-without-await
 	async close(_storageInfo: StorageInfo<File>) {
 		// noop
 	}

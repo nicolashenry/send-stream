@@ -203,7 +203,7 @@ export class FileSystemStorage extends Storage<FilePath, FileData> {
 		} catch (err) {
 			throw new StorageError(
 				'malformed_path',
-				`${path} is malformed: ${err}`,
+				`${String(path)} is malformed: ${err}`,
 				path
 			);
 		}
@@ -211,7 +211,7 @@ export class FileSystemStorage extends Storage<FilePath, FileData> {
 		if (notNormalized) {
 			throw new FileSystemStorageError(
 				'not_normalized_path',
-				`${path} is not normalized`,
+				`${String(path)} is not normalized`,
 				path,
 				pathParts
 			);
@@ -221,7 +221,7 @@ export class FileSystemStorage extends Storage<FilePath, FileData> {
 		if (pathParts.find(v => /[\/\?<>\\:\*\|":\x00-\x1f\x80-\x9f]/.test(v))) {
 			throw new FileSystemStorageError(
 				'forbidden_characters',
-				`${path} has forbidden characters`,
+				`${String(path)} has forbidden characters`,
 				path,
 				pathParts
 			);
@@ -234,14 +234,14 @@ export class FileSystemStorage extends Storage<FilePath, FileData> {
 			if (emptyPartIndex !== pathParts.length - 1) {
 				throw new FileSystemStorageError(
 					'consecutive_slashes',
-					`${path} have two consecutive slashes`,
+					`${String(path)} have two consecutive slashes`,
 					path,
 					pathParts
 				);
 			}
 			throw new FileSystemStorageError(
 				'trailing_slash',
-				`${path} have a trailing slash`,
+				`${String(path)} have a trailing slash`,
 				path,
 				pathParts
 			);
@@ -252,7 +252,7 @@ export class FileSystemStorage extends Storage<FilePath, FileData> {
 		if (ignorePattern && pathParts.find(v => ignorePattern.test(v))) {
 			throw new FileSystemStorageError(
 				'ignored_files',
-				`${path} is ignored`,
+				`${String(path)} is ignored`,
 				path,
 				pathParts
 			);

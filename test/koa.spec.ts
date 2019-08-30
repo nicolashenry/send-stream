@@ -1629,6 +1629,7 @@ describe('send(ctx, file)', () => {
 
 			// tslint:disable-next-line: max-classes-per-file
 			class ErrorStorage extends FileSystemStorage {
+				// tslint:disable-next-line: no-async-without-await
 				async close(
 					_si: StorageInfo<FileData>
 				) {
@@ -1665,6 +1666,7 @@ describe('send(ctx, file)', () => {
 						}
 					});
 				}
+				// tslint:disable-next-line: no-async-without-await
 				async close(
 					_si: StorageInfo<FileData>
 				) {
