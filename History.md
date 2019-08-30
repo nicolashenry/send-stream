@@ -1,4 +1,10 @@
 
+0.1.1
+==================
+
+* Add new linting rules
+* Update dependencies
+
 0.1.0
 ==================
 
