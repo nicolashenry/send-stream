@@ -38,7 +38,7 @@
     "supertest": "4.0.2",
     "ts-node": "8.4.1",
     "tslint": "5.20.0",
-    "tslint-consistent-codestyle": "1.15.1",
+    "tslint-consistent-codestyle": "1.16.0",
     "tslint-eslint-rules": "5.4.0",
     "tslint-microsoft-contrib": "6.2.0",
     "tslint-sonarts": "1.9.0",
