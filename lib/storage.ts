@@ -274,6 +274,7 @@ export abstract class Storage<Reference, AttachedData> {
 				{
 					'Content-Length': String(statusMessageBuffer.byteLength),
 					'Content-Type': 'text/plain; charset=UTF-8',
+					'X-Content-Type-Options': 'nosniff',
 					Allow: 'GET, HEAD'
 				},
 				new BufferStream(statusMessageBuffer)
@@ -298,7 +299,8 @@ export abstract class Storage<Reference, AttachedData> {
 				404,
 				{
 					'Content-Length': String(statusMessageBuffer.byteLength),
-					'Content-Type': 'text/plain; charset=UTF-8'
+					'Content-Type': 'text/plain; charset=UTF-8',
+					'X-Content-Type-Options': 'nosniff',
 				},
 				new BufferStream(statusMessageBuffer),
 				undefined,
@@ -355,6 +357,7 @@ export abstract class Storage<Reference, AttachedData> {
 						{
 							...responseHeaders,
 							'Content-Type': 'text/plain; charset=UTF-8',
+							'X-Content-Type-Options': 'nosniff',
 							'Content-Length': String(statusMessageBuffer.byteLength)
 						},
 						new BufferStream(statusMessageBuffer),
@@ -372,6 +375,7 @@ export abstract class Storage<Reference, AttachedData> {
 				: this.createContentType(storageInfo);
 			if (contentType) {
 				responseHeaders['Content-Type'] = contentType;
+				responseHeaders['X-Content-Type-Options'] = 'nosniff';
 			}
 
 			const contentDispositionType = opts.contentDispositionType !== undefined
@@ -419,6 +423,7 @@ export abstract class Storage<Reference, AttachedData> {
 							{
 								'Content-Range': contentRange('bytes', size),
 								'Content-Type': 'text/plain; charset=UTF-8',
+								'X-Content-Type-Options': 'nosniff',
 								'Content-Length': String(statusMessageBuffer.byteLength)
 							},
 							new BufferStream(statusMessageBuffer),
@@ -441,6 +446,7 @@ export abstract class Storage<Reference, AttachedData> {
 						} else {
 							const boundary = `----SendStreamBoundary${(await randomBytes(24)).toString('hex')}`;
 							responseHeaders['Content-Type'] = `multipart/byteranges; boundary=${boundary}`;
+							responseHeaders['X-Content-Type-Options'] = 'nosniff';
 							rangeToUse = [];
 							contentLength = 0;
 							for (let i = 0; i < parsedRanges.length; i++) {
