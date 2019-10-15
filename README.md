@@ -37,8 +37,10 @@ const storage = new FileSystemStorage(__dirname);
 
 const app = http.createServer(async (req, res) => {
   try {
-    // prepare response from url path and transfert it to response
-    (await storage.prepareResponse(req.url, req)).send(res);
+    // prepare response from url path
+    const result = await storage.prepareResponse(req.url, req);
+    // transfert it to response
+    result.send(res);
   } catch (err) {
     // error handling
     console.error(err);
