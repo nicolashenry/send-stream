@@ -1364,37 +1364,6 @@ describe('send(ctx, file)', () => {
 	});
 
 	describe('when error occurs on stream', () => {
-		it('should handle errors to a simple request', done => {
-			const app = new Koa<object>();
-
-			app.use(async ctx => {
-				const res = await send(ctx, __dirname, '/fixtures-koa/hello.txt');
-				ctx.flushHeaders();
-				res.stream.destroy(new Error('oops'));
-			});
-
-			request(app.listen())
-				.get('/')
-				.expect(200)
-				.end(done);
-		});
-
-		it('should handle errors to a simple range request', done => {
-			const app = new Koa<object>();
-
-			app.use(async ctx => {
-				const res = await send(ctx, __dirname, '/fixtures-koa/hello.txt');
-				ctx.flushHeaders();
-				res.stream.destroy(new Error('oops'));
-			});
-
-			request(app.listen())
-				.get('/')
-				.set('Range', 'bytes=0-0')
-				.expect(206)
-				.end(done);
-		});
-
 		it('should handle errors to a multiple range request', done => {
 			const app = new Koa<object>();
 
@@ -1411,35 +1380,6 @@ describe('send(ctx, file)', () => {
 				.catch(() => {
 					done();
 				});
-		});
-
-		it('should handle errors to a simple request before headers', done => {
-			const app = new Koa<object>();
-
-			app.use(async ctx => {
-				const res = await send(ctx, __dirname, '/fixtures-koa/hello.txt');
-				res.stream.destroy(new Error('oops'));
-			});
-
-			request(app.listen())
-				.get('/')
-				.expect(500)
-				.end(done);
-		});
-
-		it('should handle errors to a simple range request before headers', done => {
-			const app = new Koa<object>();
-
-			app.use(async ctx => {
-				const res = await send(ctx, __dirname, '/fixtures-koa/hello.txt');
-				res.stream.destroy(new Error('oops'));
-			});
-
-			request(app.listen())
-				.get('/')
-				.set('Range', 'bytes=0-0')
-				.expect(500)
-				.end(done);
 		});
 
 		it('should handle errors to a multiple range request before headers', done => {
