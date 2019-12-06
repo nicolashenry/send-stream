@@ -2,7 +2,7 @@
   "name": "send-stream",
   "description": "Streaming file server with Range and conditional-GET support from file system or any streaming sources.",
   "repository": "github:nicolashenry/send-stream",
-  "version": "0.2.0",
+  "version": "0.2.1",
   "keywords": [
     "static",
     "file",
