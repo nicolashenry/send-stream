@@ -5,7 +5,7 @@ import { Readable } from 'stream';
 import { promisify } from 'util';
 
 import { Storage, StorageRequestHeaders, StorageOptions } from './storage';
-import { acceptEncodings } from './utils';
+import { acceptEncodings, StreamRange } from './utils';
 import { StorageError, StorageInfo } from './response';
 
 /**
@@ -48,8 +48,8 @@ export interface FSModule {
 		path: string,
 		options: {
 			fd: number;
-			start: number;
-			end: number;
+			start?: number;
+			end?: number;
 			autoClose: boolean;
 		}
 	): Readable;
@@ -270,11 +270,8 @@ export class FileSystemStorage extends Storage<FilePath, FileData> {
 		let fd;
 		try {
 			fd = await this.fsOpen(path, this.fsConstants.O_RDONLY);
-		} catch (err) {
-			const error = <NodeJS.ErrnoException> err;
-			if (error.code !== 'ENOENT') {
-				throw error;
-			}
+		} catch {
+			// noop if an error happens while trying to open file
 		}
 		return fd;
 	}
@@ -422,25 +419,28 @@ export class FileSystemStorage extends Storage<FilePath, FileData> {
 	/**
 	 * Create readable stream from storage information
 	 * @param storageInfo storage information
-	 * @param start start index
-	 * @param end end index
+	 * @param range range to use or undefined if size is unknown
 	 * @param autoClose true if stream should close itself
 	 * @returns readable stream
 	 */
 	createReadableStream(
 		storageInfo: StorageInfo<FileData>,
-		start: number,
-		end: number,
+		range: StreamRange | undefined,
 		autoClose: boolean
 	): Readable {
 		const attachedData = storageInfo.attachedData;
 		return this.fsCreateReadStream(
 			attachedData.resolvedPath,
-			{
+			range !== undefined
+			? {
 				fd: attachedData.fd,
 				autoClose,
-				start,
-				end
+				start: range.start,
+				end: range.end
+			}
+			: {
+				fd: attachedData.fd,
+				autoClose
 			}
 		);
 	}

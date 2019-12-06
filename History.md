@@ -1,4 +1,13 @@
 
+0.2.0
+==================
+
+* Breaking change: storage now takes a range object (which can be undefined) instead of start/end parameter
+* File size/modification date/name are now optional in storage result
+* 100% code coverage
+* All file opening errors are now 404
+* A parameter have been added to allow http methods different than GET and HEAD
+
 0.1.1
 ==================
 

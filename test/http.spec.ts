@@ -4,12 +4,16 @@ import * as http from 'http';
 import * as http2 from 'http2';
 import { normalize, join } from 'path';
 import request from 'supertest';
+import { Readable } from 'stream';
 
 import {
 	FileSystemStorageOptions,
 	FileSystemStorage,
 	PrepareResponseOptions,
-	getFreshStatus
+	getFreshStatus,
+	StorageInfo,
+	FileData,
+	StreamRange
 } from '../lib';
 
 // tslint:disable:no-identical-functions
@@ -148,6 +152,24 @@ describe('send(file).pipe(res)', () => {
 			.end(done);
 	});
 
+	it('should error if no method', done => {
+		const storage = new FileSystemStorage(fixtures, { weakEtags: true });
+		const app = http.createServer(async (req, res) => {
+			try {
+				req.method = '';
+				// tslint:disable-next-line: no-non-null-assertion
+				(await storage.prepareResponse(req.url!, req)).send(res);
+			} catch (err) {
+				res.statusCode = 500;
+				res.end(String(err));
+			}
+		});
+		request(app)
+			.get('/name.txt')
+			.expect(500)
+			.end(done);
+	});
+
 	it('should add a Date header field', done => {
 		request(mainApp)
 			.get('/name.txt')
@@ -169,6 +191,12 @@ describe('send(file).pipe(res)', () => {
 	it('should 404 if the file does not exist', done => {
 		request(mainApp)
 			.get('/meow')
+			.expect(404, done);
+	});
+
+	it('should 404 if the file does not exist (HEAD)', done => {
+		request(mainApp)
+			.head('/meow')
 			.expect(404, done);
 	});
 
@@ -380,6 +408,13 @@ describe('send(file).pipe(res)', () => {
 					.expect(412, done);
 			});
 
+			it('should respond with 412 when ETag unmatched (HEAD)', done => {
+				request(mainApp)
+					.head('/name.txt')
+					.set('If-Match', ' "foo", "bar" ')
+					.expect(412, done);
+			});
+
 			it('should respond with 412 when weak ETag matched', done => {
 				const storage = new FileSystemStorage(fixtures, { weakEtags: true });
 				const app = http.createServer(async (req, res) => {
@@ -476,6 +511,32 @@ describe('send(file).pipe(res)', () => {
 					});
 			});
 
+			it('should respond with 304 when weak ETag matched', done => {
+				const storage = new FileSystemStorage(fixtures, { weakEtags: true });
+				const app = http.createServer(async (req, res) => {
+					try {
+						// tslint:disable-next-line: no-non-null-assertion
+						(await storage.prepareResponse(req.url!, req)).send(res);
+					} catch (err) {
+						res.statusCode = 500;
+						res.end(String(err));
+					}
+				});
+				request(app)
+					.get('/name.txt')
+					.expect(200, (err, res) => {
+						if (err) {
+							done(err);
+							return;
+						}
+						request(mainApp)
+							.get('/name.txt')
+							// tslint:disable-next-line: no-unsafe-any
+							.set('If-None-Match', res.header.etag)
+							.expect(304, done);
+					});
+			});
+
 			it('should respond with 200 when ETag unmatched', done => {
 				request(mainApp)
 					.get('/name.txt')
@@ -493,7 +554,7 @@ describe('send(file).pipe(res)', () => {
 
 			it('should respond with 412 when ETag matched on not GET or HEAD', done => {
 				assert.strictEqual(
-					getFreshStatus('POST', { 'if-none-match': '"123"' }, '"123"', false), 412);
+					getFreshStatus(false, { 'if-none-match': '"123"' }, '"123"', false), 412);
 				done();
 			});
 		});
@@ -1064,13 +1125,29 @@ describe('send(file, options)', () => {
 
 			it('should restrict paths to within root', done => {
 				request(createServer({ root: fixtures }))
-					.get('/pets/../../send.js')
+					.get('/pets/../../http.spec.ts')
+					.expect(404, done);
+			});
+
+			it('should restrict paths to within root with path parts', done => {
+				const storage = new FileSystemStorage(fixtures);
+				const app = http.createServer(async (req, res) => {
+					try {
+						// tslint:disable-next-line: no-non-null-assertion
+						(await storage.prepareResponse(req.url!.split('/'), req)).send(res);
+					} catch (err) {
+						res.statusCode = 500;
+						res.end(String(err));
+					}
+				});
+				request(app)
+					.get('/pets/../../http.spec.ts')
 					.expect(404, done);
 			});
 
 			it('should allow .. in root', done => {
 				request(createServer({ root: `${ fixtures }/../fixtures-http` }))
-					.get('/pets/../../send.js')
+					.get('/pets/../../http.spec.ts')
 					.expect(404, done);
 			});
 
@@ -1090,7 +1167,7 @@ describe('send(file, options)', () => {
 		describe('when missing', () => {
 			it('should consider .. malicious', done => {
 				request(mainApp)
-					.get('/../send.js')
+					.get('/../http.spec.ts')
 					.expect(404, done);
 			});
 
@@ -1113,6 +1190,19 @@ describe('send(file, options)', () => {
 			request(mainApp)
 				.post('/name.txt')
 				.expect('Allow', 'GET, HEAD')
+				.expect(405, done);
+		});
+
+		it('should not 405 on post allowed', done => {
+			request(createServer({ root: fixtures, allowedMethods: ['POST'] }))
+				.post('/name.txt')
+				.expect(200, done);
+		});
+
+		it('should 405 on head not allowed', done => {
+			request(createServer({ root: fixtures, allowedMethods: ['GET'] }))
+				.post('/name.txt')
+				.expect('Allow', 'GET')
 				.expect(405, done);
 		});
 	});
@@ -1152,6 +1242,165 @@ describe('when something happenned too soon', () => {
 			.catch(() => {
 				done();
 			});
+	});
+
+	it('should handle stream pipe error', done => {
+		class ErrorStorage extends FileSystemStorage {
+			createReadableStream(
+				si: StorageInfo<FileData>,
+				_range: StreamRange | undefined,
+				_autoclose: boolean
+			): Readable {
+				// tslint:disable-next-line: no-this-assignment
+				const st = this;
+				return new (class extends Readable {
+					pipe<T extends NodeJS.WritableStream>(_destination: T, _options?: { end?: boolean }): T {
+						throw new Error('oops');
+					}
+					// tslint:disable-next-line: function-name
+					async _destroy(error: Error | null, callback: (error?: Error | null) => void) {
+						await st.close(si);
+						callback(error);
+					}
+				})();
+			}
+		}
+
+		const errorStorage = new ErrorStorage(fixtures);
+
+		const app = http.createServer(async (req, res) => {
+			try {
+				// tslint:disable-next-line: no-non-null-assertion
+				(await errorStorage.prepareResponse(req.url!, req)).send(res);
+			} catch (err) {
+				res.statusCode = 500;
+				res.end(String(err));
+			}
+		});
+
+		request(app.listen())
+			.get('/nums.txt')
+			.catch(() => {
+				done();
+			});
+	});
+
+	it('should handle stream read error on already closed stream', done => {
+		class ErrorStorage extends FileSystemStorage {
+			createReadableStream(
+				si: StorageInfo<FileData>,
+				_range: StreamRange | undefined,
+				_autoclose: boolean
+			): Readable {
+				// tslint:disable-next-line: no-this-assignment
+				const st = this;
+				return new (class extends Readable {
+					pipe<T extends NodeJS.WritableStream>(_destination: T, _options?: { end?: boolean }): T {
+						throw new Error('oops');
+					}
+					// tslint:disable-next-line: function-name
+					async _destroy(error: Error | null, callback: (error?: Error | null) => void) {
+						await st.close(si);
+						callback(error);
+					}
+				})();
+			}
+		}
+
+		const errorStorage = new ErrorStorage(fixtures);
+
+		const app = http.createServer(async (req, res) => {
+			try {
+				// tslint:disable-next-line: no-non-null-assertion
+				const resp = await errorStorage.prepareResponse(req.url!, req);
+				// tslint:disable-next-line: no-unbound-method
+				const p = resp.stream.pipe;
+				resp.stream.pipe = function <T extends NodeJS.WritableStream>(
+					// tslint:disable-next-line: no-unnecessary-type-annotation
+					this: ReadableStream, destination: T, options?: { end?: boolean }
+				): T {
+					res.destroy();
+					// tslint:disable-next-line: no-any
+					return <any> p.call(this, destination, options);
+				};
+				resp.send(res);
+			} catch (err) {
+				res.statusCode = 500;
+				res.end(String(err));
+			}
+		});
+
+		request(app.listen())
+			.get('/nums.txt')
+			.catch(() => {
+				done();
+			});
+	});
+
+	it('should handle stream read error on already closed stream (http2)', done => {
+		class ErrorStorage extends FileSystemStorage {
+			createReadableStream(
+				si: StorageInfo<FileData>,
+				_range: StreamRange | undefined,
+				_autoclose: boolean
+			): Readable {
+				// tslint:disable-next-line: no-this-assignment
+				const st = this;
+				// tslint:disable-next-line: max-classes-per-file
+				return new (class extends Readable {
+					pipe<T extends NodeJS.WritableStream>(_destination: T, _options?: { end?: boolean }): T {
+						throw new Error('oops');
+					}
+					// tslint:disable-next-line: function-name
+					async _destroy(error: Error | null, callback: (error?: Error | null) => void) {
+						await st.close(si);
+						callback(error);
+					}
+				})();
+			}
+		}
+
+		const errorStorage = new ErrorStorage(fixtures);
+
+		const app = http2.createServer(async (req, res) => {
+			try {
+				const resp = await errorStorage.prepareResponse(req.url, req);
+				// tslint:disable-next-line: no-unbound-method
+				const p = resp.stream.pipe;
+				resp.stream.pipe = function <T extends NodeJS.WritableStream>(
+					// tslint:disable-next-line: no-unnecessary-type-annotation
+					this: ReadableStream, destination: T, options?: { end?: boolean }
+				): T {
+					res.stream.destroy();
+					// tslint:disable-next-line: no-any
+					return <any> p.call(this, destination, options);
+				};
+				resp.send(res);
+			} catch (err) {
+				res.statusCode = 500;
+				res.end(String(err));
+			}
+		});
+
+		app.listen(0, () => {
+			const address = app.address();
+			if (!address || typeof address === 'string') {
+				throw new Error('should not happen');
+			}
+			const client = http2.connect(`http://localhost:${ address.port }`);
+
+			const req = client.request({ ':path': '/name.txt' });
+
+			req.setEncoding('utf8');
+
+			req.on('end', () => {
+				client.close();
+				app.close();
+				done();
+			});
+
+			req.end();
+		});
 	});
 });
 
@@ -1416,6 +1665,75 @@ describe('http2 server', () => {
 				}
 				client.close();
 				app.close();
+			});
+			req.end();
+		});
+	});
+
+	it('should 500 on missing method', done => {
+		const storage = new FileSystemStorage(fixtures);
+		const app = http2.createServer();
+
+		app.on('stream', async (stream, headers) => {
+			try {
+				headers[':method'] = '';
+				(await storage.prepareResponse(
+					// tslint:disable-next-line: no-non-null-assertion
+					headers[':path']!,
+					headers
+				)).send(stream);
+			} catch {
+				stream.respond({ ':status': 500 });
+				stream.end();
+			}
+		});
+
+		let hasError = false;
+		app.on('error', err => {
+			app.close();
+			if (!hasError) {
+				done(err);
+				hasError = true;
+			}
+		});
+
+		app.listen(0, () => {
+			const address = app.address();
+			if (!address || typeof address === 'string') {
+				throw new Error('should not happen');
+			}
+			const client = http2.connect(`http://localhost:${ address.port }`);
+
+			client.on('error', err => {
+				client.close();
+				app.close();
+				if (!hasError) {
+					done(err);
+					hasError = true;
+				}
+			});
+
+			const req = client.request({ ':path': '/name.txt' });
+
+			req.on('response', headers => {
+				if (headers[':status'] === 500) {
+					return;
+				}
+				client.close();
+				app.close();
+				if (!hasError) {
+					done(new Error(`status received ${ headers[':status'] } does not equals 500`));
+					hasError = true;
+				}
+			});
+
+			req.setEncoding('utf8');
+			req.on('end', () => {
+				client.close();
+				app.close();
+				if (!hasError) {
+					done();
+				}
 			});
 			req.end();
 		});

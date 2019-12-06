@@ -16,7 +16,7 @@ import {
 	isRangeFresh,
 	contentRange,
 	randomBytes,
-	Range,
+	StreamRange,
 	ResponseHeaders,
 	CharsetMapping
 } from './utils';
@@ -68,6 +68,12 @@ export interface PrepareResponseOptions {
 	 * Defaults to `undefined`
 	 */
 	statusCode?: number;
+	/**
+	 * By default GET and HEAD are the only allowed http methods, set this parameter to change allowed methods
+	 *
+	 * Defaults to `['GET', 'HEAD']`
+	 */
+	allowedMethods?: string[];
 }
 
 /**
@@ -157,15 +163,13 @@ export abstract class Storage<Reference, AttachedData> {
 	/**
 	 * Create readable stream from storage information
 	 * @param storageInfo storage information
-	 * @param start start index
-	 * @param end end index
+	 * @param range range to use or undefined if size is unknown
 	 * @param autoClose true if stream should close itself
 	 * @returns readable stream
 	 */
 	abstract createReadableStream(
 		storageInfo: StorageInfo<AttachedData>,
-		start: number,
-		end: number,
+		range: StreamRange | undefined,
 		autoClose: boolean
 	): Readable;
 
@@ -181,6 +185,9 @@ export abstract class Storage<Reference, AttachedData> {
 	 * @returns last-mofified header
 	 */
 	createLastModified(storageInfo: StorageInfo<AttachedData>): string | false {
+		if (storageInfo.mtimeMs === undefined) {
+			return false;
+		}
 		return millisecondsToUTCString(storageInfo.mtimeMs);
 	}
 
@@ -190,6 +197,9 @@ export abstract class Storage<Reference, AttachedData> {
 	 * @returns etag header
 	 */
 	createEtag(storageInfo: StorageInfo<AttachedData>): string | false {
+		if (storageInfo.size === undefined || storageInfo.mtimeMs === undefined) {
+			return false;
+		}
 		return statsToEtag(storageInfo.size, storageInfo.mtimeMs, storageInfo.contentEncoding, this.weakEtags);
 	}
 
@@ -209,6 +219,9 @@ export abstract class Storage<Reference, AttachedData> {
 	 * @returns content-type header
 	 */
 	createContentType(storageInfo: StorageInfo<AttachedData>): string | undefined {
+		if (!storageInfo.fileName) {
+			return undefined;
+		}
 		const type = this.mimeModule.getType(storageInfo.fileName);
 		if (!type) {
 			return this.defaultContentType;
@@ -265,7 +278,11 @@ export abstract class Storage<Reference, AttachedData> {
 			method = req[':method'];
 			requestHeaders = req;
 		}
-		if (method !== 'GET' && method !== 'HEAD') {
+		const isGetMethod = method === 'GET';
+		const isHeadMethod = method === 'HEAD';
+		const isGetOrHead = isGetMethod || isHeadMethod;
+		const allowedMethods = opts.allowedMethods;
+		if (allowedMethods ? !allowedMethods.includes(method) : !isGetOrHead) {
 			// Method Not Allowed
 			// tslint:disable-next-line: no-non-null-assertion
 			const statusMessageBuffer = Buffer.from(http.STATUS_CODES[405]!);
@@ -275,15 +292,11 @@ export abstract class Storage<Reference, AttachedData> {
 					'Content-Length': String(statusMessageBuffer.byteLength),
 					'Content-Type': 'text/plain; charset=UTF-8',
 					'X-Content-Type-Options': 'nosniff',
-					Allow: 'GET, HEAD'
+					Allow: allowedMethods ? allowedMethods.join(', ') : 'GET, HEAD'
 				},
 				new BufferStream(statusMessageBuffer)
 			);
 		}
-		let rangeToUse: Range | (Range | Buffer)[];
-		const fullResponse = opts.statusCode !== undefined;
-		let statusCode = opts.statusCode !== undefined ? opts.statusCode : 200;
-		const responseHeaders: ResponseHeaders = { };
 		let earlyClose = false;
 		let storageInfo;
 		try {
@@ -302,12 +315,13 @@ export abstract class Storage<Reference, AttachedData> {
 					'Content-Type': 'text/plain; charset=UTF-8',
 					'X-Content-Type-Options': 'nosniff',
 				},
-				new BufferStream(statusMessageBuffer),
+				isHeadMethod ? new EmptyStream() : new BufferStream(statusMessageBuffer),
 				undefined,
 				error instanceof StorageError ? error : new StorageError('unknown_error', 'Unknown error', error)
 			);
 		}
 		try {
+			const responseHeaders: ResponseHeaders = { };
 			const cacheControl = opts.cacheControl !== undefined
 				? opts.cacheControl
 				: this.createCacheControl(storageInfo);
@@ -327,6 +341,7 @@ export abstract class Storage<Reference, AttachedData> {
 				? opts.etag
 				: this.createEtag(storageInfo);
 
+			const fullResponse = opts.statusCode !== undefined;
 			if (!fullResponse) {
 				if (lastModified) {
 					responseHeaders['Last-Modified'] = lastModified;
@@ -336,7 +351,7 @@ export abstract class Storage<Reference, AttachedData> {
 					responseHeaders['ETag'] = etag;
 				}
 
-				const freshStatus = getFreshStatus(method, requestHeaders, etag, lastModified);
+				const freshStatus = getFreshStatus(isGetOrHead, requestHeaders, etag, lastModified);
 				switch (freshStatus) {
 				case 304:
 					earlyClose = true;
@@ -360,7 +375,7 @@ export abstract class Storage<Reference, AttachedData> {
 							'X-Content-Type-Options': 'nosniff',
 							'Content-Length': String(statusMessageBuffer.byteLength)
 						},
-						new BufferStream(statusMessageBuffer),
+						isHeadMethod ? new EmptyStream() : new BufferStream(statusMessageBuffer),
 						storageInfo
 					);
 				}
@@ -394,107 +409,114 @@ export abstract class Storage<Reference, AttachedData> {
 				);
 			}
 
-			const maxRanges = this.maxRanges;
+			let statusCode = opts.statusCode !== undefined ? opts.statusCode : 200;
 			const size = storageInfo.size;
-			let contentLength;
-			if (maxRanges <= 0 || fullResponse) {
+			let rangeToUse: StreamRange | (StreamRange | Buffer)[] | undefined;
+			if (size === undefined) {
 				responseHeaders['Accept-Ranges'] = 'none';
-				rangeToUse = { start: 0, end: size - 1 };
-				contentLength = size;
+				rangeToUse = undefined;
 			} else {
-				responseHeaders['Accept-Ranges'] = 'bytes';
-				const rangeHeader = requestHeaders['range'];
-				if (
-					!rangeHeader
-					|| !isRangeFresh(requestHeaders, etag, lastModified)
-					|| (method !== 'GET' && method !== 'HEAD')
-				) {
-					rangeToUse = { start: 0, end: size - 1 };
+				const maxRanges = this.maxRanges;
+				let contentLength;
+				if (maxRanges <= 0 || fullResponse || !isGetOrHead) {
+					responseHeaders['Accept-Ranges'] = 'none';
+					rangeToUse = new StreamRange(0, size - 1);
 					contentLength = size;
 				} else {
-					const parsedRanges = parseRange(size, rangeHeader, { combine: true });
-					if (parsedRanges === -1) {
-						earlyClose = true;
-						// Range Not Satisfiable
-						// tslint:disable-next-line: no-non-null-assertion
-						const statusMessageBuffer = Buffer.from(http.STATUS_CODES[416]!);
-						return new StreamResponse(
-							416,
-							{
-								'Content-Range': contentRange('bytes', size),
-								'Content-Type': 'text/plain; charset=UTF-8',
-								'X-Content-Type-Options': 'nosniff',
-								'Content-Length': String(statusMessageBuffer.byteLength)
-							},
-							new BufferStream(statusMessageBuffer),
-							storageInfo
-						);
-					}
-					if (parsedRanges === -2
-						|| parsedRanges.type !== 'bytes'
-						|| parsedRanges.length > maxRanges
+					responseHeaders['Accept-Ranges'] = 'bytes';
+					const rangeHeader = requestHeaders['range'];
+					if (
+						!rangeHeader
+						|| !isRangeFresh(requestHeaders, etag, lastModified)
 					) {
-						rangeToUse = { start: 0, end: size - 1 };
+						rangeToUse = new StreamRange(0, size - 1);
 						contentLength = size;
 					} else {
-						statusCode = 206;
-						if (parsedRanges.length === 1) {
-							const singleRange = parsedRanges[0];
-							responseHeaders['Content-Range'] = contentRange('bytes', size, singleRange);
-							rangeToUse = singleRange;
-							contentLength = (singleRange.end + 1) - singleRange.start;
+						const parsedRanges = parseRange(size, rangeHeader, { combine: true });
+						if (parsedRanges === -1) {
+							earlyClose = true;
+							// Range Not Satisfiable
+							// tslint:disable-next-line: no-non-null-assertion
+							const statusMessageBuffer = Buffer.from(http.STATUS_CODES[416]!);
+							return new StreamResponse(
+								416,
+								{
+									'Content-Range': contentRange('bytes', size),
+									'Content-Type': 'text/plain; charset=UTF-8',
+									'X-Content-Type-Options': 'nosniff',
+									'Content-Length': String(statusMessageBuffer.byteLength)
+								},
+								new BufferStream(statusMessageBuffer),
+								storageInfo
+							);
+						}
+						if (parsedRanges === -2
+							|| parsedRanges.type !== 'bytes'
+							|| parsedRanges.length > maxRanges
+						) {
+							rangeToUse = new StreamRange(0, size - 1);
+							contentLength = size;
 						} else {
-							const boundary = `----SendStreamBoundary${(await randomBytes(24)).toString('hex')}`;
-							responseHeaders['Content-Type'] = `multipart/byteranges; boundary=${boundary}`;
-							responseHeaders['X-Content-Type-Options'] = 'nosniff';
-							rangeToUse = [];
-							contentLength = 0;
-							for (let i = 0; i < parsedRanges.length; i++) {
-								const range = parsedRanges[i];
-								let header = `${i > 0 ? '\r\n' : ''}--${boundary}\r\n`;
-								if (contentType) {
-									header += `content-type: ${contentType}\r\n`;
+							statusCode = 206;
+							if (parsedRanges.length === 1) {
+								const singleRange = parsedRanges[0];
+								responseHeaders['Content-Range'] = contentRange('bytes', size, singleRange);
+								rangeToUse = new StreamRange(singleRange.start, singleRange.end);
+								contentLength = (singleRange.end + 1) - singleRange.start;
+							} else {
+								const boundary = `----SendStreamBoundary${(await randomBytes(24)).toString('hex')}`;
+								responseHeaders['Content-Type'] = `multipart/byteranges; boundary=${boundary}`;
+								responseHeaders['X-Content-Type-Options'] = 'nosniff';
+								rangeToUse = [];
+								contentLength = 0;
+								for (let i = 0; i < parsedRanges.length; i++) {
+									const range = parsedRanges[i];
+									let header = `${i > 0 ? '\r\n' : ''}--${boundary}\r\n`;
+									if (contentType) {
+										header += `content-type: ${contentType}\r\n`;
+									}
+									header += `content-range: ${contentRange('bytes', size, range)}\r\n\r\n`;
+									const headerBuffer = Buffer.from(header);
+									rangeToUse.push(headerBuffer);
+									contentLength += headerBuffer.byteLength;
+									rangeToUse.push(new StreamRange(range.start, range.end));
+									contentLength += (range.end + 1) - range.start;
 								}
-								header += `content-range: ${contentRange('bytes', size, range)}\r\n\r\n`;
-								const headerBuffer = Buffer.from(header);
-								rangeToUse.push(headerBuffer);
-								contentLength += headerBuffer.byteLength;
-								rangeToUse.push(range);
-								contentLength += (range.end + 1) - range.start;
+								const footer = `\r\n--${boundary}--`;
+								const footerBuffer = Buffer.from(footer);
+								rangeToUse.push(footerBuffer);
+								contentLength += footerBuffer.byteLength;
 							}
-							const footer = `\r\n--${boundary}--`;
-							const footerBuffer = Buffer.from(footer);
-							rangeToUse.push(footerBuffer);
-							contentLength += footerBuffer.byteLength;
 						}
 					}
 				}
+				responseHeaders['Content-Length'] = String(contentLength);
 			}
-			responseHeaders['Content-Length'] = String(contentLength);
 
 			let stream: Readable;
-			if (method === 'HEAD') {
+			if (isHeadMethod) {
 				earlyClose = true;
 				stream = new EmptyStream();
+			} else if (rangeToUse === undefined) {
+				stream = this.createReadableStream(storageInfo, undefined, true);
 			} else if (!Array.isArray(rangeToUse)) {
 				if (rangeToUse.end < rangeToUse.start) {
 					earlyClose = true;
 					stream = new EmptyStream();
 				} else {
-					stream = this.createReadableStream(storageInfo, rangeToUse.start, rangeToUse.end, true);
+					stream = this.createReadableStream(storageInfo, rangeToUse, true);
 				}
 			} else {
 				const si = storageInfo;
 				const rangeStreams = rangeToUse.map(range => {
-					if (Buffer.isBuffer(range)) {
-						return new BufferStream(range);
+					if (range instanceof StreamRange) {
+						return this.createReadableStream(
+							si,
+							range,
+							false
+						);
 					}
-					return this.createReadableStream(
-						si,
-						range.start,
-						range.end,
-						false
-					);
+					return new BufferStream(range);
 				});
 				stream = new MultiStream(rangeStreams, async () => this.close(si));
 			}

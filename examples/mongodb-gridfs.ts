@@ -5,7 +5,7 @@ import * as mongodb from 'mongodb';
 import { Readable } from 'stream';
 import { basename } from 'path';
 
-import { Storage, StorageOptions, StorageRequestHeaders, StorageInfo, StorageError } from '../lib';
+import { Storage, StorageOptions, StorageRequestHeaders, StorageInfo, StorageError, StreamRange } from '../lib';
 
 const uri = 'mongodb://localhost:27017';
 const dbName = 'test';
@@ -62,8 +62,8 @@ class GridFSStorage extends Storage<string, File> {
 		return super.createEtag(storageInfo);
 	}
 
-	createReadableStream(storageInfo: StorageInfo<File>, start: number, end: number, autoClose: boolean): Readable {
-		const result = this.bucket.openDownloadStream(storageInfo.attachedData._id, { start, end });
+	createReadableStream(storageInfo: StorageInfo<File>, range: StreamRange | undefined, autoClose: boolean): Readable {
+		const result = this.bucket.openDownloadStream(storageInfo.attachedData._id, range);
 		if (autoClose) {
 			result.once('end', () => {
 				result.destroy();

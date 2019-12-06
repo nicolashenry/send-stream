@@ -16,10 +16,14 @@ import {
 	StorageInfo,
 	FileSystemStorageOptions,
 	StreamResponse,
-	FileData
+	FileData,
+	StreamRange,
+	FilePath,
+	StorageRequestHeaders,
+	BufferStream
 } from '../lib';
 
-// tslint:disable:no-identical-functions
+// tslint:disable:no-identical-functions max-classes-per-file
 
 function brotliParser(res: request.Response, cb: (err: Error | null, body: unknown) => void) {
 	const decompress = res.pipe(decompressStream());
@@ -325,6 +329,36 @@ describe('send(ctx, file)', () => {
 				.expect(404, done);
 		});
 
+		it('should 404 when identity is not accepted', done => {
+			const app = new Koa<object>();
+
+			app.use(async ctx => {
+				const p = '/fixtures-koa/hello.txt';
+				await send(ctx, __dirname, p, {
+					contentEncodingMappings: [
+						{
+							matcher: /^(.*\.txt)$/,
+							encodings: [
+								{
+									name: 'br',
+									path: '$1.br'
+								},
+								{
+									name: 'gzip',
+									path: '$1.gz'
+								}
+							]
+						}
+					]
+				});
+			});
+
+			request(app.listen())
+				.get('/')
+				.set('Accept-Encoding', 'br, gzip, identity;q=0')
+				.expect(404, done);
+		});
+
 		it('should return the path when a directory have the encoding extension', done => {
 			const app = new Koa<object>();
 
@@ -334,6 +368,42 @@ describe('send(ctx, file)', () => {
 					contentEncodingMappings: [
 						{
 							matcher: /^(.*\.txt)$/,
+							encodings: [
+								{
+									name: 'br',
+									path: '$1.br'
+								},
+								{
+									name: 'gzip',
+									path: '$1.gz'
+								}
+							]
+						}
+					]
+				});
+				assert.strictEqual(
+					sent.storageInfo ? sent.storageInfo.attachedData.resolvedPath : undefined,
+					join(__dirname, '/fixtures-koa/hello.txt')
+				);
+			});
+
+			request(app.listen())
+				.get('/')
+				.set('Accept-Encoding', 'br, gzip, identity')
+				.expect('Content-Length', '5')
+				.expect('world')
+				.expect(200, done);
+		});
+
+		it('should not return the path when a directory have the encoding extension but matcher not ok', done => {
+			const app = new Koa<object>();
+
+			app.use(async ctx => {
+				const p = '/fixtures-koa/hello.txt';
+				const sent = await send(ctx, __dirname, p, {
+					contentEncodingMappings: [
+						{
+							matcher: /^(.*\.json)$/,
 							encodings: [
 								{
 									name: 'br',
@@ -430,6 +500,41 @@ describe('send(ctx, file)', () => {
 			request(app.listen())
 				.get('/')
 				.set('Accept-Encoding', 'gzip, identity')
+				.expect('Content-Length', '18')
+				.expect('{ "name": "tobi" }')
+				.expect(200, done);
+		});
+
+		it('should return path if .gz path exists and accept encoding is not valid', done => {
+			const app = new Koa<object>();
+
+			app.use(async ctx => {
+				const sent = await send(ctx, __dirname, '/fixtures-koa/gzip.json', {
+					contentEncodingMappings: [
+						{
+							matcher: /^(.*\.json)$/,
+							encodings: [
+								{
+									name: 'br',
+									path: '$1.br'
+								},
+								{
+									name: 'gzip',
+									path: '$1.gz'
+								}
+							]
+						}
+					]
+				});
+				assert.strictEqual(
+					sent.storageInfo ? sent.storageInfo.attachedData.resolvedPath : undefined,
+					join(__dirname, '/fixtures-koa/gzip.json')
+				);
+			});
+
+			request(app.listen())
+				.get('/')
+				.set('Accept-Encoding', 'gzip, ùù')
 				.expect('Content-Length', '18')
 				.expect('{ "name": "tobi" }')
 				.expect(200, done);
@@ -1070,6 +1175,38 @@ describe('send(ctx, file)', () => {
 				.end(done);
 		});
 
+		it('should set the attachment with content-disposition module option and filename', done => {
+			const app = new Koa<object>();
+
+			app.use(async ctx => {
+				await send(ctx, __dirname, '/fixtures-koa/user.json', {
+					contentDispositionType: 'attachment',
+					contentDispositionFilename: 'plop.json'
+				});
+			});
+
+			request(app.listen())
+				.get('/')
+				.expect('Content-Disposition', 'attachment; filename="plop.json"')
+				.end(done);
+		});
+
+		it('should set the attachment with content-disposition module option and no filename', done => {
+			const app = new Koa<object>();
+
+			app.use(async ctx => {
+				await send(ctx, __dirname, '/fixtures-koa/user.json', {
+					contentDispositionType: 'attachment',
+					contentDispositionFilename: false
+				});
+			});
+
+			request(app.listen())
+				.get('/')
+				.expect('Content-Disposition', 'attachment')
+				.end(done);
+		});
+
 		it('should unset content-disposition with false option', done => {
 			const app = new Koa<object>();
 
@@ -1403,8 +1540,7 @@ describe('send(ctx, file)', () => {
 			class ErrorStorage extends FileSystemStorage {
 				createReadableStream(
 					_si: StorageInfo<FileData>,
-					_start: number,
-					_end: number,
+					_range: StreamRange | undefined,
 					_autoclose: boolean
 				) {
 					return new Readable({
@@ -1426,14 +1562,37 @@ describe('send(ctx, file)', () => {
 				.end(done);
 		});
 
+		it('should handle stream creation error', done => {
+			const app = new Koa<object>();
+
+			class ErrorStorage extends FileSystemStorage {
+				createReadableStream(
+					_si: StorageInfo<FileData>,
+					_range: StreamRange | undefined,
+					_autoclose: boolean
+				): Readable {
+					throw new Error('oops');
+				}
+			}
+			const storage = new ErrorStorage(__dirname);
+
+			app.use(async ctx => {
+				await sendStorage(ctx, storage, '/fixtures-koa/hello.txt');
+			});
+
+			request(app.listen())
+				.get('/')
+				.expect(500)
+				.end(done);
+		});
+
 		it('should handle read errors to a multiple range request', done => {
 			const app = new Koa<object>();
 
 			class ErrorStorage extends FileSystemStorage {
 				createReadableStream(
 					_si: StorageInfo<FileData>,
-					_start: number,
-					_end: number,
+					_range: StreamRange | undefined,
 					_autoclose: boolean
 				) {
 					return new Readable({
@@ -1465,13 +1624,12 @@ describe('send(ctx, file)', () => {
 			class ErrorStorage extends FileSystemStorage {
 				createReadableStream(
 					si: StorageInfo<FileData>,
-					start: number,
-					end: number,
+					range: StreamRange | undefined,
 					autoclose: boolean
 				) {
 					if (first) {
 						first = false;
-						return super.createReadableStream(si, start, end, autoclose);
+						return super.createReadableStream(si, range, autoclose);
 					}
 					return new Readable({
 						read() {
@@ -1503,18 +1661,17 @@ describe('send(ctx, file)', () => {
 				result?: StreamResponse<FileData>;
 				createReadableStream(
 					si: StorageInfo<FileData>,
-					start: number,
-					end: number,
+					range: StreamRange | undefined,
 					autoclose: boolean
 				) {
 					if (first) {
 						first = false;
-						return super.createReadableStream(si, start, end, autoclose);
+						return super.createReadableStream(si, range, autoclose);
 					}
 					if (this.result) {
 						this.result.stream.emit('error', new Error('ooops'));
 					}
-					return super.createReadableStream(si, start, end, autoclose);
+					return super.createReadableStream(si, range, autoclose);
 				}
 			}
 			const storage = new ErrorStorage(__dirname);
@@ -1539,14 +1696,13 @@ describe('send(ctx, file)', () => {
 				result?: StreamResponse<FileData>;
 				createReadableStream(
 					si: StorageInfo<FileData>,
-					start: number,
-					end: number,
+					range: StreamRange | undefined,
 					autoclose: boolean
 				) {
 					if (this.result) {
 						this.result.stream.emit('error', new Error('ooops'));
 					}
-					return super.createReadableStream(si, start, end, autoclose);
+					return super.createReadableStream(si, range, autoclose);
 				}
 			}
 			const storage = new ErrorStorage(__dirname);
@@ -1596,8 +1752,7 @@ describe('send(ctx, file)', () => {
 			class ErrorStorage extends FileSystemStorage {
 				createReadableStream(
 					_si: StorageInfo<FileData>,
-					_start: number,
-					_end: number,
+					_range: StreamRange | undefined,
 					_autoclose: boolean
 				) {
 					return new Readable({
@@ -1626,6 +1781,118 @@ describe('send(ctx, file)', () => {
 				.catch(() => {
 					done();
 				});
+		});
+
+		it('should handle unknown streams', done => {
+			const app = new Koa<object>();
+			class UnknownStorage extends FileSystemStorage {
+				async open(path: FilePath, requestHeaders: StorageRequestHeaders): Promise<StorageInfo<FileData>> {
+					const res = await super.open(path, requestHeaders);
+					res.size = undefined;
+					res.fileName = undefined;
+					res.mtimeMs = undefined;
+					return res;
+				}
+			}
+			const storage = new UnknownStorage(__dirname);
+
+			app.use(async ctx => {
+				await sendStorage(ctx, storage, '/fixtures-koa/hello.txt');
+			});
+
+			request(app.listen())
+				.get('/')
+				.expect('Transfer-Encoding', 'chunked')
+				.expect('Content-Disposition', 'inline')
+				.expect(res => {
+					if (res.get('Last-Modified')) {
+						throw new Error('Last-Modified should not be set');
+					}
+					if (res.get('ETag')) {
+						throw new Error('ETag should not be set');
+					}
+					if ((<Buffer> res.body).toString() !== 'world') {
+						throw new Error('incorrect body');
+					}
+				})
+				.expect(200)
+				.end(done);
+		});
+		it('should handle custom streams', done => {
+			const app = new Koa<object>();
+			class CustomStorage extends Storage<undefined, undefined> {
+				async open(_reference: undefined, _requestHeaders: StorageRequestHeaders) {
+					return {
+						attachedData: undefined
+					};
+				}
+				createReadableStream(
+					_storageInfo: StorageInfo<undefined>,
+					_range: StreamRange | undefined,
+					_autoClose: boolean
+				) {
+					return new BufferStream(Buffer.from('hello world'));
+				}
+				// tslint:disable-next-line: no-async-without-await
+				async close(_storageInfo: StorageInfo<undefined>) {
+					// noop
+				}
+			}
+			const storage = new CustomStorage();
+
+			app.use(async ctx => {
+				await sendStorage(ctx, storage, '/fixtures-koa/hello.txt');
+			});
+
+			request(app.listen())
+				.get('/')
+				.expect('Transfer-Encoding', 'chunked')
+				.expect('Content-Disposition', 'inline')
+				.expect(res => {
+					if (res.get('Last-Modified')) {
+						throw new Error('Last-Modified should not be set');
+					}
+					if (res.get('ETag')) {
+						throw new Error('ETag should not be set');
+					}
+					if ((<Buffer> res.body).toString() !== 'hello world') {
+						throw new Error('incorrect body');
+					}
+				})
+				.expect(200)
+				.end(done);
+		});
+
+		it('should handle custom streams open errors as 404', done => {
+			const app = new Koa<object>();
+			class CustomStorage extends Storage<undefined, undefined> {
+				// tslint:disable-next-line: no-async-without-await
+				async open(_reference: undefined, _requestHeaders: StorageRequestHeaders)
+				: Promise<StorageInfo<undefined>> {
+					throw new Error('oops');
+				}
+				createReadableStream(
+					_storageInfo: StorageInfo<undefined>,
+					_range: StreamRange | undefined,
+					_autoClose: boolean
+				) {
+					return new BufferStream(Buffer.from('hello world'));
+				}
+				// tslint:disable-next-line: no-async-without-await
+				async close(_storageInfo: StorageInfo<undefined>) {
+					// noop
+				}
+			}
+			const storage = new CustomStorage();
+
+			app.use(async ctx => {
+				await sendStorage(ctx, storage, '/fixtures-koa/hello.txt');
+			});
+
+			request(app.listen())
+				.get('/')
+				.expect(404)
+				.end(done);
 		});
 	});
 

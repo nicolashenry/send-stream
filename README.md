@@ -289,6 +289,18 @@ Example:
 await storage.prepareResponse(req.url, req, { statusCode: 404 })
 ```
 
+##### allowedMethods
+
+By default GET and HEAD are the only allowed http methods, set this parameter to change allowed methods
+
+`['GET', 'HEAD']` by default
+
+Example:
+
+```js
+await storage.prepareResponse(req.url, req, { allowedMethods: ['POST'] })
+```
+
 ### streamResponse.statusCode
 
 The status code that match the required resource.

@@ -36,15 +36,17 @@ export interface ResponseHeaders {
 /**
  * Range
  */
-export interface Range {
-	/**
-	 * start index
-	 */
-	start: number;
-	/**
-	 * end index
-	 */
-	end: number;
+export class StreamRange {
+	constructor(
+		/**
+		 * start index
+		 */
+		readonly start: number,
+		/**
+		 * end index
+		 */
+		readonly end: number,
+	) {}
 }
 
 /**
@@ -89,7 +91,7 @@ export function getContentTypeWithCharset(contentType: string, charsetMappings: 
  * @param weak generate weak etag
  * @returns etag
  */
-export function statsToEtag(size: number, mtimeMs: number, contentEncoding?: string, weak = false) {
+export function statsToEtag(size: number, mtimeMs: number, contentEncoding?: string, weak?: boolean) {
 	const encoding = contentEncoding && contentEncoding !== 'identity'
 		? `-${ contentEncoding }`
 		: '';
@@ -151,7 +153,7 @@ export function isRangeFresh(
  * @param range range to use (empty = *)
  * @returns content-range header
  */
-export function contentRange(rangeType: string, size: number, range?: Range) {
+export function contentRange(rangeType: string, size: number, range?: StreamRange) {
 	const rangeStr = range ? `${range.start}-${range.end}` : '*';
 	return `${rangeType} ${rangeStr}/${size}`;
 }
@@ -294,14 +296,14 @@ export function acceptEncodings(requestHeaders: RequestHeaders, preferences: str
 
 /**
  * Get fresh status (ETag, Last-Modified handling)
- * @param method http method
+ * @param isGetOrHead http method is GET or HEAD
  * @param requestHeaders request headers
  * @param etag etag response header
  * @param lastModified last modified response header
  * @returns status code
  */
 export function getFreshStatus(
-	method: string,
+	isGetOrHead: boolean,
 	requestHeaders: RequestHeaders,
 	etag: string | false,
 	lastModified: string | false
@@ -337,7 +339,7 @@ export function getFreshStatus(
 					.find(ifMatchEtag => weakEtagMatch(ifMatchEtag, etag)) !== undefined
 			)
 		) {
-			return method === 'GET' || method === 'HEAD'
+			return isGetOrHead
 				? 304
 				: 412;
 		}
@@ -345,7 +347,7 @@ export function getFreshStatus(
 		ifModifiedSince
 		&& lastModified
 		&& Date.parse(lastModified) <= Date.parse(ifModifiedSince)
-		&& (method === 'GET' || method === 'HEAD')
+		&& isGetOrHead
 	) {
 		return 304;
 	}

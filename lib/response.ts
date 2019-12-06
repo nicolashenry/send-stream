@@ -36,15 +36,15 @@ export interface StorageInfo<AttachedData> {
 	/**
 	 * File name
 	 */
-	fileName: string;
+	fileName?: string;
 	/**
 	 * File last modification time in milliseconds
 	 */
-	mtimeMs: number;
+	mtimeMs?: number;
 	/**
 	 * File size
 	 */
-	size: number;
+	size?: number;
 	/**
 	 * Vary header
 	 */
@@ -188,8 +188,7 @@ export class StreamResponse<AttachedData> extends EventEmitter {
 				readStream.pipe(resStream);
 			}
 		} catch (err) {
-			readStream.destroy();
-			throw err;
+			readStream.destroy(<Error> err);
 		}
 		return this;
 	}
