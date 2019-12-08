@@ -24,7 +24,7 @@
     "coveralls": "3.0.9",
     "cross-env": "6.0.3",
     "express": "4.17.1",
-    "fastify": "2.10.0",
+    "fastify": "2.11.0",
     "iltorb": "2.4.4",
     "koa": "2.11.0",
     "memfs": "3.0.1",
