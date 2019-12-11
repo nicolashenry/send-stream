@@ -16,10 +16,9 @@ interface File {
 	chunkSize: number;
 	uploadDate: Date;
 	filename: string;
-	md5?: string;
 	metadata?: {
 		contentType?: string;
-		sha1?: string;
+		etag?: string;
 	};
 }
 
@@ -53,11 +52,8 @@ class GridFSStorage extends Storage<string, File> {
 	}
 
 	createEtag(storageInfo: StorageInfo<File>) {
-		if (storageInfo.attachedData.metadata && storageInfo.attachedData.metadata.sha1) {
-			return `"${ storageInfo.attachedData.metadata.sha1 }"`;
-		}
-		if (storageInfo.attachedData.md5) {
-			return `"${ storageInfo.attachedData.md5 }"`;
+		if (storageInfo.attachedData.metadata && storageInfo.attachedData.metadata.etag) {
+			return storageInfo.attachedData.metadata.etag;
 		}
 		return super.createEtag(storageInfo);
 	}
