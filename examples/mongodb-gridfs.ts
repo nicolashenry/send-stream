@@ -81,7 +81,7 @@ class GridFSStorage extends Storage<string, File> {
 	}
 }
 
-const client = new mongodb.MongoClient(uri, { useNewUrlParser: true });
+const client = new mongodb.MongoClient(uri, { useNewUrlParser: true, useUnifiedTopology: true });
 
 const app = express();
 
