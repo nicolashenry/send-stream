@@ -29,7 +29,7 @@ class GridFSStorage extends Storage<string, File> {
 	}
 
 	async open(path: string, _requestHeaders: StorageRequestHeaders) {
-		const filename = decodeURIComponent(new URL(path, 'http://localhost').pathname);
+		const filename = basename(decodeURIComponent(new URL(path, 'http://localhost').pathname));
 		const files = await (<mongodb.Cursor<File>> this.bucket.find(
 			{ filename }, { limit: 1 }
 		)).toArray();
@@ -39,7 +39,7 @@ class GridFSStorage extends Storage<string, File> {
 		const file = files[0];
 		return {
 			attachedData: file,
-			fileName: basename(file.filename),
+			fileName: file.filename,
 			mtimeMs: file.uploadDate.getTime(),
 			size: file.length
 		};
@@ -63,7 +63,10 @@ class GridFSStorage extends Storage<string, File> {
 	}
 
 	createReadableStream(storageInfo: StorageInfo<File>, range: StreamRange | undefined, autoClose: boolean): Readable {
-		const result = this.bucket.openDownloadStream(storageInfo.attachedData._id, range);
+		const result = this.bucket.openDownloadStream(
+			storageInfo.attachedData._id,
+			range ? { start: range.start, end: range.end + 1 } : undefined
+		);
 		if (autoClose) {
 			result.once('end', () => {
 				result.destroy();
