@@ -21,7 +21,7 @@
     "@types/node": "12.12.30",
     "@types/range-parser": "1.2.3",
     "@types/supertest": "2.0.8",
-    "coveralls": "3.0.9",
+    "coveralls": "3.0.11",
     "cross-env": "7.0.2",
     "express": "4.17.1",
     "fastify": "2.12.1",
