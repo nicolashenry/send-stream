@@ -49,6 +49,8 @@ export class StreamRange {
 	) {}
 }
 
+export type BufferOrStreamRange = StreamRange | Buffer;
+
 /**
  * Random bytes function returing promise
  */

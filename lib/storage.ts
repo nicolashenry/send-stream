@@ -18,7 +18,8 @@ import {
 	randomBytes,
 	StreamRange,
 	ResponseHeaders,
-	CharsetMapping
+	CharsetMapping,
+	BufferOrStreamRange
 } from './utils';
 
 /**
@@ -411,7 +412,7 @@ export abstract class Storage<Reference, AttachedData> {
 
 			let statusCode = opts.statusCode !== undefined ? opts.statusCode : 200;
 			const size = storageInfo.size;
-			let rangeToUse: StreamRange | (StreamRange | Buffer)[] | undefined;
+			let rangeToUse: StreamRange | BufferOrStreamRange[] | undefined;
 			if (size === undefined) {
 				responseHeaders['Accept-Ranges'] = 'none';
 				rangeToUse = undefined;
@@ -508,17 +509,20 @@ export abstract class Storage<Reference, AttachedData> {
 				}
 			} else {
 				const si = storageInfo;
-				const rangeStreams = rangeToUse.map(range => {
-					if (range instanceof StreamRange) {
-						return this.createReadableStream(
-							si,
-							range,
-							false
-						);
-					}
-					return new BufferStream(range);
-				});
-				stream = new MultiStream(rangeStreams, async () => this.close(si));
+				stream = new MultiStream(
+					rangeToUse,
+					range => {
+						if (range instanceof StreamRange) {
+							return this.createReadableStream(
+								si,
+								range,
+								false
+							);
+						}
+						return new BufferStream(range);
+					},
+					async () => this.close(si)
+				);
 			}
 
 			// Ok | Partial Content

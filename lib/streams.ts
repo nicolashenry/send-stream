@@ -1,5 +1,7 @@
 import { Readable, PassThrough } from 'stream';
 
+import { BufferOrStreamRange } from './utils';
+
 /**
  * Single buffer stream
  */
@@ -37,7 +39,8 @@ export class EmptyStream extends Readable {
 export class MultiStream extends PassThrough {
 	private currentStream?: Readable;
 	constructor(
-		private readonly streams: Readable[],
+		private readonly ranges: BufferOrStreamRange[],
+		private readonly onNextStream: (stream: BufferOrStreamRange) => Readable,
 		private readonly onDestroy: () => Promise<void>
 	) {
 		super({ allowHalfOpen: false });
@@ -61,13 +64,14 @@ export class MultiStream extends PassThrough {
 	}
 
 	private sendNextRange() {
-		const stream = this.currentStream = this.streams.shift();
-		if (!stream) {
+		const streamContext = this.ranges.shift();
+		if (!streamContext) {
 			this.end(() => {
 				this.destroy();
 			});
 			return;
 		}
+		const stream = this.currentStream = this.onNextStream(streamContext);
 
 		let onClose: () => void;
 		const onError = (error: Error) => {
