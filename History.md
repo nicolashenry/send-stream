@@ -1,4 +1,12 @@
 
+0.3.0
+==================
+
+* Fix multi-range streams on error
+* Create multi-range streams when needed only
+* Fix mongodb example
+* Update dependencies
+
 0.2.1
 ==================
 
