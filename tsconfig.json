@@ -7,6 +7,7 @@
     "sourceMap": true,
     "declaration": true,
     "useDefineForClassFields": true,
+    "isolatedModules": true,
     "outDir": "dist/",
     "plugins": [{
       "name": "typescript-tslint-plugin",

@@ -2143,7 +2143,6 @@ describe('send(ctx, file)', () => {
 				request(server)
 					.get('/')
 					.set('Range', 'bytes=0-0,2-2')
-					.expect(500)
 					.catch(() => {
 						done();
 					});
@@ -2190,7 +2189,6 @@ describe('send(ctx, file)', () => {
 				request(server)
 					.get('/')
 					.set('Range', 'bytes=0-0,2-2')
-					.expect(500)
 					.catch(() => {
 						done();
 					});
@@ -2273,7 +2271,6 @@ describe('send(ctx, file)', () => {
 				request(server)
 					.get('/')
 					.set('Range', 'bytes=0-0,2-2')
-					.expect(500)
 					.catch(() => {
 						done();
 					});
