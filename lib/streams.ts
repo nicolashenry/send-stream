@@ -37,10 +37,9 @@ export class EmptyStream extends Readable {
  * Multi stream
  */
 export class MultiStream extends PassThrough {
-	private currentStream?: Readable;
 	constructor(
 		private readonly ranges: BufferOrStreamRange[],
-		private readonly onNextStream: (stream: BufferOrStreamRange) => Readable,
+		private readonly onNextStream: (range: BufferOrStreamRange) => Readable,
 		private readonly onDestroy: () => Promise<void>
 	) {
 		super({ allowHalfOpen: false });
@@ -50,10 +49,6 @@ export class MultiStream extends PassThrough {
 
 	// tslint:disable-next-line: function-name
 	_destroy(error: Error | null, callback: (error: Error | null) => void) {
-		if (this.currentStream) {
-			this.currentStream.unpipe(this);
-			this.currentStream = undefined;
-		}
 		this.onDestroy()
 			.then(() => {
 				super._destroy(error, callback);
@@ -64,14 +59,14 @@ export class MultiStream extends PassThrough {
 	}
 
 	private sendNextRange() {
-		const streamContext = this.ranges.shift();
-		if (!streamContext) {
+		const currentRange = this.ranges.shift();
+		if (!currentRange) {
 			this.end(() => {
 				this.destroy();
 			});
 			return;
 		}
-		const stream = this.currentStream = this.onNextStream(streamContext);
+		const stream = this.onNextStream(currentRange);
 
 		let onClose: () => void;
 		const onError = (error: Error) => {
