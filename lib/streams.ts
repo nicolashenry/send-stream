@@ -8,13 +8,6 @@ export class BufferStream extends Readable {
 	constructor(buffer: Buffer) {
 		super();
 		this.buffer = buffer;
-		const end = () => {
-			this.destroy();
-		};
-		this.on('end', end);
-		this.once('close', () => {
-			this.off('end', end);
-		});
 	}
 	// tslint:disable-next-line: function-name
 	_read() {
@@ -31,13 +24,6 @@ export class BufferStream extends Readable {
 export class EmptyStream extends Readable {
 	constructor() {
 		super();
-		const end = () => {
-			this.destroy();
-		};
-		this.on('end', end);
-		this.once('close', () => {
-			this.off('end', end);
-		});
 	}
 	// tslint:disable-next-line: function-name
 	_read() {
@@ -63,6 +49,7 @@ export class MultiStream extends PassThrough {
 	_destroy(error: Error | null, callback: (error: Error | null) => void) {
 		if (this.currentStream) {
 			this.currentStream.unpipe(this);
+			this.currentStream = undefined;
 		}
 		this.onDestroy()
 			.then(() => {
@@ -85,7 +72,9 @@ export class MultiStream extends PassThrough {
 		let onClose: () => void;
 		const onError = (error: Error) => {
 			onClose();
-			this.destroy(error);
+			this.end(() => {
+				this.destroy(error);
+			});
 		};
 
 		const onEnd = () => {

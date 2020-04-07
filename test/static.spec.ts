@@ -128,15 +128,19 @@ describe('serveStatic()', () => {
 
 	describe('acceptRanges', () => {
 		describe('when false', () => {
+			let server: http.Server;
+			before(() => {
+				server = createServer(fixtures, { maxRanges: 0 });
+			});
 			it('should include Accept-Ranges none', done => {
-				request(createServer(fixtures, { maxRanges: 0 }))
+				request(server)
 					.get('/nums')
 					.expect('Accept-Ranges', 'none')
 					.expect(200, '123456789', done);
 			});
 
 			it('should ignore Range request header', done => {
-				request(createServer(fixtures, { maxRanges: 0 }))
+				request(server)
 					.get('/nums')
 					.set('Range', 'bytes=0-3')
 					.expect('Accept-Ranges', 'none')
@@ -146,15 +150,19 @@ describe('serveStatic()', () => {
 		});
 
 		describe('when true', () => {
+			let server: http.Server;
+			before(() => {
+				server = createServer(fixtures, { maxRanges: 1 });
+			});
 			it('should include Accept-Ranges', done => {
-				request(createServer(fixtures, { maxRanges: 1 }))
+				request(server)
 					.get('/nums')
 					.expect('Accept-Ranges', 'bytes')
 					.expect(200, '123456789', done);
 			});
 
 			it('should obey Rage request header', done => {
-				request(createServer(fixtures, { maxRanges: 1 }))
+				request(server)
 					.get('/nums')
 					.set('Range', 'bytes=0-3')
 					.expect('Accept-Ranges', 'bytes')
@@ -166,8 +174,12 @@ describe('serveStatic()', () => {
 
 	describe('cacheControl', () => {
 		describe('when false', () => {
+			let server: http.Server;
+			before(() => {
+				server = createServer(fixtures, { cacheControl: false });
+			});
 			it('should not include Cache-Control', done => {
-				request(createServer(fixtures, { cacheControl: false }))
+				request(server)
 					.get('/nums')
 					.expect(shouldNotHaveHeader('Cache-Control'))
 					.expect(200, '123456789', done);
@@ -175,8 +187,12 @@ describe('serveStatic()', () => {
 		});
 
 		describe('when true', () => {
+			let server: http.Server;
+			before(() => {
+				server = createServer(fixtures, { cacheControl: 'public, max-age=0' });
+			});
 			it('should include Cache-Control', done => {
-				request(createServer(fixtures, { cacheControl: 'public, max-age=0' }))
+				request(server)
 					.get('/nums')
 					.expect('Cache-Control', 'public, max-age=0')
 					.expect(200, '123456789', done);
@@ -227,8 +243,12 @@ describe('serveStatic()', () => {
 
 	describe('lastModified', () => {
 		describe('when false', () => {
+			let server: http.Server;
+			before(() => {
+				server = createServer(fixtures, { lastModified: false });
+			});
 			it('should not include Last-Modifed', done => {
-				request(createServer(fixtures, { lastModified: false }))
+				request(server)
 					.get('/nums')
 					.expect(shouldNotHaveHeader('Last-Modified'))
 					.expect(200, '123456789', done);
@@ -236,8 +256,12 @@ describe('serveStatic()', () => {
 		});
 
 		describe('when true', () => {
+			let server: http.Server;
+			before(() => {
+				server = createServer(fixtures, { });
+			});
 			it('should include Last-Modifed', done => {
-				request(createServer(fixtures, { }))
+				request(server)
 					.get('/nums')
 					.expect('Last-Modified', /^\w{3}, \d+ \w+ \d+ \d+:\d+:\d+ \w+$/)
 					.expect(200, '123456789', done);
