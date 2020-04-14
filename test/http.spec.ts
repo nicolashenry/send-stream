@@ -46,6 +46,13 @@ describe('send(file).pipe(res)', () => {
 			.expect(200, 'tobi', done);
 	});
 
+	it('should stream the file contents when there is query string', done => {
+		request(mainApp)
+			.get('/name.txt?foo=bar')
+			.expect('Content-Length', '4')
+			.expect(200, 'tobi', done);
+	});
+
 	it('should stream a zero-length file', done => {
 		request(mainApp)
 			.get('/empty.txt')
@@ -982,11 +989,54 @@ describe('send(file).pipe(res)', () => {
 		});
 	});
 
-	describe('.root()', () => {
-		it('should not set root', done => {
+	describe('relative paths', () => {
+		it('should redirect on relative path', done => {
 			request(mainApp)
 				.get('/pets/../name.txt')
-				.expect(404, done);
+				.expect('Location', '/name.txt')
+				.expect(301, done);
+		});
+
+		it('should redirect on relative path on head', done => {
+			request(mainApp)
+				.head('/pets/../name.txt')
+				.expect('Location', '/name.txt')
+				.expect(301, done);
+		});
+
+		it('should redirect on relative path with query params', done => {
+			request(mainApp)
+				.get('/pets/../name.txt?foo=bar')
+				.expect('Location', '/name.txt?foo=bar')
+				.expect(301, done);
+		});
+
+		it('should redirect on relative path with dot', done => {
+			request(mainApp)
+				.get('/name.txt/.')
+				.expect('Location', '/name.txt/')
+				.expect(301, done);
+		});
+
+		it('should redirect on relative path with dot and query params', done => {
+			request(mainApp)
+				.get('/name.txt/.?foo=bar')
+				.expect('Location', '/name.txt/?foo=bar')
+				.expect(301, done);
+		});
+
+		it('should redirect on relative path with dot bis', done => {
+			request(mainApp)
+				.get('/./name.txt')
+				.expect('Location', '/name.txt')
+				.expect(301, done);
+		});
+
+		it('should redirect on relative path with dot and query params bis', done => {
+			request(mainApp)
+				.get('/./name.txt?foo=bar')
+				.expect('Location', '/name.txt?foo=bar')
+				.expect(301, done);
 		});
 	});
 });
@@ -1219,7 +1269,8 @@ describe('send(file, options)', () => {
 				it('should not join root', done => {
 					request(server)
 						.get('/pets/../name.txt')
-						.expect(404, done);
+						.expect('Location', '/name.txt')
+						.expect(301, done);
 				});
 			});
 
@@ -1279,7 +1330,8 @@ describe('send(file, options)', () => {
 				it('should restrict paths to within root', done => {
 					request(server)
 						.get('/pets/../../http.spec.ts')
-						.expect(404, done);
+						.expect('Location', '/http.spec.ts')
+						.expect(301, done);
 				});
 			});
 
@@ -1312,7 +1364,8 @@ describe('send(file, options)', () => {
 				it('should allow .. in root', done => {
 					request(server)
 						.get('/pets/../../http.spec.ts')
-						.expect(404, done);
+						.expect('Location', '/http.spec.ts')
+						.expect(301, done);
 				});
 			});
 
@@ -1324,7 +1377,8 @@ describe('send(file, options)', () => {
 				it('should not allow root transversal', done => {
 					request(server)
 						.get('/../name.dir/name.txt')
-						.expect(404, done);
+						.expect('Location', '/name.dir/name.txt')
+						.expect(301, done);
 				});
 			});
 
@@ -1336,7 +1390,8 @@ describe('send(file, options)', () => {
 				it('should not allow root path disclosure', done => {
 					request(server)
 						.get('/pets/../../fixtures-http/name.txt')
-						.expect(404, done);
+						.expect('Location', '/fixtures-http/name.txt')
+						.expect(301, done);
 				});
 			});
 		});
@@ -1358,7 +1413,8 @@ describe('send(file, options)', () => {
 			it('should consider .. malicious', done => {
 				request(mainApp)
 					.get('/../http.spec.ts')
-					.expect(404, done);
+					.expect('Location', '/http.spec.ts')
+					.expect(301, done);
 			});
 
 			it('should still serve files with dots in name', done => {

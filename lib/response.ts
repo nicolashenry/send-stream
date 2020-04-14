@@ -13,11 +13,11 @@ export class StorageError <T> extends Error {
 	/**
 	 * Error code
 	 */
-	code: string;
+	readonly code: string;
 	/**
 	 * Storage reference
 	 */
-	reference: T;
+	readonly reference: T;
 	constructor(code: string, message: string, reference: T) {
 		super(message);
 		this.code = code;

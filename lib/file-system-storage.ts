@@ -6,7 +6,8 @@ import { promisify } from 'util';
 
 import { Storage, StorageRequestHeaders, StorageOptions } from './storage';
 import { acceptEncodings, StreamRange } from './utils';
-import { StorageError, StorageInfo } from './response';
+import { StorageError, StorageInfo, StreamResponse } from './response';
+import { EmptyStream, BufferStream } from './streams';
 
 /**
  * File data used by storage
@@ -113,11 +114,11 @@ export class FileSystemStorageError extends StorageError<FilePath> {
 	/**
 	 * Path parts relative to root
 	 */
-	pathParts: readonly string[];
+	readonly pathParts: readonly string[];
 	/**
 	 * Resolved path
 	 */
-	resolvedPath?: string;
+	readonly resolvedPath?: string;
 	/**
 	 * Create file system storage error
 	 * @param code error code
@@ -130,6 +131,17 @@ export class FileSystemStorageError extends StorageError<FilePath> {
 		super(code, message, path);
 		this.pathParts = pathParts;
 		this.resolvedPath = resolvedPath;
+	}
+}
+
+/**
+ * File system storage error
+ */
+export class RedirectFileSystemStorageError extends FileSystemStorageError {
+	readonly redirectionPath: string;
+	constructor(code: string, message: string, path: FilePath, pathParts: readonly string[], redirectionPath: string) {
+		super(code, message, path, pathParts);
+		this.redirectionPath = redirectionPath;
 	}
 }
 
@@ -183,39 +195,38 @@ export class FileSystemStorage extends Storage<FilePath, FileData> {
 	 */
 	parsePath(path: FilePath) {
 		let pathParts;
-		let notNormalized = false;
-		try {
-			if (typeof path === 'string') {
-				const pathname = new URL(path, 'http://localhost').pathname;
-				if (!path.startsWith(pathname)) {
-					notNormalized = true;
-				}
-				pathParts = pathname.split('/').map(decodeURIComponent);
-			} else {
-				pathParts = path;
-				if (
-					pathParts.length === 0
-					|| pathParts[0] !== ''
-					|| pathParts.findIndex(part => /^\.\.?$/.test(part)) !== -1
-				) {
-					notNormalized = true;
-				}
-			}
-		} catch (err) {
-			throw new StorageError(
-				'malformed_path',
-				`${String(path)} is malformed: ${err}`,
-				path
-			);
-		}
 
-		if (notNormalized) {
-			throw new FileSystemStorageError(
-				'not_normalized_path',
-				`${String(path)} is not normalized`,
-				path,
-				pathParts
-			);
+		if (typeof path === 'string') {
+			const fullPath = path.startsWith('/') ? path : `/${ path }`;
+			const url = new URL(`http://localhost${ fullPath }`);
+			const pathname = url.pathname;
+			const normalizedPath = pathname + url.search;
+			pathParts = pathname.split('/').map(decodeURIComponent);
+			if (fullPath !== normalizedPath) {
+				throw new RedirectFileSystemStorageError(
+					'not_normalized_path',
+					`${String(path)} is not normalized`,
+					path,
+					pathParts,
+					normalizedPath
+				);
+			}
+		} else {
+			pathParts = path;
+			if (
+				pathParts.length === 0
+				|| pathParts[0] !== ''
+				|| pathParts.findIndex(part => /^\.\.?$/.test(part)) !== -1
+			) {
+				throw new FileSystemStorageError(
+					'invalid_path',
+					`[${
+						String(path.join(', '))
+					}] is not a valid path (should start with '' and not contain '..' or '.')`,
+					path,
+					pathParts
+				);
+			}
 		}
 
 		// slashes or null bytes
@@ -453,5 +464,31 @@ export class FileSystemStorage extends Storage<FilePath, FileData> {
 	 */
 	async close(storageInfo: StorageInfo<FileData>): Promise<void> {
 		return this.fsClose(storageInfo.attachedData.fd);
+	}
+
+	/**
+	 * Create storage error response (Not Found response usually, Moved Permanently to redirect on normalized path)
+	 * @param isHeadMethod true if HEAD method is used
+	 * @param error the error causing this response
+	 * @returns the error response
+	 */
+	createStorageError(isHeadMethod: boolean, error: unknown) {
+		if (error instanceof RedirectFileSystemStorageError) {
+			// Moved Permanently
+			const statusMessageBuffer = Buffer.from(`=> ${ error.redirectionPath }`);
+			return new StreamResponse<FileData>(
+				301,
+				{
+					'Content-Length': String(statusMessageBuffer.byteLength),
+					'Content-Type': 'text/plain; charset=UTF-8',
+					'X-Content-Type-Options': 'nosniff',
+					Location: error.redirectionPath
+				},
+				isHeadMethod ? new EmptyStream() : new BufferStream(statusMessageBuffer),
+				undefined,
+				error
+			);
+		}
+		return super.createStorageError(isHeadMethod, error);
 	}
 }

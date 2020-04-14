@@ -220,10 +220,11 @@ describe('serveStatic()', () => {
 					.expect(404, done);
 			});
 
-			it('should 404 when traversing past root', done => {
+			it('should 301 when traversing past root', done => {
 				request(server)
 					.get('/users/../../todo.txt')
-					.expect(404, done);
+					.expect('Location', '/todo.txt')
+					.expect(301, done);
 			});
 		});
 	});
@@ -278,25 +279,29 @@ describe('serveStatic()', () => {
 		it('should catch urlencoded ../', done => {
 			request(server)
 				.get('/users/%2e%2e/%2e%2e/todo.txt')
-				.expect(404, done);
+				.expect('Location', '/todo.txt')
+				.expect(301, done);
 		});
 
 		it('should not allow root path disclosure', done => {
 			request(server)
 				.get('/users/../../fixtures/todo.txt')
-				.expect(404, done);
+				.expect('Location', '/fixtures/todo.txt')
+				.expect(301, done);
 		});
 
 		it('should catch urlencoded ../ bis', done => {
 			request(server)
 				.get('/users/%2e%2e/%2e%2e/static.spec.ts')
-				.expect(404, done);
+				.expect('Location', '/static.spec.ts')
+				.expect(301, done);
 		});
 
 		it('should not allow root path disclosure bis', done => {
 			request(server)
 				.get('/users/../../fixtures/static.spec.ts')
-				.expect(404, done);
+				.expect('Location', '/fixtures/static.spec.ts')
+				.expect(301, done);
 		});
 	});
 

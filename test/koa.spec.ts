@@ -157,10 +157,11 @@ describe('send(ctx, file)', () => {
 			after(done => {
 				server.close(done);
 			});
-			it('should 404 when existing outside root', done => {
+			it('should 301 when existing outside root', done => {
 				request(server)
 					.get('/')
-					.expect(404, done);
+					.expect('Location', '/package.json')
+					.expect(301, done);
 			});
 		});
 		describe('should 404 when path existing inside root', () => {
@@ -177,10 +178,11 @@ describe('send(ctx, file)', () => {
 			after(done => {
 				server.close(done);
 			});
-			it('should 404 when path existing inside root', done => {
+			it('should 301 when path existing inside root', done => {
 				request(server)
 					.get('/')
-					.expect(404, done);
+					.expect('Location', '/test/fixtures-koa/world/index.html')
+					.expect(301, done);
 			});
 		});
 	});
@@ -304,10 +306,11 @@ describe('send(ctx, file)', () => {
 			after(done => {
 				server.close(done);
 			});
-			it('should 404 on back slash', done => {
+			it('should 301 on back slash', done => {
 				request(server)
 					.get('/')
-					.expect(404, done);
+					.expect('Location', '//')
+					.expect(301, done);
 			});
 		});
 	});
