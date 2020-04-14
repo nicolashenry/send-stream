@@ -76,7 +76,7 @@ export interface CharsetMapping {
  * @param charsetMappings charset mapping
  * @returns content type with charset
  */
-export function getContentTypeWithCharset(contentType: string, charsetMappings: CharsetMapping[]) {
+export function getContentTypeWithCharset(contentType: string, charsetMappings: readonly CharsetMapping[]) {
 	for (const { matcher, charset } of charsetMappings) {
 		if (matcher.test(contentType)) {
 			return `${ contentType }; charset=${ charset }`;

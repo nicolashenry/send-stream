@@ -74,7 +74,7 @@ export interface PrepareResponseOptions {
 	 *
 	 * Defaults to `['GET', 'HEAD']`
 	 */
-	allowedMethods?: string[];
+	allowedMethods?: readonly string[];
 }
 
 /**
@@ -109,7 +109,7 @@ export interface StorageOptions {
 	 *
 	 * Can be disabled by setting it to `false`
 	 */
-	defaultCharsets?: CharsetMapping[] | false;
+	defaultCharsets?: readonly CharsetMapping[] | false;
 	/**
 	 * Maximum ranges supported for range requests (default is `200`)
 	 *
@@ -124,7 +124,9 @@ export interface StorageOptions {
 	weakEtags?: boolean;
 }
 
-const defaultCharset = [{ matcher: /^(?:text\/.+|application\/(?:javascript|json))$/, charset: 'UTF-8' }];
+const defaultCharset = <const> [{ matcher: /^(?:text\/.+|application\/(?:javascript|json))$/, charset: 'UTF-8' }];
+
+const DEFAULT_ALLOWED_METHODS = <const> ['GET', 'HEAD'];
 
 /**
  * send-stream storage base class
@@ -132,7 +134,7 @@ const defaultCharset = [{ matcher: /^(?:text\/.+|application\/(?:javascript|json
 export abstract class Storage<Reference, AttachedData> {
 	readonly mimeModule: MimeModule;
 	readonly defaultContentType?: string;
-	readonly defaultCharsets: CharsetMapping[] | false;
+	readonly defaultCharsets: readonly CharsetMapping[] | false;
 	readonly maxRanges: number;
 	readonly weakEtags: boolean;
 
@@ -282,21 +284,9 @@ export abstract class Storage<Reference, AttachedData> {
 		const isGetMethod = method === 'GET';
 		const isHeadMethod = method === 'HEAD';
 		const isGetOrHead = isGetMethod || isHeadMethod;
-		const allowedMethods = opts.allowedMethods;
-		if (allowedMethods ? !allowedMethods.includes(method) : !isGetOrHead) {
-			// Method Not Allowed
-			// tslint:disable-next-line: no-non-null-assertion
-			const statusMessageBuffer = Buffer.from(http.STATUS_CODES[405]!);
-			return new StreamResponse<AttachedData>(
-				405,
-				{
-					'Content-Length': String(statusMessageBuffer.byteLength),
-					'Content-Type': 'text/plain; charset=UTF-8',
-					'X-Content-Type-Options': 'nosniff',
-					Allow: allowedMethods ? allowedMethods.join(', ') : 'GET, HEAD'
-				},
-				new BufferStream(statusMessageBuffer)
-			);
+		const allowedMethods = opts.allowedMethods ? opts.allowedMethods : DEFAULT_ALLOWED_METHODS;
+		if (!allowedMethods.includes(method)) {
+			return this.createMethodNotAllowedError(isHeadMethod, allowedMethods);
 		}
 		let earlyClose = false;
 		let storageInfo;
@@ -306,20 +296,7 @@ export abstract class Storage<Reference, AttachedData> {
 				requestHeaders
 			);
 		} catch (error) {
-			// Not Found
-			// tslint:disable-next-line: no-non-null-assertion
-			const statusMessageBuffer = Buffer.from(http.STATUS_CODES[404]!);
-			return new StreamResponse<AttachedData>(
-				404,
-				{
-					'Content-Length': String(statusMessageBuffer.byteLength),
-					'Content-Type': 'text/plain; charset=UTF-8',
-					'X-Content-Type-Options': 'nosniff',
-				},
-				isHeadMethod ? new EmptyStream() : new BufferStream(statusMessageBuffer),
-				undefined,
-				error instanceof StorageError ? error : new StorageError('unknown_error', 'Unknown error', error)
-			);
+			return this.createStorageError(isHeadMethod, error);
 		}
 		try {
 			const responseHeaders: ResponseHeaders = { };
@@ -356,29 +333,10 @@ export abstract class Storage<Reference, AttachedData> {
 				switch (freshStatus) {
 				case 304:
 					earlyClose = true;
-					// Not Modified
-					return new StreamResponse(
-						304,
-						responseHeaders,
-						new EmptyStream(),
-						storageInfo
-					);
+					return this.createNotModifiedResponse(responseHeaders, storageInfo);
 				case 412:
 					earlyClose = true;
-					// Precondition Failed
-					// tslint:disable-next-line: no-non-null-assertion
-					const statusMessageBuffer = Buffer.from(http.STATUS_CODES[412]!);
-					return new StreamResponse(
-						412,
-						{
-							...responseHeaders,
-							'Content-Type': 'text/plain; charset=UTF-8',
-							'X-Content-Type-Options': 'nosniff',
-							'Content-Length': String(statusMessageBuffer.byteLength)
-						},
-						isHeadMethod ? new EmptyStream() : new BufferStream(statusMessageBuffer),
-						storageInfo
-					);
+					return this.createPreconditionFailedError(isHeadMethod, storageInfo);
 				}
 			}
 
@@ -436,20 +394,7 @@ export abstract class Storage<Reference, AttachedData> {
 						const parsedRanges = parseRange(size, rangeHeader, { combine: true });
 						if (parsedRanges === -1) {
 							earlyClose = true;
-							// Range Not Satisfiable
-							// tslint:disable-next-line: no-non-null-assertion
-							const statusMessageBuffer = Buffer.from(http.STATUS_CODES[416]!);
-							return new StreamResponse(
-								416,
-								{
-									'Content-Range': contentRange('bytes', size),
-									'Content-Type': 'text/plain; charset=UTF-8',
-									'X-Content-Type-Options': 'nosniff',
-									'Content-Length': String(statusMessageBuffer.byteLength)
-								},
-								new BufferStream(statusMessageBuffer),
-								storageInfo
-							);
+							return this.createRangeNotSatisfiableError(isHeadMethod, size, storageInfo);
 						}
 						if (parsedRanges === -2
 							|| parsedRanges.type !== 'bytes'
@@ -500,7 +445,7 @@ export abstract class Storage<Reference, AttachedData> {
 				stream = new EmptyStream();
 			} else if (rangeToUse === undefined) {
 				stream = this.createReadableStream(storageInfo, undefined, true);
-			} else if (!Array.isArray(rangeToUse)) {
+			} else if (rangeToUse instanceof StreamRange) {
 				if (rangeToUse.end < rangeToUse.start) {
 					earlyClose = true;
 					stream = new EmptyStream();
@@ -525,13 +470,7 @@ export abstract class Storage<Reference, AttachedData> {
 				);
 			}
 
-			// Ok | Partial Content
-			return new StreamResponse(
-				statusCode,
-				responseHeaders,
-				stream,
-				storageInfo
-			);
+			return this.createSuccessfulResponse(statusCode, responseHeaders, stream, storageInfo);
 		} catch (err) {
 			earlyClose = true;
 			throw err;
@@ -540,5 +479,129 @@ export abstract class Storage<Reference, AttachedData> {
 				await this.close(storageInfo);
 			}
 		}
+	}
+
+	/**
+	 * Create Method Not Allowed error response
+	 * @param isHeadMethod true if HEAD method is used
+	 * @param allowedMethods allowed methods for Allow header
+	 * @returns Method Not Allowed response
+	 */
+	createMethodNotAllowedError(isHeadMethod: boolean, allowedMethods: readonly string[]) {
+		// Method Not Allowed
+		// tslint:disable-next-line: no-non-null-assertion
+		const statusMessageBuffer = Buffer.from(http.STATUS_CODES['405']!);
+		return new StreamResponse<AttachedData>(
+			405,
+			{
+				'Content-Length': String(statusMessageBuffer.byteLength),
+				'Content-Type': 'text/plain; charset=UTF-8',
+				'X-Content-Type-Options': 'nosniff',
+				Allow: allowedMethods.join(', ')
+			},
+			isHeadMethod ? new EmptyStream() : new BufferStream(statusMessageBuffer)
+		);
+	}
+
+	/**
+	 * Create storage error response (Not Found response usually)
+	 * @param isHeadMethod true if HEAD method is used
+	 * @param error the error causing this response
+	 * @returns the error response
+	 */
+	createStorageError(isHeadMethod: boolean, error: unknown) {
+		// Not Found
+		// tslint:disable-next-line: no-non-null-assertion
+		const statusMessageBuffer = Buffer.from(http.STATUS_CODES['404']!);
+		return new StreamResponse<AttachedData>(
+			404,
+			{
+				'Content-Length': String(statusMessageBuffer.byteLength),
+				'Content-Type': 'text/plain; charset=UTF-8',
+				'X-Content-Type-Options': 'nosniff',
+			},
+			isHeadMethod ? new EmptyStream() : new BufferStream(statusMessageBuffer),
+			undefined,
+			error instanceof StorageError ? error : new StorageError('unknown_error', 'Unknown error', error)
+		);
+	}
+
+	/**
+	 * Create Not Modified response
+	 * @param responseHeaders response headers
+	 * @param storageInfo the current storage info
+	 * @returns the Not Modified response
+	 */
+	createNotModifiedResponse(
+		responseHeaders: ResponseHeaders,
+		storageInfo: StorageInfo<AttachedData>
+	) {
+		// Not Modified
+		return new StreamResponse(304, responseHeaders, new EmptyStream(), storageInfo);
+	}
+
+	/**
+	 * Create the Precondition Failed error response
+	 * @param isHeadMethod true if HEAD method is used
+	 * @param storageInfo the current storage info
+	 * @returns the Precondition Failed error response
+	 */
+	createPreconditionFailedError(isHeadMethod: boolean, storageInfo: StorageInfo<AttachedData>) {
+		// Precondition Failed
+		// tslint:disable-next-line: no-non-null-assertion
+		const statusMessageBuffer = Buffer.from(http.STATUS_CODES['412']!);
+		return new StreamResponse(
+			412,
+			{
+				'Content-Type': 'text/plain; charset=UTF-8',
+				'X-Content-Type-Options': 'nosniff',
+				'Content-Length': String(statusMessageBuffer.byteLength)
+			},
+			isHeadMethod ? new EmptyStream() : new BufferStream(statusMessageBuffer),
+			storageInfo
+		);
+	}
+
+	/**
+	 * Create the Range Not Satisfiable error response
+	 * @param isHeadMethod true if HEAD method is used
+	 * @param size size of content for Content-Range header
+	 * @param storageInfo the current storage info
+	 * @returns the Range Not Satisfiable error response
+	 */
+	createRangeNotSatisfiableError(isHeadMethod: boolean, size: number, storageInfo: StorageInfo<AttachedData>) {
+		// Range Not Satisfiable
+		// tslint:disable-next-line: no-non-null-assertion
+		const statusMessageBuffer = Buffer.from(http.STATUS_CODES['416']!);
+		return new StreamResponse(
+			416,
+			{
+				'Content-Range': contentRange('bytes', size),
+				'Content-Type': 'text/plain; charset=UTF-8',
+				'X-Content-Type-Options': 'nosniff',
+				'Content-Length': String(statusMessageBuffer.byteLength)
+			},
+			isHeadMethod ? new EmptyStream() : new BufferStream(statusMessageBuffer),
+			storageInfo
+		);
+	}
+
+	/**
+	 * Create the successful OK (200) or Partial Content (206) response
+	 * (the http code could also be the one set in parameters)
+	 * @param statusCode 200 or 206 or the statusCode set in parameters
+	 * @param responseHeaders the response headers
+	 * @param stream the content stream
+	 * @param storageInfo the current storage info
+	 * @returns the successful response
+	 */
+	private createSuccessfulResponse(
+		statusCode: number,
+		responseHeaders: ResponseHeaders,
+		stream: Readable,
+		storageInfo: StorageInfo<AttachedData>
+	) {
+		// Ok | Partial Content
+		return new StreamResponse(statusCode, responseHeaders, stream, storageInfo);
 	}
 }

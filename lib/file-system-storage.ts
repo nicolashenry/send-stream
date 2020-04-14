@@ -15,7 +15,7 @@ export interface FileData {
 	/**
 	 * Path parts used from root
 	 */
-	pathParts: string[];
+	pathParts: readonly string[];
 	/**
 	 * Resolved path with path parts joined with root
 	 */
@@ -80,7 +80,7 @@ export interface ContentEncodingMapping {
 	/**
 	 * Encodings to search once file path is matched
 	 */
-	encodings: ContentEncodingPath[];
+	encodings: readonly ContentEncodingPath[];
 }
 
 /**
@@ -90,7 +90,7 @@ export interface FileSystemStorageOptions extends StorageOptions {
 	/**
 	 * Content encoding mapping, e.g. [{ matcher: /^(.+\\.json)$/, encodings: [{ name: 'gzip', path: '$1.gz' }] }]
 	 */
-	contentEncodingMappings?: ContentEncodingMapping[];
+	contentEncodingMappings?: readonly ContentEncodingMapping[];
 	/**
 	 * Ignore pattern, defaults to /^\../ (files/folders beginning with a dot)
 	 */
@@ -104,7 +104,7 @@ export interface FileSystemStorageOptions extends StorageOptions {
 /**
  * URL encoded path or path parts
  */
-export type FilePath = string | string[];
+export type FilePath = string | readonly string[];
 
 /**
  * File system storage error
@@ -113,7 +113,7 @@ export class FileSystemStorageError extends StorageError<FilePath> {
 	/**
 	 * Path parts relative to root
 	 */
-	pathParts: string[];
+	pathParts: readonly string[];
 	/**
 	 * Resolved path
 	 */
@@ -126,7 +126,7 @@ export class FileSystemStorageError extends StorageError<FilePath> {
 	 * @param pathParts path parts
 	 * @param resolvedPath resolved path
 	 */
-	constructor(code: string, message: string, path: FilePath, pathParts: string[], resolvedPath?: string) {
+	constructor(code: string, message: string, path: FilePath, pathParts: readonly string[], resolvedPath?: string) {
 		super(code, message, path);
 		this.pathParts = pathParts;
 		this.resolvedPath = resolvedPath;
@@ -138,7 +138,7 @@ export class FileSystemStorageError extends StorageError<FilePath> {
  */
 export class FileSystemStorage extends Storage<FilePath, FileData> {
 	readonly root: string;
-	readonly contentEncodingMappings?: ContentEncodingMapping[];
+	readonly contentEncodingMappings?: readonly ContentEncodingMapping[];
 	readonly ignorePattern?: RegExp | false;
 	readonly fsOpen: (path: string, flags: number) => Promise<number>;
 	readonly fsFstat: (fd: number) => Promise<fs.Stats>;
@@ -159,12 +159,13 @@ export class FileSystemStorage extends Storage<FilePath, FileData> {
 		this.root = root;
 		const encodingsMap = opts.contentEncodingMappings;
 		if (encodingsMap) {
-			for (const encodingConfig of encodingsMap) {
-				if (!encodingConfig.encodings.find(e => e.name === 'identity')) {
-					encodingConfig.encodings.push({ name: 'identity', path: '$1' });
+			this.contentEncodingMappings = encodingsMap.map(encodingConfig => {
+				const encodings = [...encodingConfig.encodings];
+				if (!encodings.find(e => e.name === 'identity')) {
+					encodings.push({ name: 'identity', path: '$1' });
 				}
-			}
-			this.contentEncodingMappings = encodingsMap;
+				return { ...encodingConfig, encodings };
+			});
 		}
 		this.ignorePattern = opts.ignorePattern !== undefined ? opts.ignorePattern : /^\../;
 		const fsModule = opts.fsModule !== undefined ? opts.fsModule : fs;
@@ -184,7 +185,13 @@ export class FileSystemStorage extends Storage<FilePath, FileData> {
 		let pathParts;
 		let notNormalized = false;
 		try {
-			if (Array.isArray(path)) {
+			if (typeof path === 'string') {
+				const pathname = new URL(path, 'http://localhost').pathname;
+				if (!path.startsWith(pathname)) {
+					notNormalized = true;
+				}
+				pathParts = pathname.split('/').map(decodeURIComponent);
+			} else {
 				pathParts = path;
 				if (
 					pathParts.length === 0
@@ -193,12 +200,6 @@ export class FileSystemStorage extends Storage<FilePath, FileData> {
 				) {
 					notNormalized = true;
 				}
-			} else {
-				const pathname = new URL(path, 'http://localhost').pathname;
-				if (!path.startsWith(pathname)) {
-					notNormalized = true;
-				}
-				pathParts = pathname.split('/').map(decodeURIComponent);
 			}
 		} catch (err) {
 			throw new StorageError(

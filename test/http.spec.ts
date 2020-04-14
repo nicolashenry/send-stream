@@ -740,6 +740,14 @@ describe('send(file).pipe(res)', () => {
 					.expect('Content-Range', 'bytes */9')
 					.expect(416, done);
 			});
+
+			it('should respond with 416 for head request', done => {
+				request(mainApp)
+					.head('/nums.txt')
+					.set('Range', 'bytes=9-50')
+					.expect('Content-Range', 'bytes */9')
+					.expect(416, done);
+			});
 		});
 
 		describe('when syntactically invalid', () => {
@@ -1397,6 +1405,11 @@ describe('send(file, options)', () => {
 				request(server)
 					.post('/name.txt')
 					.expect(200, done);
+			});
+			it('should 405 on not head allowed', done => {
+				request(server)
+					.head('/name.txt')
+					.expect(405, done);
 			});
 		});
 
