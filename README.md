@@ -11,7 +11,7 @@ It supports partial responses (Ranges including multipart), conditional-GET nego
 encoding negociation.
 
 It also have high test coverage, typescript typings
-and has multiple examples using Express, Koa, Fastify or pure NodeJS http/http2 modules.
+and has [multiple examples](examples/) using Express, Koa, Fastify or pure NodeJS http/http2 modules.
 
 ## Installation
 
