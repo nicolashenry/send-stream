@@ -20,7 +20,7 @@
     "@types/node": "12.12.36",
     "@types/range-parser": "1.2.3",
     "@types/supertest": "2.0.8",
-    "coveralls": "3.0.11",
+    "coveralls": "3.0.12",
     "cross-env": "7.0.2",
     "express": "4.17.1",
     "fastify": "2.13.1",
