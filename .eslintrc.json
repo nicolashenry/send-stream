@@ -689,9 +689,11 @@
         "unicorn/no-new-buffer": "warn",
         "unicorn/no-null": "off", // not needed: seems useless
         "unicorn/no-process-exit": "warn",
+        "unicorn/no-reduce": "off", // not needed: seems useless
         "unicorn/no-unreadable-array-destructuring": "off", // too restrictive
         "unicorn/no-unsafe-regex": "off", // too restrictive
         "unicorn/no-unused-properties": "warn",
+        "unicorn/no-useless-undefined": "off", // too restrictive
         "unicorn/no-zero-fractions": "warn",
         "unicorn/number-literal-case": "warn",
         "unicorn/prefer-add-event-listener": "warn",
@@ -704,6 +706,7 @@
         "unicorn/prefer-node-append": "off", // not needed: not executed in a browser
         "unicorn/prefer-node-remove": "off", // not needed: not executed in a browser
         "unicorn/prefer-number-properties": "warn",
+        "unicorn/prefer-optional-catch-binding": "warn",
         "unicorn/prefer-query-selector": "off", // not needed: not executed in a browser
         "unicorn/prefer-reflect-apply": "warn",
         "unicorn/prefer-replace-all": "warn",
