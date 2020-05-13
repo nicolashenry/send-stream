@@ -48,7 +48,8 @@
   "dependencies": {
     "content-disposition": "^0.5.3",
     "mime": "^2.4.5",
-    "range-parser": "^1.2.1"
+    "range-parser": "^1.2.1",
+    "tslib": "^1.12.0"
   },
   "scripts": {
     "clean": "rimraf dist",
