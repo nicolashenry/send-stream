@@ -16,9 +16,7 @@ const app = fastify({
 
 const storage = new FileSystemStorage(join(__dirname, 'assets'));
 
-app.get('*', async (request, reply) => {
-	const { req } = request;
-	const { res } = reply;
+app.get('*', async ({ req }, { res }) => {
 	if (req.url === undefined) {
 		throw new Error('url not set');
 	}

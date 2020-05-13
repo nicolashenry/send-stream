@@ -17,9 +17,7 @@ const app = fastify({
 
 const storage = new FileSystemStorage(join(__dirname, 'assets'));
 
-app.get('*', async (request, reply) => {
-	const { req } = request;
-	const { res } = reply;
+app.get('*', async ({ req }, { res }) => {
 	let result = await storage.prepareResponse(req.url, req);
 	if (result.error && result.error instanceof FileSystemStorageError && result.error.code === 'trailing_slash') {
 		result.stream.destroy();
