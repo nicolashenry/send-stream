@@ -1,8 +1,8 @@
 
-import express from 'express';
 import * as https from 'https';
 import * as fs from 'fs';
 import { join } from 'path';
+import express from 'express';
 
 import { FileSystemStorage, FileSystemStorageError } from '../lib';
 
@@ -19,18 +19,21 @@ app.get('*', async (req, res, next) => {
 		}
 		result.send(res);
 	} catch (err) {
+		// eslint-disable-next-line node/callback-return
 		next(err);
 	}
 });
 
 const server = https.createServer(
 	{
+		// eslint-disable-next-line node/no-sync
 		key: fs.readFileSync(join(__dirname, 'cert', 'localhost.key')),
+		// eslint-disable-next-line node/no-sync
 		cert: fs.readFileSync(join(__dirname, 'cert', 'localhost.crt')),
 	},
-	app
+	app,
 );
 
-server.listen(3000, () => {
-	console.info('listening on https://localhost:3000');
+server.listen(3001, () => {
+	console.info('listening on https://localhost:3001');
 });

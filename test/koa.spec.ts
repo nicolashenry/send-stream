@@ -1,14 +1,18 @@
+/* eslint-disable max-classes-per-file, max-lines, max-lines-per-function */
+/* eslint-env node, mocha */
 
 import * as assert from 'assert';
 import * as fs from 'fs';
 import { createBrotliDecompress } from 'zlib';
-import Koa from 'koa';
-import Mime from 'mime/Mime';
 import { join } from 'path';
 import { Readable } from 'stream';
+import * as http from 'http';
+import { promisify } from 'util';
+import Koa from 'koa';
+// eslint-disable-next-line import/no-internal-modules
+import Mime from 'mime/Mime';
 import request from 'supertest';
 import * as memfs from 'memfs';
-import * as http from 'http';
 
 import {
 	PrepareResponseOptions,
@@ -20,10 +24,8 @@ import {
 	StreamRange,
 	FilePath,
 	StorageRequestHeaders,
-	BufferStream
+	BufferStream,
 } from '../lib';
-
-// tslint:disable:no-identical-functions max-classes-per-file
 
 function brotliParser(res: request.Response, cb: (err: Error | null, body: unknown) => void) {
 	const decompress = res.pipe(createBrotliDecompress());
@@ -40,16 +42,16 @@ function brotliParser(res: request.Response, cb: (err: Error | null, body: unkno
 	});
 }
 
-export async function sendStorage<Reference, AttachedData>(
+async function sendStorage<Reference, AttachedData>(
 	ctx: Koa.Context,
 	storage: Storage<Reference, AttachedData>,
 	reference: Reference,
-	opts: PrepareResponseOptions = {}
+	opts: PrepareResponseOptions = {},
 ) {
 	const result = await storage.prepareResponse(
 		reference,
 		ctx.req,
-		opts
+		opts,
 	);
 	ctx.status = result.statusCode;
 	ctx.set(<{ [key: string]: string }> result.headers);
@@ -61,13 +63,13 @@ async function send(
 	ctx: Koa.Context,
 	root: string,
 	path: string | string[],
-	opts?: PrepareResponseOptions & FileSystemStorageOptions
+	opts?: PrepareResponseOptions & FileSystemStorageOptions,
 ) {
 	const storage = new FileSystemStorage(root, opts);
 	const result = await storage.prepareResponse(
 		path,
 		ctx.req,
-		opts
+		opts,
 	);
 	ctx.status = result.statusCode;
 	ctx.set(<{ [key: string]: string }> result.headers);
@@ -91,11 +93,11 @@ describe('send(ctx, file)', () => {
 			after(done => {
 				server.close(done);
 			});
-			it('should 200 on plain text', done => {
-				request(server)
+			it('should 200 on plain text', async () => {
+				await request(server)
 					.get('/')
 					.expect(200)
-					.expect('world', done);
+					.expect('world');
 			});
 		});
 		describe('should 200 on html', () => {
@@ -112,12 +114,12 @@ describe('send(ctx, file)', () => {
 			after(done => {
 				server.close(done);
 			});
-			it('should 200 on html', done => {
-				request(server)
+			it('should 200 on html', async () => {
+				await request(server)
 					.get('/')
 					.expect('content-type', 'text/html; charset=UTF-8')
 					.expect('content-length', '10')
-					.expect(200, done);
+					.expect(200);
 			});
 		});
 		describe('should 404 when does not exist', () => {
@@ -134,10 +136,10 @@ describe('send(ctx, file)', () => {
 			after(done => {
 				server.close(done);
 			});
-			it('should 404 when does not exist', done => {
-				request(server)
+			it('should 404 when does not exist', async () => {
+				await request(server)
 					.get('/')
-					.expect(404, done);
+					.expect(404);
 			});
 		});
 	});
@@ -157,11 +159,11 @@ describe('send(ctx, file)', () => {
 			after(done => {
 				server.close(done);
 			});
-			it('should 301 when existing outside root', done => {
-				request(server)
+			it('should 301 when existing outside root', async () => {
+				await request(server)
 					.get('/')
 					.expect('Location', '/package.json')
-					.expect(301, done);
+					.expect(301);
 			});
 		});
 		describe('should 404 when path existing inside root', () => {
@@ -178,11 +180,11 @@ describe('send(ctx, file)', () => {
 			after(done => {
 				server.close(done);
 			});
-			it('should 301 when path existing inside root', done => {
-				request(server)
+			it('should 301 when path existing inside root', async () => {
+				await request(server)
 					.get('/')
 					.expect('Location', '/test/fixtures-koa/world/index.html')
-					.expect(301, done);
+					.expect(301);
 			});
 		});
 	});
@@ -202,10 +204,10 @@ describe('send(ctx, file)', () => {
 			after(done => {
 				server.close(done);
 			});
-			it('should 404 with /', done => {
-				request(server)
+			it('should 404 with /', async () => {
+				await request(server)
 					.get('/')
-					.expect(404, done);
+					.expect(404);
 			});
 		});
 		describe('should 404 without /', () => {
@@ -222,10 +224,10 @@ describe('send(ctx, file)', () => {
 			after(done => {
 				server.close(done);
 			});
-			it('should 404 without /', done => {
-				request(server)
+			it('should 404 without /', async () => {
+				await request(server)
 					.get('/')
-					.expect(404, done);
+					.expect(404);
 			});
 		});
 	});
@@ -244,10 +246,10 @@ describe('send(ctx, file)', () => {
 		after(done => {
 			server.close(done);
 		});
-		it('should 404', done => {
-			request(server)
+		it('should 404', async () => {
+			await request(server)
 				.get('/')
-				.expect(404, done);
+				.expect(404);
 		});
 	});
 
@@ -266,10 +268,10 @@ describe('send(ctx, file)', () => {
 			after(done => {
 				server.close(done);
 			});
-			it('should 404 on null bytes', done => {
-				request(server)
+			it('should 404 on null bytes', async () => {
+				await request(server)
 					.get('/')
-					.expect(404, done);
+					.expect(404);
 			});
 		});
 		describe('should 404 on encoded slash', () => {
@@ -286,10 +288,10 @@ describe('send(ctx, file)', () => {
 			after(done => {
 				server.close(done);
 			});
-			it('should 404 on encoded slash', done => {
-				request(server)
+			it('should 404 on encoded slash', async () => {
+				await request(server)
 					.get('/')
-					.expect(404, done);
+					.expect(404);
 			});
 		});
 		describe('should 404 on back slash', () => {
@@ -306,11 +308,11 @@ describe('send(ctx, file)', () => {
 			after(done => {
 				server.close(done);
 			});
-			it('should 301 on back slash', done => {
-				request(server)
+			it('should 301 on back slash', async () => {
+				await request(server)
 					.get('/')
 					.expect('Location', '//')
-					.expect(301, done);
+					.expect(301);
 			});
 		});
 	});
@@ -326,23 +328,23 @@ describe('send(ctx, file)', () => {
 					const sent = await send(ctx, __dirname, p, {
 						contentEncodingMappings: [
 							{
-								matcher: /^(.*\.json)$/,
+								matcher: /^(?<path>.*\.json)$/u,
 								encodings: [
 									{
 										name: 'br',
-										path: '$1.br'
+										path: '$<path>.br',
 									},
 									{
 										name: 'gzip',
-										path: '$1.gz'
-									}
-								]
-							}
-						]
+										path: '$<path>.gz',
+									},
+								],
+							},
+						],
 					});
 					assert.strictEqual(
 						sent.storageInfo ? sent.storageInfo.attachedData.resolvedPath : undefined,
-						join(__dirname, '/fixtures-koa/user.json')
+						join(__dirname, '/fixtures-koa/user.json'),
 					);
 				});
 
@@ -351,13 +353,13 @@ describe('send(ctx, file)', () => {
 			after(done => {
 				server.close(done);
 			});
-			it('should return the path when no file is available', done => {
-				request(server)
+			it('should return the path when no file is available', async () => {
+				await request(server)
 					.get('/')
 					.set('Accept-Encoding', 'br, gzip, identity')
 					.expect('Content-Length', '18')
 					.expect('{ "name": "tobi" }')
-					.expect(200, done);
+					.expect(200);
 			});
 		});
 
@@ -371,19 +373,19 @@ describe('send(ctx, file)', () => {
 					await send(ctx, __dirname, p, {
 						contentEncodingMappings: [
 							{
-								matcher: /^(.*\.json)$/,
+								matcher: /^(?<path>.*\.json)$/u,
 								encodings: [
 									{
 										name: 'br',
-										path: '$1.br'
+										path: '$<path>.br',
 									},
 									{
 										name: 'gzip',
-										path: '$1.gz'
-									}
-								]
-							}
-						]
+										path: '$<path>.gz',
+									},
+								],
+							},
+						],
 					});
 				});
 
@@ -392,11 +394,11 @@ describe('send(ctx, file)', () => {
 			after(done => {
 				server.close(done);
 			});
-			it('should 404 when not any file is available', done => {
-				request(server)
+			it('should 404 when not any file is available', async () => {
+				await request(server)
 					.get('/')
 					.set('Accept-Encoding', 'br, gzip, identity')
-					.expect(404, done);
+					.expect(404);
 			});
 		});
 
@@ -410,19 +412,19 @@ describe('send(ctx, file)', () => {
 					await send(ctx, __dirname, p, {
 						contentEncodingMappings: [
 							{
-								matcher: /^(.*\.txt)$/,
+								matcher: /^(?<path>.*\.txt)$/u,
 								encodings: [
 									{
 										name: 'br',
-										path: '$1.br'
+										path: '$<path>.br',
 									},
 									{
 										name: 'gzip',
-										path: '$1.gz'
-									}
-								]
-							}
-						]
+										path: '$<path>.gz',
+									},
+								],
+							},
+						],
 					});
 				});
 
@@ -431,11 +433,11 @@ describe('send(ctx, file)', () => {
 			after(done => {
 				server.close(done);
 			});
-			it('should 404 when identity is not accepted', done => {
-				request(server)
+			it('should 404 when identity is not accepted', async () => {
+				await request(server)
 					.get('/')
 					.set('Accept-Encoding', 'br, gzip, identity;q=0')
-					.expect(404, done);
+					.expect(404);
 			});
 		});
 
@@ -449,23 +451,23 @@ describe('send(ctx, file)', () => {
 					const sent = await send(ctx, __dirname, p, {
 						contentEncodingMappings: [
 							{
-								matcher: /^(.*\.txt)$/,
+								matcher: /^(?<path>.*\.txt)$/u,
 								encodings: [
 									{
 										name: 'br',
-										path: '$1.br'
+										path: '$<path>.br',
 									},
 									{
 										name: 'gzip',
-										path: '$1.gz'
-									}
-								]
-							}
-						]
+										path: '$<path>.gz',
+									},
+								],
+							},
+						],
 					});
 					assert.strictEqual(
 						sent.storageInfo ? sent.storageInfo.attachedData.resolvedPath : undefined,
-						join(__dirname, '/fixtures-koa/hello.txt')
+						join(__dirname, '/fixtures-koa/hello.txt'),
 					);
 				});
 
@@ -474,13 +476,13 @@ describe('send(ctx, file)', () => {
 			after(done => {
 				server.close(done);
 			});
-			it('should return the path when a directory have the encoding extension', done => {
-				request(server)
+			it('should return the path when a directory have the encoding extension', async () => {
+				await request(server)
 					.get('/')
 					.set('Accept-Encoding', 'br, gzip, identity')
 					.expect('Content-Length', '5')
 					.expect('world')
-					.expect(200, done);
+					.expect(200);
 			});
 		});
 
@@ -494,23 +496,23 @@ describe('send(ctx, file)', () => {
 					const sent = await send(ctx, __dirname, p, {
 						contentEncodingMappings: [
 							{
-								matcher: /^(.*\.json)$/,
+								matcher: /^(?<path>.*\.json)$/u,
 								encodings: [
 									{
 										name: 'br',
-										path: '$1.br'
+										path: '$<path>.br',
 									},
 									{
 										name: 'gzip',
-										path: '$1.gz'
-									}
-								]
-							}
-						]
+										path: '$<path>.gz',
+									},
+								],
+							},
+						],
 					});
 					assert.strictEqual(
 						sent.storageInfo ? sent.storageInfo.attachedData.resolvedPath : undefined,
-						join(__dirname, '/fixtures-koa/hello.txt')
+						join(__dirname, '/fixtures-koa/hello.txt'),
 					);
 				});
 
@@ -519,14 +521,17 @@ describe('send(ctx, file)', () => {
 			after(done => {
 				server.close(done);
 			});
-			it('should not return the path when a directory have the encoding extension but matcher not ok', done => {
-				request(server)
-					.get('/')
-					.set('Accept-Encoding', 'br, gzip, identity')
-					.expect('Content-Length', '5')
-					.expect('world')
-					.expect(200, done);
-			});
+			it(
+				'should not return the path when a directory have the encoding extension but matcher not ok',
+				async () => {
+					await request(server)
+						.get('/')
+						.set('Accept-Encoding', 'br, gzip, identity')
+						.expect('Content-Length', '5')
+						.expect('world')
+						.expect(200);
+				},
+			);
 		});
 
 		describe('should return path if .gz path exists and gzip not requested', () => {
@@ -538,23 +543,23 @@ describe('send(ctx, file)', () => {
 					const sent = await send(ctx, __dirname, '/fixtures-koa/gzip.json', {
 						contentEncodingMappings: [
 							{
-								matcher: /^(.*\.json)$/,
+								matcher: /^(?<path>.*\.json)$/u,
 								encodings: [
 									{
 										name: 'br',
-										path: '$1.br'
+										path: '$<path>.br',
 									},
 									{
 										name: 'gzip',
-										path: '$1.gz'
-									}
-								]
-							}
-						]
+										path: '$<path>.gz',
+									},
+								],
+							},
+						],
 					});
 					assert.strictEqual(
 						sent.storageInfo ? sent.storageInfo.attachedData.resolvedPath : undefined,
-						join(__dirname, '/fixtures-koa/gzip.json')
+						join(__dirname, '/fixtures-koa/gzip.json'),
 					);
 				});
 
@@ -563,13 +568,13 @@ describe('send(ctx, file)', () => {
 			after(done => {
 				server.close(done);
 			});
-			it('should return path if .gz path exists and gzip not requested', done => {
-				request(server)
+			it('should return path if .gz path exists and gzip not requested', async () => {
+				await request(server)
 					.get('/')
 					.set('Accept-Encoding', 'deflate, identity')
 					.expect('Content-Length', '18')
 					.expect('{ "name": "tobi" }')
-					.expect(200, done);
+					.expect(200);
 			});
 		});
 
@@ -582,27 +587,27 @@ describe('send(ctx, file)', () => {
 					const sent = await send(ctx, __dirname, '/fixtures-koa/gzip.json', {
 						contentEncodingMappings: [
 							{
-								matcher: /^(.*\.json)$/,
+								matcher: /^(?<path>.*\.json)$/u,
 								encodings: [
 									{
 										name: 'identity',
-										path: '$1'
+										path: '$<path>',
 									},
 									{
 										name: 'br',
-										path: '$1.br'
+										path: '$<path>.br',
 									},
 									{
 										name: 'gzip',
-										path: '$1.gz'
-									}
-								]
-							}
-						]
+										path: '$<path>.gz',
+									},
+								],
+							},
+						],
 					});
 					assert.strictEqual(
 						sent.storageInfo ? sent.storageInfo.attachedData.resolvedPath : undefined,
-						join(__dirname, '/fixtures-koa/gzip.json')
+						join(__dirname, '/fixtures-koa/gzip.json'),
 					);
 				});
 
@@ -611,13 +616,13 @@ describe('send(ctx, file)', () => {
 			after(done => {
 				server.close(done);
 			});
-			it('should return path if .gz path exists and identity is the priority', done => {
-				request(server)
+			it('should return path if .gz path exists and identity is the priority', async () => {
+				await request(server)
 					.get('/')
 					.set('Accept-Encoding', 'gzip, identity')
 					.expect('Content-Length', '18')
 					.expect('{ "name": "tobi" }')
-					.expect(200, done);
+					.expect(200);
 			});
 		});
 
@@ -630,23 +635,23 @@ describe('send(ctx, file)', () => {
 					const sent = await send(ctx, __dirname, '/fixtures-koa/gzip.json', {
 						contentEncodingMappings: [
 							{
-								matcher: /^(.*\.json)$/,
+								matcher: /^(?<path>.*\.json)$/u,
 								encodings: [
 									{
 										name: 'br',
-										path: '$1.br'
+										path: '$<path>.br',
 									},
 									{
 										name: 'gzip',
-										path: '$1.gz'
-									}
-								]
-							}
-						]
+										path: '$<path>.gz',
+									},
+								],
+							},
+						],
 					});
 					assert.strictEqual(
 						sent.storageInfo ? sent.storageInfo.attachedData.resolvedPath : undefined,
-						join(__dirname, '/fixtures-koa/gzip.json')
+						join(__dirname, '/fixtures-koa/gzip.json'),
 					);
 				});
 
@@ -655,13 +660,13 @@ describe('send(ctx, file)', () => {
 			after(done => {
 				server.close(done);
 			});
-			it('should return path if .gz path exists and accept encoding is not valid', done => {
-				request(server)
+			it('should return path if .gz path exists and accept encoding is not valid', async () => {
+				await request(server)
 					.get('/')
 					.set('Accept-Encoding', 'gzip, ùù')
 					.expect('Content-Length', '18')
 					.expect('{ "name": "tobi" }')
-					.expect(200, done);
+					.expect(200);
 			});
 		});
 
@@ -674,23 +679,23 @@ describe('send(ctx, file)', () => {
 					const sent = await send(ctx, __dirname, '/fixtures-koa/gzip.json', {
 						contentEncodingMappings: [
 							{
-								matcher: /^(.*\.json)$/,
+								matcher: /^(?<path>.*\.json)$/u,
 								encodings: [
 									{
 										name: 'br',
-										path: '$1.br'
+										path: '$<path>.br',
 									},
 									{
 										name: 'gzip',
-										path: '$1.gz'
-									}
-								]
-							}
-						]
+										path: '$<path>.gz',
+									},
+								],
+							},
+						],
 					});
 					assert.strictEqual(
 						sent.storageInfo ? sent.storageInfo.attachedData.resolvedPath : undefined,
-						join(__dirname, '/fixtures-koa/gzip.json.gz')
+						join(__dirname, '/fixtures-koa/gzip.json.gz'),
 					);
 				});
 
@@ -699,14 +704,14 @@ describe('send(ctx, file)', () => {
 			after(done => {
 				server.close(done);
 			});
-			it('should return .gz path if .gz path exists and gzip requested', done => {
-				request(server)
+			it('should return .gz path if .gz path exists and gzip requested', async () => {
+				await request(server)
 					.get('/')
 					.set('Accept-Encoding', 'gzip, deflate, identity')
 					.expect('Content-Length', '48')
-					.expect('Content-Type', /^application\/json/)
+					.expect('Content-Type', /^application\/json/u)
 					.expect('{ "name": "tobi" }')
-					.expect(200, done);
+					.expect(200);
 			});
 		});
 
@@ -719,23 +724,23 @@ describe('send(ctx, file)', () => {
 					const sent = await send(ctx, __dirname, '/fixtures-koa/gzip.json', {
 						contentEncodingMappings: [
 							{
-								matcher: /^(.*\.json)$/,
+								matcher: /^(?<path>.*\.json)$/u,
 								encodings: [
 									{
 										name: 'br',
-										path: '$1.br'
+										path: '$<path>.br',
 									},
 									{
 										name: 'gzip',
-										path: '$1.gz'
-									}
-								]
-							}
-						]
+										path: '$<path>.gz',
+									},
+								],
+							},
+						],
 					});
 					assert.strictEqual(
 						sent.storageInfo ? sent.storageInfo.attachedData.resolvedPath : undefined,
-						join(__dirname, '/fixtures-koa/gzip.json')
+						join(__dirname, '/fixtures-koa/gzip.json'),
 					);
 				});
 
@@ -744,13 +749,13 @@ describe('send(ctx, file)', () => {
 			after(done => {
 				server.close(done);
 			});
-			it('should return path when .br path exists and brotli not requested', done => {
-				request(server)
+			it('should return path when .br path exists and brotli not requested', async () => {
+				await request(server)
 					.get('/')
 					.set('Accept-Encoding', 'deflate, identity')
 					.expect('Content-Length', '18')
 					.expect('{ "name": "tobi" }')
-					.expect(200, done);
+					.expect(200);
 			});
 		});
 
@@ -763,23 +768,23 @@ describe('send(ctx, file)', () => {
 					const sent = await send(ctx, __dirname, '/fixtures-koa/gzip.json', {
 						contentEncodingMappings: [
 							{
-								matcher: /^(.*\.json)$/,
+								matcher: /^(?<path>.*\.json)$/u,
 								encodings: [
 									{
 										name: 'br',
-										path: '$1.br'
+										path: '$<path>.br',
 									},
 									{
 										name: 'gzip',
-										path: '$1.gz'
-									}
-								]
-							}
-						]
+										path: '$<path>.gz',
+									},
+								],
+							},
+						],
 					});
 					assert.strictEqual(
 						sent.storageInfo ? sent.storageInfo.attachedData.resolvedPath : undefined,
-						join(__dirname, '/fixtures-koa/gzip.json.br')
+						join(__dirname, '/fixtures-koa/gzip.json.br'),
 					);
 				});
 
@@ -788,18 +793,14 @@ describe('send(ctx, file)', () => {
 			after(done => {
 				server.close(done);
 			});
-			it('should return .br path when .br path exists and brotli requested', done => {
-				request(server)
+			it('should return .br path when .br path exists and brotli requested', async () => {
+				const { body } = <{ body: string }> await request(server)
 					.get('/')
 					.parse(brotliParser)
 					.set('Accept-Encoding', 'br, deflate, identity')
 					.expect('Content-Length', '22')
-					.expect(200)
-					.then(({ body }) => {
-						assert.deepStrictEqual(body, '{ "name": "tobi" }');
-						done();
-					})
-					.catch(done);
+					.expect(200);
+				assert.deepStrictEqual(body, '{ "name": "tobi" }');
 			});
 		});
 
@@ -812,19 +813,19 @@ describe('send(ctx, file)', () => {
 					const sent = await send(ctx, __dirname, '/fixtures-koa/gzip.json', {
 						contentEncodingMappings: [
 							{
-								matcher: /^(.*\.json)$/,
+								matcher: /^(?<path>.*\.json)$/u,
 								encodings: [
 									{
 										name: 'gzip',
-										path: '$1.gz'
-									}
-								]
-							}
-						]
+										path: '$<path>.gz',
+									},
+								],
+							},
+						],
 					});
 					assert.strictEqual(
 						sent.storageInfo ? sent.storageInfo.attachedData.resolvedPath : undefined,
-						join(__dirname, '/fixtures-koa/gzip.json.gz')
+						join(__dirname, '/fixtures-koa/gzip.json.gz'),
 					);
 				});
 
@@ -833,13 +834,13 @@ describe('send(ctx, file)', () => {
 			after(done => {
 				server.close(done);
 			});
-			it('should return .gz path when brotli not configured', done => {
-				request(server)
+			it('should return .gz path when brotli not configured', async () => {
+				await request(server)
 					.get('/')
 					.set('Accept-Encoding', 'br, gzip, deflate, identity')
 					.expect('Content-Length', '48')
 					.expect('{ "name": "tobi" }')
-					.expect(200, done);
+					.expect(200);
 			});
 		});
 
@@ -852,19 +853,19 @@ describe('send(ctx, file)', () => {
 					const sent = await send(ctx, __dirname, '/fixtures-koa/gzip.json', {
 						contentEncodingMappings: [
 							{
-								matcher: /^(.*\.json)$/,
+								matcher: /^(?<path>.*\.json)$/u,
 								encodings: [
 									{
 										name: 'gzip',
-										path: '$1.gz'
-									}
-								]
-							}
-						]
+										path: '$<path>.gz',
+									},
+								],
+							},
+						],
 					});
 					assert.strictEqual(
 						sent.storageInfo ? sent.storageInfo.attachedData.resolvedPath : undefined,
-						join(__dirname, '/fixtures-koa/gzip.json')
+						join(__dirname, '/fixtures-koa/gzip.json'),
 					);
 				});
 
@@ -873,13 +874,13 @@ describe('send(ctx, file)', () => {
 			after(done => {
 				server.close(done);
 			});
-			it('should return path when identity encoding has more weight', done => {
-				request(server)
+			it('should return path when identity encoding has more weight', async () => {
+				await request(server)
 					.get('/')
 					.set('Accept-Encoding', 'br;q=0.2, gzip;q=0.2, deflate;q=0.2, identity')
 					.expect('Content-Length', '18')
 					.expect('{ "name": "tobi" }')
-					.expect(200, done);
+					.expect(200);
 			});
 		});
 
@@ -892,19 +893,19 @@ describe('send(ctx, file)', () => {
 					const sent = await send(ctx, __dirname, '/fixtures-koa/gzip.json', {
 						contentEncodingMappings: [
 							{
-								matcher: /^(.*\.json)$/,
+								matcher: /^(?<path>.*\.json)$/u,
 								encodings: [
 									{
 										name: 'gzip',
-										path: '$1.gz'
-									}
-								]
-							}
-						]
+										path: '$<path>.gz',
+									},
+								],
+							},
+						],
 					});
 					assert.strictEqual(
 						sent.storageInfo ? sent.storageInfo.attachedData.resolvedPath : undefined,
-						join(__dirname, '/fixtures-koa/gzip.json')
+						join(__dirname, '/fixtures-koa/gzip.json'),
 					);
 				});
 
@@ -913,13 +914,13 @@ describe('send(ctx, file)', () => {
 			after(done => {
 				server.close(done);
 			});
-			it('should return path when no acceptable encoding', done => {
-				request(server)
+			it('should return path when no acceptable encoding', async () => {
+				await request(server)
 					.get('/')
 					.set('Accept-Encoding', 'br;q=0.2')
 					.expect('Content-Length', '18')
 					.expect('{ "name": "tobi" }')
-					.expect(200, done);
+					.expect(200);
 			});
 		});
 
@@ -932,19 +933,19 @@ describe('send(ctx, file)', () => {
 					const sent = await send(ctx, __dirname, '/fixtures-koa/gzip.json', {
 						contentEncodingMappings: [
 							{
-								matcher: /^(.*\.json)$/,
+								matcher: /^(?<path>.*\.json)$/u,
 								encodings: [
 									{
 										name: 'gzip',
-										path: '$1.gz'
-									}
-								]
-							}
-						]
+										path: '$<path>.gz',
+									},
+								],
+							},
+						],
 					});
 					assert.strictEqual(
 						sent.storageInfo ? sent.storageInfo.attachedData.resolvedPath : undefined,
-						join(__dirname, '/fixtures-koa/gzip.json.gz')
+						join(__dirname, '/fixtures-koa/gzip.json.gz'),
 					);
 				});
 
@@ -953,13 +954,13 @@ describe('send(ctx, file)', () => {
 			after(done => {
 				server.close(done);
 			});
-			it('should return gz path when x-gzip is set', done => {
-				request(server)
+			it('should return gz path when x-gzip is set', async () => {
+				await request(server)
 					.get('/')
 					.set('Accept-Encoding', 'x-gzip;q=0.2')
 					.expect('Content-Length', '48')
 					.expect('{ "name": "tobi" }')
-					.expect(200, done);
+					.expect(200);
 			});
 		});
 
@@ -972,19 +973,19 @@ describe('send(ctx, file)', () => {
 					const sent = await send(ctx, __dirname, '/fixtures-koa/gzip.json', {
 						contentEncodingMappings: [
 							{
-								matcher: /^(.*\.json)$/,
+								matcher: /^(?<path>.*\.json)$/u,
 								encodings: [
 									{
 										name: 'gzip',
-										path: '$1.gz'
-									}
-								]
-							}
-						]
+										path: '$<path>.gz',
+									},
+								],
+							},
+						],
 					});
 					assert.strictEqual(
 						sent.storageInfo ? sent.storageInfo.attachedData.resolvedPath : undefined,
-						join(__dirname, '/fixtures-koa/gzip.json')
+						join(__dirname, '/fixtures-koa/gzip.json'),
 					);
 				});
 
@@ -993,13 +994,13 @@ describe('send(ctx, file)', () => {
 			after(done => {
 				server.close(done);
 			});
-			it('should return path when x-compress is set', done => {
-				request(server)
+			it('should return path when x-compress is set', async () => {
+				await request(server)
 					.get('/')
 					.set('Accept-Encoding', 'x-compress;q=0.2')
 					.expect('Content-Length', '18')
 					.expect('{ "name": "tobi" }')
-					.expect(200, done);
+					.expect(200);
 			});
 		});
 
@@ -1012,23 +1013,23 @@ describe('send(ctx, file)', () => {
 					const sent = await send(ctx, __dirname, '/fixtures-koa/gzip.json', {
 						contentEncodingMappings: [
 							{
-								matcher: /^(.*\.json)$/,
+								matcher: /^(?<path>.*\.json)$/u,
 								encodings: [
 									{
 										name: 'gzip',
-										path: '$1.gz'
+										path: '$<path>.gz',
 									},
 									{
 										name: 'br',
-										path: '$1.br'
-									}
-								]
-							}
-						]
+										path: '$<path>.br',
+									},
+								],
+							},
+						],
 					});
 					assert.strictEqual(
 						sent.storageInfo ? sent.storageInfo.attachedData.resolvedPath : undefined,
-						join(__dirname, '/fixtures-koa/gzip.json.gz')
+						join(__dirname, '/fixtures-koa/gzip.json.gz'),
 					);
 				});
 
@@ -1037,13 +1038,13 @@ describe('send(ctx, file)', () => {
 			after(done => {
 				server.close(done);
 			});
-			it('should return gz path when asterisk encoding has more weight and gz available', done => {
-				request(server)
+			it('should return gz path when asterisk encoding has more weight and gz available', async () => {
+				await request(server)
 					.get('/')
 					.set('Accept-Encoding', 'br;q=0.2, *;q=0.3, deflate;q=0.2, identity;q=0.2')
 					.expect('Content-Length', '48')
 					.expect('{ "name": "tobi" }')
-					.expect(200, done);
+					.expect(200);
 			});
 		});
 
@@ -1056,23 +1057,23 @@ describe('send(ctx, file)', () => {
 					const sent = await send(ctx, __dirname, '/fixtures-koa/gzip.json', {
 						contentEncodingMappings: [
 							{
-								matcher: /^(.*\.json)$/,
+								matcher: /^(?<path>.*\.json)$/u,
 								encodings: [
 									{
 										name: 'gzip',
-										path: '$1.gz'
+										path: '$<path>.gz',
 									},
 									{
 										name: 'br',
-										path: '$1.br'
-									}
-								]
-							}
-						]
+										path: '$<path>.br',
+									},
+								],
+							},
+						],
 					});
 					assert.strictEqual(
 						sent.storageInfo ? sent.storageInfo.attachedData.resolvedPath : undefined,
-						join(__dirname, '/fixtures-koa/gzip.json')
+						join(__dirname, '/fixtures-koa/gzip.json'),
 					);
 				});
 
@@ -1081,13 +1082,13 @@ describe('send(ctx, file)', () => {
 			after(done => {
 				server.close(done);
 			});
-			it('should return path when empty content-encoding', done => {
-				request(server)
+			it('should return path when empty content-encoding', async () => {
+				await request(server)
 					.get('/')
 					.set('Accept-Encoding', '')
 					.expect('Content-Length', '18')
 					.expect('{ "name": "tobi" }')
-					.expect(200, done);
+					.expect(200);
 			});
 		});
 
@@ -1098,28 +1099,27 @@ describe('send(ctx, file)', () => {
 
 				app.use(async ctx => {
 					// hack because superagent always add accept-encoding
-					// tslint:disable-next-line: no-unsafe-any
-					delete ctx.request.header['accept-encoding'];
+					delete (<{ [key: string]: string }> ctx.request.header)['accept-encoding'];
 					const sent = await send(ctx, __dirname, '/fixtures-koa/gzip.json', {
 						contentEncodingMappings: [
 							{
-								matcher: /^(.*\.json)$/,
+								matcher: /^(?<path>.*\.json)$/u,
 								encodings: [
 									{
 										name: 'gzip',
-										path: '$1.gz'
+										path: '$<path>.gz',
 									},
 									{
 										name: 'br',
-										path: '$1.br'
-									}
-								]
-							}
-						]
+										path: '$<path>.br',
+									},
+								],
+							},
+						],
 					});
 					assert.strictEqual(
 						sent.storageInfo ? sent.storageInfo.attachedData.resolvedPath : undefined,
-						join(__dirname, '/fixtures-koa/gzip.json')
+						join(__dirname, '/fixtures-koa/gzip.json'),
 					);
 				});
 
@@ -1128,12 +1128,12 @@ describe('send(ctx, file)', () => {
 			after(done => {
 				server.close(done);
 			});
-			it('should return path when no content-encoding', done => {
-				request(server)
+			it('should return path when no content-encoding', async () => {
+				await request(server)
 					.get('/')
 					.expect('Content-Length', '18')
 					.expect('{ "name": "tobi" }')
-					.expect(200, done);
+					.expect(200);
 			});
 		});
 
@@ -1147,19 +1147,19 @@ describe('send(ctx, file)', () => {
 					await send(ctx, __dirname, p, {
 						contentEncodingMappings: [
 							{
-								matcher: /^(.*)$/,
+								matcher: /^(?<path>.*)$/u,
 								encodings: [
 									{
 										name: 'br',
-										path: '$1.br'
+										path: '$<path>.br',
 									},
 									{
 										name: 'gzip',
-										path: '$1.gz'
-									}
-								]
-							}
-						]
+										path: '$<path>.gz',
+									},
+								],
+							},
+						],
 					});
 				});
 
@@ -1168,11 +1168,11 @@ describe('send(ctx, file)', () => {
 			after(done => {
 				server.close(done);
 			});
-			it('should 404 when is directory', done => {
-				request(server)
+			it('should 404 when is directory', async () => {
+				await request(server)
 					.get('/')
 					.set('Accept-Encoding', 'br, gzip, identity')
-					.expect(404, done);
+					.expect(404);
 			});
 		});
 	});
@@ -1188,7 +1188,7 @@ describe('send(ctx, file)', () => {
 					const sent = await send(ctx, __dirname, p, { cacheControl: 'max-age=5' });
 					assert.strictEqual(
 						sent.storageInfo ? sent.storageInfo.attachedData.resolvedPath : undefined,
-						join(__dirname, '/fixtures-koa/user.json')
+						join(__dirname, '/fixtures-koa/user.json'),
 					);
 				});
 
@@ -1197,11 +1197,11 @@ describe('send(ctx, file)', () => {
 			after(done => {
 				server.close(done);
 			});
-			it('should set cache-control', done => {
-				request(server)
+			it('should set cache-control', async () => {
+				await request(server)
 					.get('/')
 					.expect('Cache-Control', 'max-age=5')
-					.expect(200, done);
+					.expect(200);
 			});
 		});
 
@@ -1212,7 +1212,7 @@ describe('send(ctx, file)', () => {
 
 				app.use(async ctx => {
 					await send(ctx, __dirname, '/fixtures-koa/hello.txt', {
-						cacheControl: false
+						cacheControl: false,
 					});
 				});
 
@@ -1221,16 +1221,15 @@ describe('send(ctx, file)', () => {
 			after(done => {
 				server.close(done);
 			});
-			it('be unset through false option', done => {
-				request(server)
+			it('be unset through false option', async () => {
+				await request(server)
 					.get('/')
 					.expect(200)
 					.expect(res => {
 						if (res.get('Cache-Control')) {
 							throw new Error('Cache-Control should not be set');
 						}
-					})
-					.end(done);
+					});
 			});
 		});
 	});
@@ -1250,11 +1249,10 @@ describe('send(ctx, file)', () => {
 			after(done => {
 				server.close(done);
 			});
-			it('should set the Content-Type', done => {
-				request(server)
+			it('should set the Content-Type', async () => {
+				await request(server)
 					.get('/')
-					.expect('Content-Type', /application\/json/)
-					.end(done);
+					.expect('Content-Type', /application\/json/u);
 			});
 		});
 
@@ -1272,11 +1270,10 @@ describe('send(ctx, file)', () => {
 			after(done => {
 				server.close(done);
 			});
-			it('should set the Content-Type with UTF-8 charset for html', done => {
-				request(server)
+			it('should set the Content-Type with UTF-8 charset for html', async () => {
+				await request(server)
 					.get('/')
-					.expect('Content-Type', 'text/html; charset=UTF-8')
-					.end(done);
+					.expect('Content-Type', 'text/html; charset=UTF-8');
 			});
 		});
 
@@ -1294,11 +1291,10 @@ describe('send(ctx, file)', () => {
 			after(done => {
 				server.close(done);
 			});
-			it('should set the Content-Type with no charset for html when disabled', done => {
-				request(server)
+			it('should set the Content-Type with no charset for html when disabled', async () => {
+				await request(server)
 					.get('/')
-					.expect('Content-Type', 'text/html')
-					.end(done);
+					.expect('Content-Type', 'text/html');
 			});
 		});
 
@@ -1309,7 +1305,7 @@ describe('send(ctx, file)', () => {
 
 				app.use(async ctx => {
 					await send(ctx, __dirname, '/fixtures-koa/world/index.html', {
-						defaultCharsets: [{ matcher: /^text\/.*/, charset: 'windows-1252' }]
+						defaultCharsets: [{ matcher: /^text\/.*/u, charset: 'windows-1252' }],
 					});
 				});
 
@@ -1318,11 +1314,10 @@ describe('send(ctx, file)', () => {
 			after(done => {
 				server.close(done);
 			});
-			it('should set the Content-Type with a charset when option used', done => {
-				request(server)
+			it('should set the Content-Type with a charset when option used', async () => {
+				await request(server)
 					.get('/')
-					.expect('Content-Type', 'text/html; charset=windows-1252')
-					.end(done);
+					.expect('Content-Type', 'text/html; charset=windows-1252');
 			});
 		});
 
@@ -1333,7 +1328,7 @@ describe('send(ctx, file)', () => {
 
 				app.use(async ctx => {
 					await send(ctx, __dirname, '/fixtures-koa/user.json', {
-						defaultCharsets: [{ matcher: /^text\/.*/, charset: 'windows-1252' }]
+						defaultCharsets: [{ matcher: /^text\/.*/u, charset: 'windows-1252' }],
 					});
 				});
 
@@ -1342,11 +1337,10 @@ describe('send(ctx, file)', () => {
 			after(done => {
 				server.close(done);
 			});
-			it('should not set the Content-Type with a charset when content type does not match', done => {
-				request(server)
+			it('should not set the Content-Type with a charset when content type does not match', async () => {
+				await request(server)
 					.get('/')
-					.expect('Content-Type', 'application/json')
-					.end(done);
+					.expect('Content-Type', 'application/json');
 			});
 		});
 
@@ -1364,12 +1358,14 @@ describe('send(ctx, file)', () => {
 			after(done => {
 				server.close(done);
 			});
-			it('should not set Content-Type when type is unknown, (koa force to application/octet-stream)', done => {
-				request(server)
-					.get('/')
-					.expect('Content-Type', 'application/octet-stream')
-					.end(done);
-			});
+			it(
+				'should not set Content-Type when type is unknown, (koa force to application/octet-stream)',
+				async () => {
+					await request(server)
+						.get('/')
+						.expect('Content-Type', 'application/octet-stream');
+				},
+			);
 		});
 
 		describe('should not set the Content-Type when type is not text', () => {
@@ -1386,11 +1382,10 @@ describe('send(ctx, file)', () => {
 			after(done => {
 				server.close(done);
 			});
-			it('should not set the Content-Type when type is not text', done => {
-				request(server)
+			it('should not set the Content-Type when type is not text', async () => {
+				await request(server)
 					.get('/')
-					.expect('Content-Type', 'image/png')
-					.end(done);
+					.expect('Content-Type', 'image/png');
 			});
 		});
 
@@ -1408,11 +1403,10 @@ describe('send(ctx, file)', () => {
 			after(done => {
 				server.close(done);
 			});
-			it('be unset with false contentType option', done => {
-				request(server)
+			it('be unset with false contentType option', async () => {
+				await request(server)
 					.get('/')
-					.expect('Content-Type', 'application/octet-stream')
-					.end(done);
+					.expect('Content-Type', 'application/octet-stream');
 			});
 		});
 
@@ -1430,11 +1424,10 @@ describe('send(ctx, file)', () => {
 			after(done => {
 				server.close(done);
 			});
-			it('should set to default the Content-Type when type is unknown', done => {
-				request(server)
+			it('should set to default the Content-Type when type is unknown', async () => {
+				await request(server)
 					.get('/')
-					.expect('Content-Type', 'application/x-test')
-					.end(done);
+					.expect('Content-Type', 'application/x-test');
 			});
 		});
 
@@ -1448,7 +1441,7 @@ describe('send(ctx, file)', () => {
 						ctx,
 						__dirname,
 						'/fixtures-koa/user.json',
-						{ mimeModule: new Mime({ 'application/x-test': ['json'] }) }
+						{ mimeModule: new Mime({ 'application/x-test': ['json'] }) },
 					);
 				});
 
@@ -1457,11 +1450,10 @@ describe('send(ctx, file)', () => {
 			after(done => {
 				server.close(done);
 			});
-			it('should use mime module instance when set', done => {
-				request(server)
+			it('should use mime module instance when set', async () => {
+				await request(server)
 					.get('/')
-					.expect('Content-Type', 'application/x-test')
-					.end(done);
+					.expect('Content-Type', 'application/x-test');
 			});
 		});
 
@@ -1479,9 +1471,9 @@ describe('send(ctx, file)', () => {
 							mimeModule: {
 								getType() {
 									throw new Error('oops');
-								}
-							}
-						}
+								},
+							},
+						},
 					);
 				});
 
@@ -1490,10 +1482,10 @@ describe('send(ctx, file)', () => {
 			after(done => {
 				server.close(done);
 			});
-			it('should 500 when mime module instance throw', done => {
-				request(server)
+			it('should 500 when mime module instance throw', async () => {
+				await request(server)
 					.get('/')
-					.expect(500, done);
+					.expect(500);
 			});
 		});
 	});
@@ -1513,11 +1505,10 @@ describe('send(ctx, file)', () => {
 			after(done => {
 				server.close(done);
 			});
-			it('should set the inline Content-Disposition by default', done => {
-				request(server)
+			it('should set the inline Content-Disposition by default', async () => {
+				await request(server)
 					.get('/')
-					.expect('Content-Disposition', 'inline; filename="user.json"')
-					.end(done);
+					.expect('Content-Disposition', 'inline; filename="user.json"');
 			});
 		});
 
@@ -1528,7 +1519,7 @@ describe('send(ctx, file)', () => {
 
 				app.use(async ctx => {
 					await send(ctx, __dirname, '/fixtures-koa/user.json', {
-						contentDispositionType: 'attachment'
+						contentDispositionType: 'attachment',
 					});
 				});
 
@@ -1537,11 +1528,10 @@ describe('send(ctx, file)', () => {
 			after(done => {
 				server.close(done);
 			});
-			it('should set the attachment with content-disposition module option', done => {
-				request(server)
+			it('should set the attachment with content-disposition module option', async () => {
+				await request(server)
 					.get('/')
-					.expect('Content-Disposition', 'attachment; filename="user.json"')
-					.end(done);
+					.expect('Content-Disposition', 'attachment; filename="user.json"');
 			});
 		});
 
@@ -1553,7 +1543,7 @@ describe('send(ctx, file)', () => {
 				app.use(async ctx => {
 					await send(ctx, __dirname, '/fixtures-koa/user.json', {
 						contentDispositionType: 'attachment',
-						contentDispositionFilename: 'plop.json'
+						contentDispositionFilename: 'plop.json',
 					});
 				});
 
@@ -1562,11 +1552,10 @@ describe('send(ctx, file)', () => {
 			after(done => {
 				server.close(done);
 			});
-			it('should set the attachment with content-disposition module option and filename', done => {
-				request(server)
+			it('should set the attachment with content-disposition module option and filename', async () => {
+				await request(server)
 					.get('/')
-					.expect('Content-Disposition', 'attachment; filename="plop.json"')
-					.end(done);
+					.expect('Content-Disposition', 'attachment; filename="plop.json"');
 			});
 		});
 
@@ -1578,7 +1567,7 @@ describe('send(ctx, file)', () => {
 				app.use(async ctx => {
 					await send(ctx, __dirname, '/fixtures-koa/user.json', {
 						contentDispositionType: 'attachment',
-						contentDispositionFilename: false
+						contentDispositionFilename: false,
 					});
 				});
 
@@ -1587,11 +1576,10 @@ describe('send(ctx, file)', () => {
 			after(done => {
 				server.close(done);
 			});
-			it('should set the attachment with content-disposition module option and no filename', done => {
-				request(server)
+			it('should set the attachment with content-disposition module option and no filename', async () => {
+				await request(server)
 					.get('/')
-					.expect('Content-Disposition', 'attachment')
-					.end(done);
+					.expect('Content-Disposition', 'attachment');
 			});
 		});
 
@@ -1602,7 +1590,7 @@ describe('send(ctx, file)', () => {
 
 				app.use(async ctx => {
 					await send(ctx, __dirname, '/fixtures-koa/user.json', {
-						contentDispositionType: false
+						contentDispositionType: false,
 					});
 				});
 
@@ -1611,15 +1599,14 @@ describe('send(ctx, file)', () => {
 			after(done => {
 				server.close(done);
 			});
-			it('should unset content-disposition with false option', done => {
-				request(server)
+			it('should unset content-disposition with false option', async () => {
+				await request(server)
 					.get('/')
 					.expect(res => {
 						if (res.get('Content-Disposition')) {
 							throw new Error('Content-Disposition should not be set');
 						}
-					})
-					.end(done);
+					});
 			});
 		});
 	});
@@ -1638,11 +1625,10 @@ describe('send(ctx, file)', () => {
 		after(done => {
 			server.close(done);
 		});
-		it('should set the Content-Length', done => {
-			request(server)
+		it('should set the Content-Length', async () => {
+			await request(server)
 				.get('/')
-				.expect('Content-Length', '18')
-				.end(done);
+				.expect('Content-Length', '18');
 		});
 	});
 
@@ -1661,11 +1647,10 @@ describe('send(ctx, file)', () => {
 			after(done => {
 				server.close(done);
 			});
-			it('should set Last-Modified', done => {
-				request(server)
+			it('should set Last-Modified', async () => {
+				await request(server)
 					.get('/')
-					.expect('Last-Modified', /GMT/)
-					.end(done);
+					.expect('Last-Modified', /GMT/u);
 			});
 		});
 
@@ -1683,15 +1668,14 @@ describe('send(ctx, file)', () => {
 			after(done => {
 				server.close(done);
 			});
-			it('should not set Last-Modified when false option', done => {
-				request(server)
+			it('should not set Last-Modified when false option', async () => {
+				await request(server)
 					.get('/')
 					.expect(res => {
 						if (res.get('Last-Modified')) {
 							throw new Error('Last-Modified should not be set');
 						}
-					})
-					.end(done);
+					});
 			});
 		});
 	});
@@ -1710,12 +1694,12 @@ describe('send(ctx, file)', () => {
 		after(done => {
 			server.close(done);
 		});
-		it('should answer 304 when data is fresh', done => {
-			const stats = fs.statSync(join(__dirname, '/fixtures-koa/user.json'));
-			request(server)
+		it('should answer 304 when data is fresh', async () => {
+			const stats = await promisify(fs.stat)(join(__dirname, '/fixtures-koa/user.json'));
+			await request(server)
 				.get('/')
 				.set('If-Modified-Since', stats.mtime.toUTCString())
-				.expect(304, done);
+				.expect(304);
 		});
 	});
 
@@ -1734,14 +1718,13 @@ describe('send(ctx, file)', () => {
 			after(done => {
 				server.close(done);
 			});
-			it('should respond 206 to a range request', done => {
-				request(server)
+			it('should respond 206 to a range request', async () => {
+				await request(server)
 					.get('/')
 					.set('Range', 'bytes=0-0')
 					.expect(206)
 					.expect('Content-Range', 'bytes 0-0/5')
-					.expect('Content-Length', '1')
-					.end(done);
+					.expect('Content-Length', '1');
 			});
 		});
 
@@ -1759,16 +1742,15 @@ describe('send(ctx, file)', () => {
 			after(done => {
 				server.close(done);
 			});
-			it('should respond 206 to a range request if range fresh (last modified)', done => {
-				const stats = fs.statSync(join(__dirname, '/fixtures-koa/hello.txt'));
-				request(server)
+			it('should respond 206 to a range request if range fresh (last modified)', async () => {
+				const stats = await promisify(fs.stat)(join(__dirname, '/fixtures-koa/hello.txt'));
+				await request(server)
 					.get('/')
 					.set('Range', 'bytes=0-0')
 					.set('If-Range', stats.mtime.toUTCString())
 					.expect(206)
 					.expect('Content-Range', 'bytes 0-0/5')
-					.expect('Content-Length', '1')
-					.end(done);
+					.expect('Content-Length', '1');
 			});
 		});
 
@@ -1786,13 +1768,12 @@ describe('send(ctx, file)', () => {
 			after(done => {
 				server.close(done);
 			});
-			it('should respond 200 to a range request if range not fresh (last modified)', done => {
-				request(server)
+			it('should respond 200 to a range request if range not fresh (last modified)', async () => {
+				await request(server)
 					.get('/')
 					.set('Range', 'bytes=0-0')
 					.set('If-Range', new Date().toUTCString())
-					.expect(200)
-					.end(done);
+					.expect(200);
 			});
 		});
 
@@ -1810,13 +1791,12 @@ describe('send(ctx, file)', () => {
 			after(done => {
 				server.close(done);
 			});
-			it('should respond 200 to a range request if range not fresh (etag)', done => {
-				request(server)
+			it('should respond 200 to a range request if range not fresh (etag)', async () => {
+				await request(server)
 					.get('/')
 					.set('Range', 'bytes=0-0')
 					.set('If-Range', '"test"')
-					.expect(200)
-					.end(done);
+					.expect(200);
 			});
 		});
 
@@ -1834,14 +1814,13 @@ describe('send(ctx, file)', () => {
 			after(done => {
 				server.close(done);
 			});
-			it('should respond 206 to a range request if range fresh (empty last modified)', done => {
-				const stats = fs.statSync(join(__dirname, '/fixtures-koa/hello.txt'));
-				request(server)
+			it('should respond 206 to a range request if range fresh (empty last modified)', async () => {
+				const stats = await promisify(fs.stat)(join(__dirname, '/fixtures-koa/hello.txt'));
+				await request(server)
 					.get('/')
 					.set('Range', 'bytes=0-0')
 					.set('If-Range', stats.mtime.toUTCString())
-					.expect(200)
-					.end(done);
+					.expect(200);
 			});
 		});
 
@@ -1859,13 +1838,12 @@ describe('send(ctx, file)', () => {
 			after(done => {
 				server.close(done);
 			});
-			it('should respond 206 to a range request if range fresh (empty etag)', done => {
-				request(server)
+			it('should respond 206 to a range request if range fresh (empty etag)', async () => {
+				await request(server)
 					.get('/')
 					.set('Range', 'bytes=0-0')
 					.set('If-Range', '"test"')
-					.expect(200)
-					.end(done);
+					.expect(200);
 			});
 		});
 
@@ -1883,33 +1861,33 @@ describe('send(ctx, file)', () => {
 			after(done => {
 				server.close(done);
 			});
-			it('should respond 206 to a multiple range request', done => {
-				request(server)
+			it('should respond 206 to a multiple range request', async () => {
+				await request(server)
 					.get('/')
 					.set('Range', 'bytes=0-0,2-2')
 					.expect(206)
-					.expect('Content-Type', /^multipart\/byteranges/)
-					.parse((res: request.Response, cb: (err: Error | null, body: unknown) => void) => {
+					.expect('Content-Type', /^multipart\/byteranges/u)
+					.parse((res, cb) => {
 						const chunks: Buffer[] = [];
 						res.on('data', chunk => {
 							chunks.push(<Buffer> chunk);
 						});
-						res.on('error', err => {
-							cb(<Error> err, Buffer.concat(chunks).toString());
+						res.on('error', (err: Error) => {
+							cb(err, Buffer.concat(chunks).toString());
 						});
 						res.on('end', () => {
 							cb(null, Buffer.concat(chunks).toString());
 						});
 					})
 					.expect(res => {
-						if (// tslint:disable-next-line:max-line-length ter-max-len
-							!/^--[^\r\n]+\r\ncontent-type: text\/plain; charset=UTF-8\r\ncontent-range: bytes 0-0\/5\r\n\r\nw\r\n--[^\r\n]+\r\ncontent-type: text\/plain; charset=UTF-8\r\ncontent-range: bytes 2-2\/5\r\n\r\nr\r\n--[^\r\n]+--$/
+						if (
+							// eslint-disable-next-line max-len
+							!/^--[^\r\n]+\r\ncontent-type: text\/plain; charset=UTF-8\r\ncontent-range: bytes 0-0\/5\r\n\r\nw\r\n--[^\r\n]+\r\ncontent-type: text\/plain; charset=UTF-8\r\ncontent-range: bytes 2-2\/5\r\n\r\nr\r\n--[^\r\n]+--$/u
 								.test(<string> res.body)
 						) {
 							throw new Error('multipart/byteranges seems invalid');
 						}
-					})
-					.end(done);
+					});
 			});
 		});
 
@@ -1927,13 +1905,12 @@ describe('send(ctx, file)', () => {
 			after(done => {
 				server.close(done);
 			});
-			it('should respond to a multiple range request with unknown content type', done => {
-				request(server)
+			it('should respond to a multiple range request with unknown content type', async () => {
+				await request(server)
 					.get('/')
 					.set('Range', 'bytes=0-0,2-2')
 					.expect(206)
-					.expect('Content-Type', /^multipart\/byteranges/)
-					.end(done);
+					.expect('Content-Type', /^multipart\/byteranges/u);
 			});
 		});
 
@@ -1951,13 +1928,12 @@ describe('send(ctx, file)', () => {
 			after(done => {
 				server.close(done);
 			});
-			it('should respond 416 when cannot be satisfied', done => {
-				request(server)
+			it('should respond 416 when cannot be satisfied', async () => {
+				await request(server)
 					.get('/')
 					.set('Range', 'bytes=7-7')
 					.expect(416)
-					.expect('Content-Range', 'bytes */5')
-					.end(done);
+					.expect('Content-Range', 'bytes */5');
 			});
 		});
 
@@ -1975,12 +1951,11 @@ describe('send(ctx, file)', () => {
 			after(done => {
 				server.close(done);
 			});
-			it('should 416 not bytes ranges', done => {
-				request(server)
+			it('should 416 not bytes ranges', async () => {
+				await request(server)
 					.get('/')
 					.set('Range', 'test=1-1')
-					.expect(200)
-					.end(done);
+					.expect(200);
 			});
 		});
 	});
@@ -2000,11 +1975,10 @@ describe('send(ctx, file)', () => {
 			after(done => {
 				server.close(done);
 			});
-			it('should set ETag', done => {
-				request(server)
+			it('should set ETag', async () => {
+				await request(server)
 					.get('/')
-					.expect('Etag', /"/)
-					.end(done);
+					.expect('Etag', /"/u);
 			});
 		});
 
@@ -2015,7 +1989,7 @@ describe('send(ctx, file)', () => {
 
 				app.use(async ctx => {
 					await send(ctx, __dirname, '/fixtures-koa/hello.txt', {
-						etag: false
+						etag: false,
 					});
 				});
 
@@ -2024,16 +1998,15 @@ describe('send(ctx, file)', () => {
 			after(done => {
 				server.close(done);
 			});
-			it('be unset through etag false option', done => {
-				request(server)
+			it('be unset through etag false option', async () => {
+				await request(server)
 					.get('/')
 					.expect(200)
 					.expect(res => {
 						if (res.get('ETag')) {
 							throw new Error('ETag should not be set');
 						}
-					})
-					.end(done);
+					});
 			});
 		});
 	});
@@ -2045,17 +2018,14 @@ describe('send(ctx, file)', () => {
 				const app = new Koa<object>();
 
 				class ErrorStorage extends FileSystemStorage {
-					createReadableStream(
-						_si: StorageInfo<FileData>,
-						_range: StreamRange | undefined,
-						_autoclose: boolean
-					) {
+					// eslint-disable-next-line class-methods-use-this
+					createReadableStream() {
 						return new Readable({
 							read() {
 								process.nextTick(() => {
 									this.destroy(new Error('ooops'));
 								});
-							}
+							},
 						});
 					}
 				}
@@ -2070,11 +2040,10 @@ describe('send(ctx, file)', () => {
 			after(done => {
 				server.close(done);
 			});
-			it('should handle read errors to a simple request', done => {
-				request(server)
+			it('should handle read errors to a simple request', async () => {
+				await request(server)
 					.get('/')
-					.expect(500)
-					.end(done);
+					.expect(500);
 			});
 		});
 
@@ -2084,11 +2053,8 @@ describe('send(ctx, file)', () => {
 				const app = new Koa<object>();
 
 				class ErrorStorage extends FileSystemStorage {
-					createReadableStream(
-						_si: StorageInfo<FileData>,
-						_range: StreamRange | undefined,
-						_autoclose: boolean
-					): Readable {
+					// eslint-disable-next-line class-methods-use-this
+					createReadableStream(): Readable {
 						throw new Error('oops');
 					}
 				}
@@ -2103,11 +2069,10 @@ describe('send(ctx, file)', () => {
 			after(done => {
 				server.close(done);
 			});
-			it('should handle stream creation error', done => {
-				request(server)
+			it('should handle stream creation error', async () => {
+				await request(server)
 					.get('/')
-					.expect(500)
-					.end(done);
+					.expect(500);
 			});
 		});
 
@@ -2117,17 +2082,14 @@ describe('send(ctx, file)', () => {
 				const app = new Koa<object>();
 
 				class ErrorStorage extends FileSystemStorage {
-					createReadableStream(
-						_si: StorageInfo<FileData>,
-						_range: StreamRange | undefined,
-						_autoclose: boolean
-					) {
+					// eslint-disable-next-line class-methods-use-this
+					createReadableStream() {
 						return new Readable({
 							read() {
 								process.nextTick(() => {
 									this.destroy(new Error('ooops'));
 								});
-							}
+							},
 						});
 					}
 				}
@@ -2142,13 +2104,15 @@ describe('send(ctx, file)', () => {
 			after(done => {
 				server.close(done);
 			});
-			it('should handle read errors to a multiple range request', done => {
-				request(server)
-					.get('/')
-					.set('Range', 'bytes=0-0,2-2')
-					.catch(() => {
-						done();
-					});
+			it('should handle read errors to a multiple range request', async () => {
+				try {
+					await request(server)
+						.get('/')
+						.set('Range', 'bytes=0-0,2-2');
+					assert.fail();
+				} catch {
+					// noop
+				}
 			});
 		});
 
@@ -2162,7 +2126,7 @@ describe('send(ctx, file)', () => {
 					createReadableStream(
 						si: StorageInfo<FileData>,
 						range: StreamRange | undefined,
-						autoclose: boolean
+						autoclose: boolean,
 					) {
 						if (first) {
 							first = false;
@@ -2173,7 +2137,7 @@ describe('send(ctx, file)', () => {
 								process.nextTick(() => {
 									this.destroy(new Error('ooops'));
 								});
-							}
+							},
 						});
 					}
 				}
@@ -2188,13 +2152,15 @@ describe('send(ctx, file)', () => {
 			after(done => {
 				server.close(done);
 			});
-			it('should handle read errors to a multiple range request on second stream', done => {
-				request(server)
-					.get('/')
-					.set('Range', 'bytes=0-0,2-2')
-					.catch(() => {
-						done();
-					});
+			it('should handle read errors to a multiple range request on second stream', async () => {
+				try {
+					await request(server)
+						.get('/')
+						.set('Range', 'bytes=0-0,2-2');
+					assert.fail();
+				} catch {
+					// noop
+				}
 			});
 		});
 
@@ -2203,12 +2169,9 @@ describe('send(ctx, file)', () => {
 			before(() => {
 				const app = new Koa<object>();
 
-				// tslint:disable-next-line: max-classes-per-file
 				class ErrorStorage extends FileSystemStorage {
-					// tslint:disable-next-line: no-async-without-await
-					async close(
-						_si: StorageInfo<FileData>
-					) {
+					// eslint-disable-next-line @typescript-eslint/require-await,class-methods-use-this
+					async close() {
 						throw new Error('oops');
 					}
 				}
@@ -2223,12 +2186,11 @@ describe('send(ctx, file)', () => {
 			after(done => {
 				server.close(done);
 			});
-			it('should handle close error', done => {
-				request(server)
+			it('should handle close error', async () => {
+				await request(server)
 					.get('/')
 					.set('Range', 'bytes=0-0,2-2')
-					.expect(206)
-					.end(done);
+					.expect(206);
 			});
 		});
 
@@ -2237,25 +2199,20 @@ describe('send(ctx, file)', () => {
 			before(() => {
 				const app = new Koa<object>();
 
-				// tslint:disable-next-line: max-classes-per-file
 				class ErrorStorage extends FileSystemStorage {
-					createReadableStream(
-						_si: StorageInfo<FileData>,
-						_range: StreamRange | undefined,
-						_autoclose: boolean
-					) {
+					// eslint-disable-next-line class-methods-use-this
+					createReadableStream() {
 						return new Readable({
 							read() {
 								process.nextTick(() => {
 									this.destroy(new Error('ooops'));
 								});
-							}
+							},
 						});
 					}
-					// tslint:disable-next-line: no-async-without-await
-					async close(
-						_si: StorageInfo<FileData>
-					) {
+
+					// eslint-disable-next-line @typescript-eslint/require-await,class-methods-use-this
+					async close() {
 						throw new Error('oops');
 					}
 				}
@@ -2270,13 +2227,15 @@ describe('send(ctx, file)', () => {
 			after(done => {
 				server.close(done);
 			});
-			it('should handle close error after read error', done => {
-				request(server)
-					.get('/')
-					.set('Range', 'bytes=0-0,2-2')
-					.catch(() => {
-						done();
-					});
+			it('should handle close error after read error', async () => {
+				try {
+					await request(server)
+						.get('/')
+						.set('Range', 'bytes=0-0,2-2');
+					assert.fail();
+				} catch {
+					// noop
+				}
 			});
 		});
 
@@ -2304,8 +2263,8 @@ describe('send(ctx, file)', () => {
 			after(done => {
 				server.close(done);
 			});
-			it('should handle unknown streams', done => {
-				request(server)
+			it('should handle unknown streams', async () => {
+				await request(server)
 					.get('/')
 					.expect('Transfer-Encoding', 'chunked')
 					.expect('Content-Disposition', 'inline')
@@ -2320,8 +2279,7 @@ describe('send(ctx, file)', () => {
 							throw new Error('incorrect body');
 						}
 					})
-					.expect(200)
-					.end(done);
+					.expect(200);
 			});
 		});
 		describe('should handle custom streams', () => {
@@ -2329,20 +2287,20 @@ describe('send(ctx, file)', () => {
 			before(() => {
 				const app = new Koa<object>();
 				class CustomStorage extends Storage<undefined, undefined> {
-					async open(_reference: undefined, _requestHeaders: StorageRequestHeaders) {
+					// eslint-disable-next-line @typescript-eslint/require-await,class-methods-use-this
+					async open() {
 						return {
-							attachedData: undefined
+							attachedData: undefined,
 						};
 					}
-					createReadableStream(
-						_storageInfo: StorageInfo<undefined>,
-						_range: StreamRange | undefined,
-						_autoClose: boolean
-					) {
+
+					// eslint-disable-next-line class-methods-use-this
+					createReadableStream() {
 						return new BufferStream(Buffer.from('hello world'));
 					}
-					// tslint:disable-next-line: no-async-without-await
-					async close(_storageInfo: StorageInfo<undefined>) {
+
+					// eslint-disable-next-line class-methods-use-this
+					async close() {
 						// noop
 					}
 				}
@@ -2357,8 +2315,8 @@ describe('send(ctx, file)', () => {
 			after(done => {
 				server.close(done);
 			});
-			it('should handle custom streams', done => {
-				request(server)
+			it('should handle custom streams', async () => {
+				await request(server)
 					.get('/')
 					.expect('Transfer-Encoding', 'chunked')
 					.expect('Content-Disposition', 'inline')
@@ -2373,8 +2331,7 @@ describe('send(ctx, file)', () => {
 							throw new Error('incorrect body');
 						}
 					})
-					.expect(200)
-					.end(done);
+					.expect(200);
 			});
 		});
 
@@ -2383,20 +2340,19 @@ describe('send(ctx, file)', () => {
 			before(() => {
 				const app = new Koa<object>();
 				class CustomStorage extends Storage<undefined, undefined> {
-					// tslint:disable-next-line: no-async-without-await
-					async open(_reference: undefined, _requestHeaders: StorageRequestHeaders)
-						: Promise<StorageInfo<undefined>> {
+					// eslint-disable-next-line @typescript-eslint/require-await,class-methods-use-this
+					async open():
+					Promise<StorageInfo<undefined>> {
 						throw new Error('oops');
 					}
-					createReadableStream(
-						_storageInfo: StorageInfo<undefined>,
-						_range: StreamRange | undefined,
-						_autoClose: boolean
-					) {
+
+					// eslint-disable-next-line class-methods-use-this
+					createReadableStream() {
 						return new BufferStream(Buffer.from('hello world'));
 					}
-					// tslint:disable-next-line: no-async-without-await
-					async close(_storageInfo: StorageInfo<undefined>) {
+
+					// eslint-disable-next-line class-methods-use-this
+					async close() {
 						// noop
 					}
 				}
@@ -2411,21 +2367,19 @@ describe('send(ctx, file)', () => {
 			after(done => {
 				server.close(done);
 			});
-			it('should handle custom streams open errors as 404', done => {
-				request(server)
+			it('should handle custom streams open errors as 404', async () => {
+				await request(server)
 					.get('/')
-					.expect(404)
-					.end(done);
+					.expect(404);
 			});
 		});
 	});
 
 	describe('when fsModule option used', () => {
 		let server: http.Server;
-		before(() => {
+		before(async () => {
 			const app = new Koa<object>();
-
-			memfs.fs.writeFileSync('/foo.txt', 'bar');
+			await memfs.fs.promises.writeFile('/foo.txt', 'bar');
 
 			app.use(async ctx => {
 				await send(ctx, '/', '/foo.txt', { fsModule: <typeof fs> <unknown> memfs.fs });
@@ -2436,11 +2390,10 @@ describe('send(ctx, file)', () => {
 		after(done => {
 			server.close(done);
 		});
-		it('should handle memfs as fsModule option', done => {
-			request(server)
+		it('should handle memfs as fsModule option', async () => {
+			await request(server)
 				.get('/')
-				.expect(200, 'bar')
-				.end(done);
+				.expect(200, 'bar');
 		});
 	});
 
@@ -2458,13 +2411,10 @@ describe('send(ctx, file)', () => {
 		after(done => {
 			server.close(done);
 		});
-		it('should handle path array', done => {
-			request(server)
+		it('should handle path array', async () => {
+			await request(server)
 				.get('/')
-				.expect(200, 'world')
-				.end(done);
+				.expect(200, 'world');
 		});
 	});
 });
-
-// tslint:enable:no-identical-functions

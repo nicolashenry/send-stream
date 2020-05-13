@@ -2,9 +2,86 @@ import crypto from 'crypto';
 import { promisify } from 'util';
 
 /**
+ * Test if etag is weak
+ *
+ * @param etag - etag
+ * @returns true if weak
+ */
+function isWeakEtag(etag: string) {
+	return etag.startsWith('W/"');
+}
+
+/**
+ * Test if etag is strong
+ *
+ * @param etag - etag
+ * @returns true if strong
+ */
+function isStrongEtag(etag: string) {
+	return etag.startsWith('"');
+}
+
+
+/**
+ * Get opaque etag (remove weak part)
+ *
+ * @param etag - etag
+ * @returns opaque etag
+ */
+function opaqueEtag(etag: string) {
+	if (isWeakEtag(etag)) {
+		return etag.slice(2);
+	}
+
+	return etag;
+}
+
+/**
+ * Compare etag with weak validation
+ *
+ * @param a - etag a
+ * @param b - etag b
+ * @returns true if match
+ */
+function weakEtagMatch(a: string, b: string) {
+	return opaqueEtag(a) === opaqueEtag(b);
+}
+
+/**
+ * Compare etag with strong validation
+ *
+ * @param a - etag a
+ * @param b - etag b
+ * @returns true if match
+ */
+function strongEtagMatch(a: string, b: string) {
+	return isStrongEtag(a) && isStrongEtag(b) && a === b;
+}
+
+/**
+ * Parse multiple value header
+ *
+ * @param header - header to parse
+ * @returns splitted headers
+ */
+function parseMultiValueHeader(header: string) {
+	const splitted = header
+		.replace(/^[ \t]+/u, '')
+		.replace(/[ \t]+$/u, '')
+		.split(/[ \t]*,[ \t]*/u);
+	while (splitted.length > 0 && splitted[0] === '') {
+		splitted.shift();
+	}
+	return splitted;
+}
+
+const defaultAcceptedContentEncoding = ['identity'];
+
+/**
  * Request headers
  */
 export interface RequestHeaders {
+	[header: string]: string | string[] | undefined;
 	'accept-encoding'?: string;
 	'if-match'?: string;
 	'if-none-match'?: string;
@@ -12,13 +89,13 @@ export interface RequestHeaders {
 	'if-unmodified-since'?: string;
 	'range'?: string;
 	'if-range'?: string;
-	[header: string]: string | string[] | undefined;
 }
 
 /**
  * Response headers
  */
 export interface ResponseHeaders {
+	[header: string]: string | string[] | undefined;
 	'Content-Encoding'?: string;
 	'Last-Modified'?: string;
 	'Cache-Control'?: string;
@@ -30,21 +107,20 @@ export interface ResponseHeaders {
 	'Vary'?: string;
 	'Content-Disposition'?: string;
 	'Allow'?: string;
-	[header: string]: string | string[] | undefined;
 }
 
 /**
  * Range
  */
 export class StreamRange {
+	/**
+	 * StreamRange constructor
+	 *
+	 * @param start - start index
+	 * @param end - end index
+	 */
 	constructor(
-		/**
-		 * start index
-		 */
 		readonly start: number,
-		/**
-		 * end index
-		 */
 		readonly end: number,
 	) {}
 }
@@ -72,8 +148,9 @@ export interface CharsetMapping {
 
 /**
  * Retrieve content-type with mapped charset added
- * @param contentType content type
- * @param charsetMappings charset mapping
+ *
+ * @param contentType - content type
+ * @param charsetMappings - charset mapping
  * @returns content type with charset
  */
 export function getContentTypeWithCharset(contentType: string, charsetMappings: readonly CharsetMapping[]) {
@@ -87,14 +164,15 @@ export function getContentTypeWithCharset(contentType: string, charsetMappings: 
 
 /**
  * Transform stats to etag
- * @param size file size
- * @param mtimeMs modification time in milliseconds
- * @param contentEncoding content encoding
- * @param weak generate weak etag
+ *
+ * @param size - file size
+ * @param mtimeMs - modification time in milliseconds
+ * @param contentEncoding - content encoding
+ * @param weak - generate weak etag
  * @returns etag
  */
 export function statsToEtag(size: number, mtimeMs: number, contentEncoding?: string, weak?: boolean) {
-	const encoding = contentEncoding && contentEncoding !== 'identity'
+	const suffix = contentEncoding && contentEncoding !== 'identity'
 		? `-${ contentEncoding }`
 		: '';
 	return `${
@@ -104,13 +182,14 @@ export function statsToEtag(size: number, mtimeMs: number, contentEncoding?: str
 	}-${
 		Math.floor(mtimeMs * 1000).toString(16)
 	}${
-		encoding
+		suffix
 	}"`;
 }
 
 /**
  * Convert milliseconds to utc string
- * @param timeMs time in milliseconds
+ *
+ * @param timeMs - time in milliseconds
  * @returns utc string
  */
 export function millisecondsToUTCString(timeMs: number) {
@@ -119,17 +198,18 @@ export function millisecondsToUTCString(timeMs: number) {
 
 /**
  * Check if range is fresh
- * @param requestHeaders request headers
- * @param etag etag response header
- * @param lastModified last modified response header
+ *
+ * @param requestHeaders - request headers
+ * @param etag - etag response header
+ * @param lastModified - last modified response header
  * @returns true if range fresh
  */
 export function isRangeFresh(
 	requestHeaders: RequestHeaders,
 	etag: string | false,
-	lastModified: string | false
+	lastModified: string | false,
 ) {
-	const ifRange = requestHeaders['if-range'];
+	const { 'if-range': ifRange } = requestHeaders;
 
 	if (!ifRange) {
 		return true;
@@ -150,90 +230,26 @@ export function isRangeFresh(
 
 /**
  * Format content-range header
- * @param rangeType type of range
- * @param size total size
- * @param range range to use (empty = *)
+ *
+ * @param rangeType - type of range
+ * @param size - total size
+ * @param range - range to use (empty = *)
  * @returns content-range header
  */
 export function contentRange(rangeType: string, size: number, range?: StreamRange) {
-	const rangeStr = range ? `${range.start}-${range.end}` : '*';
-	return `${rangeType} ${rangeStr}/${size}`;
+	const rangeStr = range ? `${ range.start }-${ range.end }` : '*';
+	return `${ rangeType } ${ rangeStr }/${ size }`;
 }
-
-/**
- * Test if etag is weak
- * @param etag etag
- * @returns true if weak
- */
-function isWeakEtag(etag: string) {
-	return etag.startsWith('W/"');
-}
-
-/**
- * Test if etag is strong
- * @param etag etag
- * @returns true if strong
- */
-function isStrongEtag(etag: string) {
-	return etag.startsWith('"');
-}
-
-/**
- * Get opaque etag (remove weak part)
- * @param etag etag
- * @returns opaque etag
- */
-function opaqueEtag(etag: string) {
-	if (isWeakEtag(etag)) {
-		return etag.substring(2);
-	}
-
-	return etag;
-}
-
-/**
- * Compare etag with weak validation
- * @param a etag a
- * @param b etag b
- * @returns true if match
- */
-function weakEtagMatch(a: string, b: string) {
-	return opaqueEtag(a) === opaqueEtag(b);
-}
-
-/**
- * Compare etag with strong validation
- * @param a etag a
- * @param b etag b
- * @returns true if match
- */
-function strongEtagMatch(a: string, b: string) {
-	return isStrongEtag(a) && isStrongEtag(b) && a === b;
-}
-
-/**
- * Parse multiple value header
- * @param header header to parse
- * @returns splitted headers
- */
-function parseMultiValueHeader(header: string) {
-	const splitted = header.replace(/^[ \t]+/, '').replace(/[ \t]+$/, '').split(/[ \t]*,[ \t]*/);
-	while (splitted.length > 0 && splitted[0] === '') {
-		splitted.shift();
-	}
-	return splitted;
-}
-
-const defaultAcceptedContentEncoding = ['identity'];
 
 /**
  * Get accepted content encodings
- * @param requestHeaders request headers
- * @param preferences order of preference
+ *
+ * @param requestHeaders - request headers
+ * @param preferences - order of preference
  * @returns accepted content encodings
  */
 export function acceptEncodings(requestHeaders: RequestHeaders, preferences: string[]) {
-	const acceptEncoding = requestHeaders['accept-encoding'];
+	const { 'accept-encoding': acceptEncoding } = requestHeaders;
 	if (acceptEncoding === undefined) {
 		return defaultAcceptedContentEncoding;
 	}
@@ -243,13 +259,13 @@ export function acceptEncodings(requestHeaders: RequestHeaders, preferences: str
 	}
 	const result = new Map<string, number>();
 	for (const value of values) {
-		const match = value.match(
-			/^([-!#$%&'*+.^_`|~A-Za-z0-9]+)(?:[ \t]*;[ \t]*q=(0(?:\.\d{1,3})?|1(?:\.0{1,3})?))?$/
-		);
-		if (!match) {
+		// eslint-disable-next-line max-len
+		const match = /^(?<rawEncoding>[-!#$%&'*+.^_`|~A-Za-z0-9]+)(?:[ \t]*;[ \t]*q=(?<weightOption>0(?:\.\d{1,3})?|1(?:\.0{1,3})?))?$/u
+			.exec(value);
+		if (!match || !match.groups) {
 			return defaultAcceptedContentEncoding;
 		}
-		const [, rawEncoding, weightOption] = match;
+		const { groups: { rawEncoding, weightOption } } = match;
 		let encoding = rawEncoding.toLowerCase();
 		if (encoding === 'x-gzip') {
 			encoding = 'gzip';
@@ -284,7 +300,7 @@ export function acceptEncodings(requestHeaders: RequestHeaders, preferences: str
 		result.delete('identity');
 	}
 
-	const resultEntries = Array.from(result.entries());
+	const resultEntries = [...result.entries()];
 	resultEntries.sort(([aEncoding, aWeight], [bEncoding, bWeight]) => {
 		let diff = bWeight - aWeight;
 		if (diff === 0) {
@@ -298,22 +314,25 @@ export function acceptEncodings(requestHeaders: RequestHeaders, preferences: str
 
 /**
  * Get fresh status (ETag, Last-Modified handling)
- * @param isGetOrHead http method is GET or HEAD
- * @param requestHeaders request headers
- * @param etag etag response header
- * @param lastModified last modified response header
+ *
+ * @param isGetOrHead - http method is GET or HEAD
+ * @param requestHeaders - request headers
+ * @param etag - etag response header
+ * @param lastModified - last modified response header
  * @returns status code
  */
 export function getFreshStatus(
 	isGetOrHead: boolean,
 	requestHeaders: RequestHeaders,
 	etag: string | false,
-	lastModified: string | false
+	lastModified: string | false,
 ) {
-	const ifMatch = requestHeaders['if-match'];
-	const ifNoneMatch = requestHeaders['if-none-match'];
-	const ifModifiedSince = requestHeaders['if-modified-since'];
-	const ifUnmodifiedSince = requestHeaders['if-unmodified-since'];
+	const {
+		'if-match': ifMatch,
+		'if-none-match': ifNoneMatch,
+		'if-modified-since': ifModifiedSince,
+		'if-unmodified-since': ifUnmodifiedSince,
+	} = requestHeaders;
 	if (ifMatch) {
 		if (
 			!etag

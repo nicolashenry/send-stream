@@ -1,10 +1,11 @@
 
-import contentDisposition from 'content-disposition';
 import * as http from 'http';
 import * as http2 from 'http2';
+import { Readable } from 'stream';
+
+import contentDisposition from 'content-disposition';
 import mime from 'mime';
 import parseRange from 'range-parser';
-import { Readable } from 'stream';
 
 import { StreamResponse, StorageInfo, StorageError } from './response';
 import { EmptyStream, BufferStream, MultiStream } from './streams';
@@ -19,8 +20,13 @@ import {
 	StreamRange,
 	ResponseHeaders,
 	CharsetMapping,
-	BufferOrStreamRange
+	BufferOrStreamRange,
 } from './utils';
+
+const defaultCharset = <const> [{ matcher: /^(?:text\/.+|application\/(?:javascript|json))$/u, charset: 'UTF-8' }];
+
+const DEFAULT_ALLOWED_METHODS = <const> ['GET', 'HEAD'];
+const DEFAULT_MAX_RANGES = 200;
 
 /**
  * Storage.prepareResponse options
@@ -88,7 +94,7 @@ export interface StorageRequestHeaders {
  * Mime module type
  */
 export interface MimeModule {
-	getType(path: string): string | null;
+	getType: (path: string) => string | null;
 }
 
 /**
@@ -124,69 +130,42 @@ export interface StorageOptions {
 	weakEtags?: boolean;
 }
 
-const defaultCharset = <const> [{ matcher: /^(?:text\/.+|application\/(?:javascript|json))$/, charset: 'UTF-8' }];
-
-const DEFAULT_ALLOWED_METHODS = <const> ['GET', 'HEAD'];
-
 /**
  * send-stream storage base class
  */
 export abstract class Storage<Reference, AttachedData> {
 	readonly mimeModule: MimeModule;
+
 	readonly defaultContentType?: string;
+
 	readonly defaultCharsets: readonly CharsetMapping[] | false;
+
 	readonly maxRanges: number;
+
 	readonly weakEtags: boolean;
 
 	/**
 	 * Create storage
-	 * @param opts storage options
+	 *
+	 * @param opts - storage options
 	 */
 	constructor(opts: StorageOptions = { }) {
 		this.mimeModule = opts.mimeModule ? opts.mimeModule : mime;
 		this.defaultContentType = opts.defaultContentType;
-		this.defaultCharsets = opts.defaultCharsets !== undefined
-			? opts.defaultCharsets
-			: defaultCharset;
-		this.maxRanges = opts.maxRanges !== undefined ? opts.maxRanges : 200;
+		this.defaultCharsets = opts.defaultCharsets === undefined
+			? defaultCharset
+			: opts.defaultCharsets;
+		this.maxRanges = opts.maxRanges === undefined ? DEFAULT_MAX_RANGES : opts.maxRanges;
 		this.weakEtags = opts.weakEtags === true;
 	}
 
 	/**
-	 * Open file and retrieve storage information (filename, modification date, size, ...)
-	 * @param reference file reference
-	 * @param requestHeaders request headers
-	 * @returns StorageInfo object
-	 */
-	abstract open(
-		reference: Reference,
-		requestHeaders: StorageRequestHeaders,
-	): Promise<StorageInfo<AttachedData>>;
-
-	/**
-	 * Create readable stream from storage information
-	 * @param storageInfo storage information
-	 * @param range range to use or undefined if size is unknown
-	 * @param autoClose true if stream should close itself
-	 * @returns readable stream
-	 */
-	abstract createReadableStream(
-		storageInfo: StorageInfo<AttachedData>,
-		range: StreamRange | undefined,
-		autoClose: boolean
-	): Readable;
-
-	/**
-	 * Close storage information (if needed)
-	 * @param storageInfo storage information
-	 */
-	abstract close(storageInfo: StorageInfo<AttachedData>): Promise<void>;
-
-	/**
 	 * Create last-mofified header value from storage information (uses mtimeMs)
-	 * @param storageInfo storage information
+	 *
+	 * @param storageInfo - storage information
 	 * @returns last-mofified header
 	 */
+	// eslint-disable-next-line class-methods-use-this
 	createLastModified(storageInfo: StorageInfo<AttachedData>): string | false {
 		if (storageInfo.mtimeMs === undefined) {
 			return false;
@@ -196,7 +175,8 @@ export abstract class Storage<Reference, AttachedData> {
 
 	/**
 	 * Create etag header value from storage information (uses mtimeMs, size and contentEncoding)
-	 * @param storageInfo storage information
+	 *
+	 * @param storageInfo - storage information
 	 * @returns etag header
 	 */
 	createEtag(storageInfo: StorageInfo<AttachedData>): string | false {
@@ -208,9 +188,11 @@ export abstract class Storage<Reference, AttachedData> {
 
 	/**
 	 * Create cache-control header value from storage information (return always public, max-age=0 unless overriden)
-	 * @param _storageInfo storage information (unused unless overriden)
+	 *
+	 * @param _storageInfo - storage information (unused unless overriden)
 	 * @returns cache-control header
 	 */
+	// eslint-disable-next-line class-methods-use-this
 	createCacheControl(_storageInfo: StorageInfo<AttachedData>): string | false {
 		return 'public, max-age=0';
 	}
@@ -218,18 +200,20 @@ export abstract class Storage<Reference, AttachedData> {
 	/**
 	 * Create content-type header value from storage information
 	 * (from filename using mime module and adding default charset for some types)
-	 * @param storageInfo storage information (unused unless overriden)
+	 *
+	 * @param storageInfo - storage information (unused unless overriden)
 	 * @returns content-type header
 	 */
 	createContentType(storageInfo: StorageInfo<AttachedData>): string | undefined {
-		if (!storageInfo.fileName) {
+		const { fileName } = storageInfo;
+		if (!fileName) {
 			return undefined;
 		}
-		const type = this.mimeModule.getType(storageInfo.fileName);
+		const type = this.mimeModule.getType(fileName);
 		if (!type) {
 			return this.defaultContentType;
 		}
-		if (type && this.defaultCharsets) {
+		if (this.defaultCharsets) {
 			return getContentTypeWithCharset(type, this.defaultCharsets);
 		}
 		return type;
@@ -238,48 +222,50 @@ export abstract class Storage<Reference, AttachedData> {
 	/**
 	 * Create content-disposition header filename from storage information
 	 * (return always the original filename unless overriden)
-	 * @param storageInfo storage information
+	 *
+	 * @param storageInfo - storage information
 	 * @returns content-disposition header filename
 	 */
+	// eslint-disable-next-line class-methods-use-this
 	createContentDispositionFilename(storageInfo: StorageInfo<AttachedData>): string | undefined {
 		return storageInfo.fileName;
 	}
 
 	/**
 	 * Create content-disposition header type from storage information (return always inline unless overriden)
-	 * @param _storageInfo storage information (unused unless overriden)
+	 *
+	 * @param _storageInfo - storage information (unused unless overriden)
 	 * @returns content-disposition header type
 	 */
+	// eslint-disable-next-line class-methods-use-this
 	createContentDispositionType(_storageInfo: StorageInfo<AttachedData>): 'inline' | 'attachment' | undefined {
 		return 'inline';
 	}
 
 	/**
 	 * Prepare to send file
-	 * @param reference file reference
-	 * @param req request headers or request objects
-	 * @param [opts] options
-	 * @return status, response headers and body to use
+	 *
+	 * @param reference - file reference
+	 * @param req - request headers or request objects
+	 * @param [opts] - options
+	 * @returns status, response headers and body to use
 	 */
 	async prepareResponse(
 		reference: Reference,
 		req: http.IncomingMessage | http2.Http2ServerRequest | http2.IncomingHttpHeaders,
-		opts: PrepareResponseOptions = {}
+		opts: PrepareResponseOptions = {},
 	): Promise<StreamResponse<AttachedData>> {
 		let method;
 		let requestHeaders;
 		if (req instanceof http.IncomingMessage || req instanceof http2.Http2ServerRequest) {
-			if (!req.method) {
-				throw new Error('cannot send, method is missing');
-			}
 			method = req.method;
 			requestHeaders = req.headers;
 		} else {
-			if (!req[':method']) {
-				throw new Error('cannot send, method is missing');
-			}
 			method = req[':method'];
 			requestHeaders = req;
+		}
+		if (!method) {
+			throw new Error('cannot send, method is missing');
 		}
 		const isGetMethod = method === 'GET';
 		const isHeadMethod = method === 'HEAD';
@@ -293,16 +279,16 @@ export abstract class Storage<Reference, AttachedData> {
 		try {
 			storageInfo = await this.open(
 				reference,
-				requestHeaders
+				requestHeaders,
 			);
 		} catch (error) {
 			return this.createStorageError(isHeadMethod, error);
 		}
 		try {
 			const responseHeaders: ResponseHeaders = { };
-			const cacheControl = opts.cacheControl !== undefined
-				? opts.cacheControl
-				: this.createCacheControl(storageInfo);
+			const cacheControl = opts.cacheControl === undefined
+				? this.createCacheControl(storageInfo)
+				: opts.cacheControl;
 			if (cacheControl) {
 				responseHeaders['Cache-Control'] = cacheControl;
 			}
@@ -311,13 +297,13 @@ export abstract class Storage<Reference, AttachedData> {
 				responseHeaders['Vary'] = storageInfo.vary;
 			}
 
-			const lastModified = opts.lastModified !== undefined
-				? opts.lastModified
-				: this.createLastModified(storageInfo);
+			const lastModified = opts.lastModified === undefined
+				? this.createLastModified(storageInfo)
+				: opts.lastModified;
 
-			const etag = opts.etag !== undefined
-				? opts.etag
-				: this.createEtag(storageInfo);
+			const etag = opts.etag === undefined
+				? this.createEtag(storageInfo)
+				: opts.etag;
 
 			const fullResponse = opts.statusCode !== undefined;
 			if (!fullResponse) {
@@ -337,6 +323,8 @@ export abstract class Storage<Reference, AttachedData> {
 				case 412:
 					earlyClose = true;
 					return this.createPreconditionFailedError(isHeadMethod, storageInfo);
+				default:
+					break;
 				}
 			}
 
@@ -344,38 +332,36 @@ export abstract class Storage<Reference, AttachedData> {
 				responseHeaders['Content-Encoding'] = storageInfo.contentEncoding;
 			}
 
-			const contentType = opts.contentType !== undefined
-				? opts.contentType
-				: this.createContentType(storageInfo);
+			const contentType = opts.contentType === undefined
+				? this.createContentType(storageInfo)
+				: opts.contentType;
 			if (contentType) {
 				responseHeaders['Content-Type'] = contentType;
 				responseHeaders['X-Content-Type-Options'] = 'nosniff';
 			}
 
-			const contentDispositionType = opts.contentDispositionType !== undefined
-				? opts.contentDispositionType
-				: this.createContentDispositionType(storageInfo);
+			const contentDispositionType = opts.contentDispositionType === undefined
+				? this.createContentDispositionType(storageInfo)
+				: opts.contentDispositionType;
 			if (contentDispositionType) {
 				responseHeaders['Content-Disposition'] = contentDisposition(
-					opts.contentDispositionFilename !== undefined
-					? (
-						opts.contentDispositionFilename
-						? opts.contentDispositionFilename
-						: undefined
-					)
-					: this.createContentDispositionFilename(storageInfo),
-					{ type: contentDispositionType }
+					opts.contentDispositionFilename === undefined
+						? this.createContentDispositionFilename(storageInfo)
+						: opts.contentDispositionFilename
+							? opts.contentDispositionFilename
+							: undefined,
+					{ type: contentDispositionType },
 				);
 			}
 
-			let statusCode = opts.statusCode !== undefined ? opts.statusCode : 200;
-			const size = storageInfo.size;
+			let statusCode = opts.statusCode === undefined ? 200 : opts.statusCode;
+			const { size } = storageInfo;
 			let rangeToUse: StreamRange | BufferOrStreamRange[] | undefined;
 			if (size === undefined) {
 				responseHeaders['Accept-Ranges'] = 'none';
 				rangeToUse = undefined;
 			} else {
-				const maxRanges = this.maxRanges;
+				const { maxRanges } = this;
 				let contentLength;
 				if (maxRanges <= 0 || fullResponse || !isGetOrHead) {
 					responseHeaders['Accept-Ranges'] = 'none';
@@ -383,7 +369,7 @@ export abstract class Storage<Reference, AttachedData> {
 					contentLength = size;
 				} else {
 					responseHeaders['Accept-Ranges'] = 'bytes';
-					const rangeHeader = requestHeaders['range'];
+					const { range: rangeHeader } = requestHeaders;
 					if (
 						!rangeHeader
 						|| !isRangeFresh(requestHeaders, etag, lastModified)
@@ -405,30 +391,29 @@ export abstract class Storage<Reference, AttachedData> {
 						} else {
 							statusCode = 206;
 							if (parsedRanges.length === 1) {
-								const singleRange = parsedRanges[0];
+								const [singleRange] = parsedRanges;
 								responseHeaders['Content-Range'] = contentRange('bytes', size, singleRange);
 								rangeToUse = new StreamRange(singleRange.start, singleRange.end);
-								contentLength = (singleRange.end + 1) - singleRange.start;
+								contentLength = singleRange.end + 1 - singleRange.start;
 							} else {
-								const boundary = `----SendStreamBoundary${(await randomBytes(24)).toString('hex')}`;
-								responseHeaders['Content-Type'] = `multipart/byteranges; boundary=${boundary}`;
+								const boundary = `----SendStreamBoundary${ (await randomBytes(24)).toString('hex') }`;
+								responseHeaders['Content-Type'] = `multipart/byteranges; boundary=${ boundary }`;
 								responseHeaders['X-Content-Type-Options'] = 'nosniff';
 								rangeToUse = [];
 								contentLength = 0;
-								for (let i = 0; i < parsedRanges.length; i++) {
-									const range = parsedRanges[i];
-									let header = `${i > 0 ? '\r\n' : ''}--${boundary}\r\n`;
+								let first = true;
+								for (const range of parsedRanges) {
+									let header = `${ first ? '' : '\r\n' }--${ boundary }\r\n`;
+									first = false;
 									if (contentType) {
-										header += `content-type: ${contentType}\r\n`;
+										header += `content-type: ${ contentType }\r\n`;
 									}
-									header += `content-range: ${contentRange('bytes', size, range)}\r\n\r\n`;
+									header += `content-range: ${ contentRange('bytes', size, range) }\r\n\r\n`;
 									const headerBuffer = Buffer.from(header);
-									rangeToUse.push(headerBuffer);
-									contentLength += headerBuffer.byteLength;
-									rangeToUse.push(new StreamRange(range.start, range.end));
-									contentLength += (range.end + 1) - range.start;
+									rangeToUse.push(headerBuffer, new StreamRange(range.start, range.end));
+									contentLength += headerBuffer.byteLength + range.end + 1 - range.start;
 								}
-								const footer = `\r\n--${boundary}--`;
+								const footer = `\r\n--${ boundary }--`;
 								const footerBuffer = Buffer.from(footer);
 								rangeToUse.push(footerBuffer);
 								contentLength += footerBuffer.byteLength;
@@ -461,12 +446,12 @@ export abstract class Storage<Reference, AttachedData> {
 							return this.createReadableStream(
 								si,
 								range,
-								false
+								false,
 							);
 						}
 						return new BufferStream(range);
 					},
-					async () => this.close(si)
+					async () => this.close(si),
 				);
 			}
 
@@ -483,13 +468,15 @@ export abstract class Storage<Reference, AttachedData> {
 
 	/**
 	 * Create Method Not Allowed error response
-	 * @param isHeadMethod true if HEAD method is used
-	 * @param allowedMethods allowed methods for Allow header
+	 *
+	 * @param isHeadMethod - true if HEAD method is used
+	 * @param allowedMethods - allowed methods for Allow header
 	 * @returns Method Not Allowed response
 	 */
+	// eslint-disable-next-line class-methods-use-this
 	createMethodNotAllowedError(isHeadMethod: boolean, allowedMethods: readonly string[]) {
 		// Method Not Allowed
-		// tslint:disable-next-line: no-non-null-assertion
+		// eslint-disable-next-line @typescript-eslint/no-non-null-assertion
 		const statusMessageBuffer = Buffer.from(http.STATUS_CODES['405']!);
 		return new StreamResponse<AttachedData>(
 			405,
@@ -497,21 +484,23 @@ export abstract class Storage<Reference, AttachedData> {
 				'Content-Length': String(statusMessageBuffer.byteLength),
 				'Content-Type': 'text/plain; charset=UTF-8',
 				'X-Content-Type-Options': 'nosniff',
-				Allow: allowedMethods.join(', ')
+				Allow: allowedMethods.join(', '),
 			},
-			isHeadMethod ? new EmptyStream() : new BufferStream(statusMessageBuffer)
+			isHeadMethod ? new EmptyStream() : new BufferStream(statusMessageBuffer),
 		);
 	}
 
 	/**
 	 * Create storage error response (Not Found response usually)
-	 * @param isHeadMethod true if HEAD method is used
-	 * @param error the error causing this response
+	 *
+	 * @param isHeadMethod - true if HEAD method is used
+	 * @param error - the error causing this response
 	 * @returns the error response
 	 */
+	// eslint-disable-next-line class-methods-use-this
 	createStorageError(isHeadMethod: boolean, error: unknown) {
 		// Not Found
-		// tslint:disable-next-line: no-non-null-assertion
+		// eslint-disable-next-line @typescript-eslint/no-non-null-assertion
 		const statusMessageBuffer = Buffer.from(http.STATUS_CODES['404']!);
 		return new StreamResponse<AttachedData>(
 			404,
@@ -522,19 +511,21 @@ export abstract class Storage<Reference, AttachedData> {
 			},
 			isHeadMethod ? new EmptyStream() : new BufferStream(statusMessageBuffer),
 			undefined,
-			error instanceof StorageError ? error : new StorageError('unknown_error', 'Unknown error', error)
+			error instanceof StorageError ? error : new StorageError('unknown_error', 'Unknown error', error),
 		);
 	}
 
 	/**
 	 * Create Not Modified response
-	 * @param responseHeaders response headers
-	 * @param storageInfo the current storage info
+	 *
+	 * @param responseHeaders - response headers
+	 * @param storageInfo - the current storage info
 	 * @returns the Not Modified response
 	 */
+	// eslint-disable-next-line class-methods-use-this
 	createNotModifiedResponse(
 		responseHeaders: ResponseHeaders,
-		storageInfo: StorageInfo<AttachedData>
+		storageInfo: StorageInfo<AttachedData>,
 	) {
 		// Not Modified
 		return new StreamResponse(304, responseHeaders, new EmptyStream(), storageInfo);
@@ -542,36 +533,40 @@ export abstract class Storage<Reference, AttachedData> {
 
 	/**
 	 * Create the Precondition Failed error response
-	 * @param isHeadMethod true if HEAD method is used
-	 * @param storageInfo the current storage info
+	 *
+	 * @param isHeadMethod - true if HEAD method is used
+	 * @param storageInfo - the current storage info
 	 * @returns the Precondition Failed error response
 	 */
+	// eslint-disable-next-line class-methods-use-this
 	createPreconditionFailedError(isHeadMethod: boolean, storageInfo: StorageInfo<AttachedData>) {
 		// Precondition Failed
-		// tslint:disable-next-line: no-non-null-assertion
+		// eslint-disable-next-line @typescript-eslint/no-non-null-assertion
 		const statusMessageBuffer = Buffer.from(http.STATUS_CODES['412']!);
 		return new StreamResponse(
 			412,
 			{
 				'Content-Type': 'text/plain; charset=UTF-8',
 				'X-Content-Type-Options': 'nosniff',
-				'Content-Length': String(statusMessageBuffer.byteLength)
+				'Content-Length': String(statusMessageBuffer.byteLength),
 			},
 			isHeadMethod ? new EmptyStream() : new BufferStream(statusMessageBuffer),
-			storageInfo
+			storageInfo,
 		);
 	}
 
 	/**
 	 * Create the Range Not Satisfiable error response
-	 * @param isHeadMethod true if HEAD method is used
-	 * @param size size of content for Content-Range header
-	 * @param storageInfo the current storage info
+	 *
+	 * @param isHeadMethod - true if HEAD method is used
+	 * @param size - size of content for Content-Range header
+	 * @param storageInfo - the current storage info
 	 * @returns the Range Not Satisfiable error response
 	 */
+	// eslint-disable-next-line class-methods-use-this
 	createRangeNotSatisfiableError(isHeadMethod: boolean, size: number, storageInfo: StorageInfo<AttachedData>) {
 		// Range Not Satisfiable
-		// tslint:disable-next-line: no-non-null-assertion
+		// eslint-disable-next-line @typescript-eslint/no-non-null-assertion
 		const statusMessageBuffer = Buffer.from(http.STATUS_CODES['416']!);
 		return new StreamResponse(
 			416,
@@ -579,29 +574,64 @@ export abstract class Storage<Reference, AttachedData> {
 				'Content-Range': contentRange('bytes', size),
 				'Content-Type': 'text/plain; charset=UTF-8',
 				'X-Content-Type-Options': 'nosniff',
-				'Content-Length': String(statusMessageBuffer.byteLength)
+				'Content-Length': String(statusMessageBuffer.byteLength),
 			},
 			isHeadMethod ? new EmptyStream() : new BufferStream(statusMessageBuffer),
-			storageInfo
+			storageInfo,
 		);
 	}
 
 	/**
 	 * Create the successful OK (200) or Partial Content (206) response
 	 * (the http code could also be the one set in parameters)
-	 * @param statusCode 200 or 206 or the statusCode set in parameters
-	 * @param responseHeaders the response headers
-	 * @param stream the content stream
-	 * @param storageInfo the current storage info
+	 *
+	 * @param statusCode - 200 or 206 or the statusCode set in parameters
+	 * @param responseHeaders - the response headers
+	 * @param stream - the content stream
+	 * @param storageInfo - the current storage info
 	 * @returns the successful response
 	 */
-	private createSuccessfulResponse(
+	// eslint-disable-next-line class-methods-use-this
+	createSuccessfulResponse(
 		statusCode: number,
 		responseHeaders: ResponseHeaders,
 		stream: Readable,
-		storageInfo: StorageInfo<AttachedData>
+		storageInfo: StorageInfo<AttachedData>,
 	) {
 		// Ok | Partial Content
 		return new StreamResponse(statusCode, responseHeaders, stream, storageInfo);
 	}
+
+	/**
+	 * Open file and retrieve storage information (filename, modification date, size, ...)
+	 *
+	 * @param reference - file reference
+	 * @param requestHeaders - request headers
+	 * @returns StorageInfo object
+	 */
+	abstract open(
+		reference: Reference,
+		requestHeaders: StorageRequestHeaders,
+	): Promise<StorageInfo<AttachedData>>;
+
+	/**
+	 * Create readable stream from storage information
+	 *
+	 * @param storageInfo - storage information
+	 * @param range - range to use or undefined if size is unknown
+	 * @param autoClose - true if stream should close itself
+	 * @returns readable stream
+	 */
+	abstract createReadableStream(
+		storageInfo: StorageInfo<AttachedData>,
+		range: StreamRange | undefined,
+		autoClose: boolean
+	): Readable;
+
+	/**
+	 * Close storage information (if needed)
+	 *
+	 * @param storageInfo - storage information
+	 */
+	abstract close(storageInfo: StorageInfo<AttachedData>): Promise<void>;
 }

@@ -7,13 +7,19 @@ import { BufferOrStreamRange } from './utils';
  */
 export class BufferStream extends Readable {
 	private buffer?: Buffer;
+
+	/**
+	 * Create a single buffer stream
+	 *
+	 * @param buffer - content buffer
+	 */
 	constructor(buffer: Buffer) {
 		super();
 		this.buffer = buffer;
 	}
-	// tslint:disable-next-line: function-name
+
 	_read() {
-		const buffer = this.buffer;
+		const { buffer } = this;
 		this.buffer = undefined;
 		this.push(buffer);
 		this.push(null);
@@ -24,10 +30,6 @@ export class BufferStream extends Readable {
  * Empty stream
  */
 export class EmptyStream extends Readable {
-	constructor() {
-		super();
-	}
-	// tslint:disable-next-line: function-name
 	_read() {
 		this.push(null);
 	}
@@ -37,24 +39,37 @@ export class EmptyStream extends Readable {
  * Multi stream
  */
 export class MultiStream extends PassThrough {
+	/**
+	 * Create a multi streams stream
+	 *
+	 * @param ranges - array of Buffer or StreamRange
+	 * @param onNextStream - function creating the Readable when needed
+	 * @param onDestroy - function called on close to release resources
+	 */
 	constructor(
 		private readonly ranges: BufferOrStreamRange[],
 		private readonly onNextStream: (range: BufferOrStreamRange) => Readable,
-		private readonly onDestroy: () => Promise<void>
+		private readonly onDestroy: () => Promise<void>,
 	) {
 		super({ allowHalfOpen: false });
 
 		this.sendNextRange();
 	}
 
-	// tslint:disable-next-line: function-name
 	_destroy(error: Error | null, callback: (error: Error | null) => void) {
 		this.onDestroy()
 			.then(() => {
+				// eslint-disable-next-line no-underscore-dangle
 				super._destroy(error, callback);
 			})
 			.catch((closeError: Error) => {
-				super._destroy(error ? new Error(`${error.stack}\nthen\n${closeError.stack}`) : closeError, callback);
+				// eslint-disable-next-line no-underscore-dangle
+				super._destroy(
+					error
+						? new Error(`${ String(error) }\nthen\n${ String(closeError) }`)
+						: closeError,
+					callback,
+				);
 			});
 	}
 
@@ -68,7 +83,14 @@ export class MultiStream extends PassThrough {
 		}
 		const stream = this.onNextStream(currentRange);
 
-		let onClose: () => void;
+		const listenerMap = new Map<string, (() => void) | ((err: Error) => void)>();
+
+		const onClose = () => {
+			for (const [eventType, listener] of listenerMap.entries()) {
+				stream.off(eventType, listener);
+			}
+		};
+
 		const onError = (error: Error) => {
 			onClose();
 			this.end(() => {
@@ -81,16 +103,10 @@ export class MultiStream extends PassThrough {
 			this.sendNextRange();
 		};
 
-		onClose = () => {
-			// tslint:disable-next-line: no-commented-code
-			// stream.off('error', onError);
-			stream.off('end', onEnd);
-			stream.off('close', onClose);
-		};
-
+		listenerMap.set('error', onError);
 		stream.on('error', onError);
+		listenerMap.set('end', onEnd);
 		stream.on('end', onEnd);
-		stream.on('close', onClose);
 
 		stream.pipe(this, { end: false });
 	}

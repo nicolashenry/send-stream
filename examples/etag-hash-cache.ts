@@ -1,25 +1,26 @@
 
-import express from 'express';
 import { join } from 'path';
 import * as crypto from 'crypto';
 import * as fs from 'fs';
 import { promisify } from 'util';
+import express from 'express';
 
 import {
 	FileSystemStorage,
 	FileData,
 	StorageInfo,
 	FileSystemStorageOptions,
-	FileSystemStorageError
+	FileSystemStorageError,
 } from '../lib';
 
 const app = express();
 
 class EtagHashCacheStorage extends FileSystemStorage {
 	etagCache = new Map<string, string>();
+
 	constructor(
 		root: string,
-		opts: FileSystemStorageOptions = { }
+		opts: FileSystemStorageOptions = { },
 	) {
 		super(root, opts);
 		this.addAllFilesInEtagCache(root)
@@ -30,6 +31,7 @@ class EtagHashCacheStorage extends FileSystemStorage {
 				console.error(error);
 			});
 	}
+
 	async addAllFilesInEtagCache(dir: string) {
 		const files = await promisify(fs.readdir)(dir);
 		await Promise.all(files.map(async file => {
@@ -46,7 +48,7 @@ class EtagHashCacheStorage extends FileSystemStorage {
 	async addFileInEtagCache(filePath: string, stats: fs.Stats, fd?: number) {
 		const stream = fs.createReadStream(
 			filePath,
-			{ start: 0, end: stats.size - 1, fd, autoClose: fd === undefined }
+			{ start: 0, end: stats.size - 1, fd, autoClose: fd === undefined },
 		);
 		const hash = crypto.createHash('sha1');
 		hash.setEncoding('hex');
@@ -54,7 +56,7 @@ class EtagHashCacheStorage extends FileSystemStorage {
 		return new Promise<string>((resolve, reject) => {
 			stream.on('end', () => {
 				hash.end();
-				const newEtag = `"${ hash.read() }"`;
+				const newEtag = `"${ <string> hash.read() }"`;
 				console.info('hash etag calculated', filePath, newEtag);
 				this.etagCache.set(filePath, newEtag);
 				resolve(newEtag);
@@ -86,6 +88,7 @@ app.get('*', async (req, res, next) => {
 		}
 		result.send(res);
 	} catch (err) {
+		// eslint-disable-next-line node/callback-return
 		next(err);
 	}
 });

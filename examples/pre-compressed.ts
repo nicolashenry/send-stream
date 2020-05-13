@@ -1,6 +1,6 @@
 
-import express from 'express';
 import { join } from 'path';
+import express from 'express';
 
 import { FileSystemStorage, FileSystemStorageError } from '../lib';
 
@@ -11,11 +11,11 @@ const storage = new FileSystemStorage(
 	{
 		contentEncodingMappings: [
 			{
-				matcher: /^(.+\.(?:html|js|css|json))$/,
-				encodings: [{ name: 'br', path: '$1.br' }, { name: 'gzip', path: '$1.gz' }]
-			}
-		]
-	}
+				matcher: /^(?<path>.+\.(?:html|js|css|json))$/u,
+				encodings: [{ name: 'br', path: '$<path>.br' }, { name: 'gzip', path: '$<path>.gz' }],
+			},
+		],
+	},
 );
 
 app.get('*', async (req, res, next) => {
@@ -27,6 +27,7 @@ app.get('*', async (req, res, next) => {
 		}
 		result.send(res);
 	} catch (err) {
+		// eslint-disable-next-line node/callback-return
 		next(err);
 	}
 });

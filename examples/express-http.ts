@@ -1,6 +1,6 @@
 
-import express from 'express';
 import { join } from 'path';
+import express from 'express';
 
 import { FileSystemStorage, FileSystemStorageError } from '../lib';
 
@@ -17,6 +17,7 @@ app.get('*', async (req, res, next) => {
 		}
 		result.send(res);
 	} catch (err) {
+		// eslint-disable-next-line node/callback-return
 		next(err);
 	}
 });

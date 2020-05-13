@@ -1,11 +1,13 @@
+/* eslint-disable max-classes-per-file, max-lines, max-lines-per-function */
+/* eslint-env node, mocha */
 
 import * as assert from 'assert';
 import * as http from 'http';
 import * as http2 from 'http2';
 import { normalize, join } from 'path';
-import request from 'supertest';
 import { Readable } from 'stream';
 import { AddressInfo } from 'net';
+import request from 'supertest';
 
 import {
 	FileSystemStorageOptions,
@@ -14,135 +16,163 @@ import {
 	getFreshStatus,
 	StorageInfo,
 	FileData,
-	StreamRange
+	StreamRange,
 } from '../lib';
-
-// tslint:disable:no-identical-functions
 
 // test server
 
-const dateRegExp = /^\w{3}, \d+ \w+ \d+ \d+:\d+:\d+ \w+$/;
+const dateRegExp = /^\w{3}, \d+ \w+ \d+ \d+:\d+:\d+ \w+$/u;
 const fixtures = join(__dirname, 'fixtures-http');
 const mainStorage = new FileSystemStorage(fixtures);
+
+function createServer(opts: PrepareResponseOptions & FileSystemStorageOptions & { root: string }) {
+	const storage = new FileSystemStorage(opts.root, opts);
+	return http.createServer((req, res) => {
+		(async () => {
+			// eslint-disable-next-line @typescript-eslint/no-non-null-assertion
+			(await storage.prepareResponse(req.url!, req, opts)).send(res);
+		})().catch(err => {
+			res.statusCode = 500;
+			res.end(String(err));
+		});
+	});
+}
+
+function shouldNotHaveHeader(header: string) {
+	return (res: request.Response) => {
+		const { [header.toLowerCase()]: value } = <{ [key: string]: string }> res.header;
+		assert.strictEqual(
+			value,
+			undefined,
+			`should not have header ${ header } (actual value: "${ value }")`,
+		);
+	};
+}
+
+function shouldHaveHeader(header: string) {
+	return (res: request.Response) => {
+		const { [header.toLowerCase()]: value } = <{ [key: string]: string }> res.header;
+		assert.notStrictEqual(
+			value,
+			undefined,
+			`should not have header ${ header } (actual value: "${ value }")`,
+		);
+	};
+}
 
 describe('send(file).pipe(res)', () => {
 	let mainApp: http.Server;
 	before(() => {
-		mainApp = http.createServer(async (req, res) => {
-			try {
-				// tslint:disable-next-line: no-non-null-assertion
+		mainApp = http.createServer((req, res) => {
+			(async () => {
+				// eslint-disable-next-line @typescript-eslint/no-non-null-assertion
 				(await mainStorage.prepareResponse(req.url!, req)).send(res);
-			} catch (err) {
+			})().catch(err => {
 				res.statusCode = 500;
 				res.end(String(err));
-			}
+			});
 		});
 	});
 
-	it('should stream the file contents', done => {
-		request(mainApp)
+	it('should stream the file contents', async () => {
+		await request(mainApp)
 			.get('/name.txt')
 			.expect('Content-Length', '4')
-			.expect(200, 'tobi', done);
+			.expect(200, 'tobi');
 	});
 
-	it('should stream the file contents when there is query string', done => {
-		request(mainApp)
+	it('should stream the file contents when there is query string', async () => {
+		await request(mainApp)
 			.get('/name.txt?foo=bar')
 			.expect('Content-Length', '4')
-			.expect(200, 'tobi', done);
+			.expect(200, 'tobi');
 	});
 
-	it('should stream a zero-length file', done => {
-		request(mainApp)
+	it('should stream a zero-length file', async () => {
+		await request(mainApp)
 			.get('/empty.txt')
 			.expect('Content-Length', '0')
-			.expect(200, '', done);
+			.expect(200, '');
 	});
 
-	it('should decode the given path as a URI', done => {
-		request(mainApp)
+	it('should decode the given path as a URI', async () => {
+		await request(mainApp)
 			.get('/some%20thing.txt')
-			.expect(200, 'hey', done);
+			.expect(200, 'hey');
 	});
 
-	it('should serve files with dots in name', done => {
-		request(mainApp)
+	it('should serve files with dots in name', async () => {
+		await request(mainApp)
 			.get('/do..ts.txt')
-			.expect(200, '...', done);
+			.expect(200, '...');
 	});
 
-	it('should serve files with unicode character', done => {
-		request(mainApp)
+	it('should serve files with unicode character', async () => {
+		await request(mainApp)
 			.get('/%E2%AD%90.txt')
 			.expect('Content-Disposition', 'inline; filename="?.txt"; filename*=UTF-8\'\'%E2%AD%90.txt')
-			.expect(200, '⭐', done);
+			.expect(200, '⭐');
 	});
 
-	it('should serve files in folder with unicode character', done => {
-		request(mainApp)
+	it('should serve files in folder with unicode character', async () => {
+		await request(mainApp)
 			.get('/snow%20%E2%98%83/index.html')
-			.expect(200, done);
+			.expect(200);
 	});
 
-	it('should treat a malformed URI as a bad request', done => {
-		request(mainApp)
+	it('should treat a malformed URI as a bad request', async () => {
+		await request(mainApp)
 			.get('/some%99thing.txt')
-			.expect(404, done);
+			.expect(404);
 	});
 
-	it('should 404 on NULL bytes', done => {
-		request(mainApp)
+	it('should 404 on NULL bytes', async () => {
+		await request(mainApp)
 			.get('/some%00thing.txt')
-			.expect(404, done);
+			.expect(404);
 	});
 
-	it('should treat an ENAMETOOLONG as a 404', done => {
-		// tslint:disable-next-line: prefer-array-literal
+	it('should treat an ENAMETOOLONG as a 404', async () => {
 		const path = new Array(100).join('foobar');
-		request(mainApp)
+		await request(mainApp)
 			.get(`/${ path }`)
-			.expect(404, done);
+			.expect(404);
 	});
 
-	it('should support HEAD', done => {
-		request(mainApp)
+	it('should support HEAD', async () => {
+		await request(mainApp)
 			.head('/name.txt')
 			.expect(200)
 			.expect('Content-Length', '4')
 			.expect(res => {
-				// tslint:disable-next-line: strict-type-predicates
 				assert.ok(res.text === undefined, 'should not have body');
-			})
-			.end(done);
+			});
 	});
 
-	it('should add a strong ETag header field', done => {
-		request(mainApp)
+	it('should add a strong ETag header field', async () => {
+		await request(mainApp)
 			.get('/name.txt')
-			.expect('etag', /^"[^"]+"$/)
-			.end(done);
+			.expect('etag', /^"[^"]+"$/u);
 	});
 
 	describe('should add a weak ETag header field when weakEtags is set to true', () => {
 		let app: http.Server;
 		before(() => {
 			const storage = new FileSystemStorage(fixtures, { weakEtags: true });
-			app = http.createServer(async (req, res) => {
-				try {
-					// tslint:disable-next-line: no-non-null-assertion
+			app = http.createServer((req, res) => {
+				(async () => {
+					// eslint-disable-next-line @typescript-eslint/no-non-null-assertion
 					(await storage.prepareResponse(req.url!, req)).send(res);
-				} catch (err) {
+				})().catch(err => {
 					res.statusCode = 500;
 					res.end(String(err));
-				}
+				});
 			});
 		});
-		it('should add a weak ETag header field when weakEtags is set to true', done => {
-			request(app)
+		it('should add a weak ETag header field when weakEtags is set to true', async () => {
+			await request(app)
 				.get('/name.txt')
-				.expect('etag', /^W\/"[^"]+"$/)
-				.end(done);
+				.expect('etag', /^W\/"[^"]+"$/u);
 		});
 	});
 
@@ -150,93 +180,98 @@ describe('send(file).pipe(res)', () => {
 		let app: http.Server;
 		before(() => {
 			const storage = new FileSystemStorage(fixtures, { weakEtags: true });
-			app = http.createServer(async (req, res) => {
-				try {
+			app = http.createServer((req, res) => {
+				(async () => {
 					req.method = '';
-					// tslint:disable-next-line: no-non-null-assertion
+					// eslint-disable-next-line @typescript-eslint/no-non-null-assertion
 					(await storage.prepareResponse(req.url!, req)).send(res);
-				} catch (err) {
+				})().catch(err => {
 					res.statusCode = 500;
 					res.end(String(err));
-				}
+				});
 			});
 		});
-		it('should error if no method', done => {
-			request(app)
+		it('should error if no method', async () => {
+			await request(app)
 				.get('/name.txt')
-				.expect(500)
-				.end(done);
+				.expect(500);
 		});
 	});
 
-	it('should add a Date header field', done => {
-		request(mainApp)
+	it('should add a Date header field', async () => {
+		await request(mainApp)
 			.get('/name.txt')
-			.expect('date', dateRegExp, done);
+			.expect('date', dateRegExp);
 	});
 
-	it('should add a Last-Modified header field', done => {
-		request(mainApp)
+	it('should add a Last-Modified header field', async () => {
+		await request(mainApp)
 			.get('/name.txt')
-			.expect('last-modified', dateRegExp, done);
+			.expect('last-modified', dateRegExp);
 	});
 
-	it('should add a Accept-Ranges header field', done => {
-		request(mainApp)
+	it('should add a Accept-Ranges header field', async () => {
+		await request(mainApp)
 			.get('/name.txt')
-			.expect('Accept-Ranges', 'bytes', done);
+			.expect('Accept-Ranges', 'bytes');
 	});
 
-	it('should 404 if the file does not exist', done => {
-		request(mainApp)
+	it('should 404 if the file does not exist', async () => {
+		await request(mainApp)
 			.get('/meow')
-			.expect(404, done);
+			.expect(404);
 	});
 
-	it('should 404 if the file does not exist (HEAD)', done => {
-		request(mainApp)
+	it('should 404 if the file does not exist (HEAD)', async () => {
+		await request(mainApp)
 			.head('/meow')
-			.expect(404, done);
+			.expect(404);
 	});
 
-	it('should set Content-Type via mime map', done => {
-		request(mainApp)
+	it('should set Content-Type via mime map', async () => {
+		await request(mainApp)
 			.get('/name.txt')
 			.expect('Content-Type', 'text/plain; charset=UTF-8')
-			.expect(200, err => {
-				if (err) {
-					done(err);
-					return;
-				}
-				request(mainApp)
-					.get('/tobi.html')
-					.expect('Content-Type', 'text/html; charset=UTF-8')
-					.expect(200, done);
-			});
+			.expect(200);
+		await request(mainApp)
+			.get('/tobi.html')
+			.expect('Content-Type', 'text/html; charset=UTF-8')
+			.expect(200);
 	});
 
 	describe('should hang up on file stream error', () => {
 		let app: http.Server;
+		class ErrorStorage extends FileSystemStorage {
+			// eslint-disable-next-line class-methods-use-this
+			createReadableStream() {
+				return new Readable({
+					read() {
+						process.nextTick(() => {
+							this.destroy(new Error('boom!'));
+						});
+					},
+				});
+			}
+		}
 		before(() => {
-			app = http.createServer(async (req, res) => {
-				try {
-					// tslint:disable-next-line: no-non-null-assertion
-					const result = (await mainStorage.prepareResponse(req.url!, req)).send(res);
-					process.nextTick(() => {
-						result.stream.destroy(new Error('boom!'));
-					});
-				} catch (err) {
+			const storage = new ErrorStorage(fixtures);
+			app = http.createServer((req, res) => {
+				(async () => {
+					// eslint-disable-next-line @typescript-eslint/no-non-null-assertion
+					(await storage.prepareResponse(req.url!, req)).send(res);
+				})().catch(err => {
 					res.statusCode = 500;
 					res.end(String(err));
-				}
+				});
 			});
 		});
-		it('should hang up on file stream error', done => {
-			request(app)
-				.get('/name.txt')
-				.catch(() => {
-					done();
-				});
+		it('should hang up on file stream error', async () => {
+			try {
+				await request(app).get('/name.txt');
+				assert.fail();
+			} catch {
+				// noop
+			}
 		});
 	});
 
@@ -244,131 +279,126 @@ describe('send(file).pipe(res)', () => {
 		describe('should have headers when sending file', () => {
 			let app: http.Server;
 			before(() => {
-				app = http.createServer(async (req, res) => {
-					try {
-						// tslint:disable-next-line: no-non-null-assertion
+				app = http.createServer((req, res) => {
+					(async () => {
+						// eslint-disable-next-line @typescript-eslint/no-non-null-assertion
 						const result = await mainStorage.prepareResponse(req.url!, req);
 						result.send(res);
-					} catch (err) {
+					})().catch(err => {
 						res.statusCode = 500;
 						res.end(String(err));
-					}
+					});
 				});
 			});
-			it('should have headers when sending file', done => {
-				request(app)
+			it('should have headers when sending file', async () => {
+				await request(app)
 					.get('/name.txt')
 					.expect(shouldHaveHeader('Content-Length'))
-					.expect(200, 'tobi', done);
+					.expect(200, 'tobi');
 			});
 		});
 
 		describe('should have headers on 404', () => {
 			let app: http.Server;
 			before(() => {
-				app = http.createServer(async (req, res) => {
-					try {
-						// tslint:disable-next-line: no-non-null-assertion
+				app = http.createServer((req, res) => {
+					(async () => {
+						// eslint-disable-next-line @typescript-eslint/no-non-null-assertion
 						const result = await mainStorage.prepareResponse(req.url!, req);
 						result.send(res);
-					} catch (err) {
+					})().catch(err => {
 						res.statusCode = 500;
 						res.end(String(err));
-					}
+					});
 				});
 			});
-			it('should have headers on 404', done => {
-				request(app)
+			it('should have headers on 404', async () => {
+				await request(app)
 					.get('/bogus')
 					.expect(shouldHaveHeader('Content-Length'))
-					.expect(404, done);
+					.expect(404);
 			});
 		});
 
 		describe('should provide path', () => {
 			let app: http.Server;
 			before(() => {
-				app = http.createServer(async (req, res) => {
-					try {
-						// tslint:disable-next-line: no-non-null-assertion
+				app = http.createServer((req, res) => {
+					(async () => {
+						// eslint-disable-next-line @typescript-eslint/no-non-null-assertion
 						const result = await mainStorage.prepareResponse(req.url!, req);
 						assert.ok(result.storageInfo);
-						if (result.storageInfo) {
-							assert.ok(result.storageInfo.attachedData.resolvedPath);
-							assert.strictEqual(
-								result.storageInfo.attachedData.resolvedPath,
-								normalize(join(fixtures, 'name.txt'))
-							);
-						}
+						assert.ok(result.storageInfo.attachedData.resolvedPath);
+						assert.strictEqual(
+							result.storageInfo.attachedData.resolvedPath,
+							normalize(join(fixtures, 'name.txt')),
+						);
 						result.send(res);
-					} catch (err) {
+					})().catch(err => {
 						res.statusCode = 500;
 						res.end(String(err));
-					}
+					});
 				});
 			});
-			it('should provide path', done => {
-				request(app)
+			it('should provide path', async () => {
+				await request(app)
 					.get('/name.txt')
-					.expect(200, 'tobi', done);
+					.expect(200, 'tobi');
 			});
 		});
 
 		describe('should provide stat', () => {
 			let app: http.Server;
 			before(() => {
-				app = http.createServer(async (req, res) => {
-					try {
-						// tslint:disable-next-line: no-non-null-assertion
+				app = http.createServer((req, res) => {
+					(async () => {
+						// eslint-disable-next-line @typescript-eslint/no-non-null-assertion
 						const result = await mainStorage.prepareResponse(req.url!, req);
 						assert.ok(result.storageInfo);
-						if (result.storageInfo) {
-							assert.ok('mtimeMs' in result.storageInfo);
-							assert.ok('size' in result.storageInfo);
-							assert.ok(result.storageInfo.attachedData.stats);
-							assert.ok('ctime' in result.storageInfo.attachedData.stats);
-							assert.ok('mtime' in result.storageInfo.attachedData.stats);
-						}
+						assert.ok('mtimeMs' in result.storageInfo);
+						assert.ok('size' in result.storageInfo);
+						assert.ok(result.storageInfo.attachedData.stats);
+						assert.ok('ctime' in result.storageInfo.attachedData.stats);
+						assert.ok('mtime' in result.storageInfo.attachedData.stats);
 						result.send(res);
-					} catch (err) {
+					})().catch(err => {
 						res.statusCode = 500;
 						res.end(String(err));
-					}
+					});
 				});
 			});
-			it('should provide stat', done => {
-				request(app)
+			it('should provide stat', async () => {
+				await request(app)
 					.get('/name.txt')
-					.expect(200, 'tobi', done);
+					.expect(200, 'tobi');
 			});
 		});
 
 		describe('should allow altering headers', () => {
 			let app: http.Server;
 			before(() => {
-				app = http.createServer(async (req, res) => {
-					try {
-						// tslint:disable-next-line: no-non-null-assertion
+				app = http.createServer((req, res) => {
+					(async () => {
+						// eslint-disable-next-line @typescript-eslint/no-non-null-assertion
 						const result = await mainStorage.prepareResponse(req.url!, req);
 						result.headers['Cache-Control'] = 'no-cache';
 						result.headers['Content-Type'] = 'text/x-custom';
 						result.headers['ETag'] = 'W/"everything"';
 						result.send(res);
-					} catch (err) {
+					})().catch(err => {
 						res.statusCode = 500;
 						res.end(String(err));
-					}
+					});
 				});
 			});
-			it('should allow altering headers', done => {
-				request(app)
+			it('should allow altering headers', async () => {
+				await request(app)
 					.get('/name.txt')
 					.expect(200)
 					.expect('Cache-Control', 'no-cache')
 					.expect('Content-Type', 'text/x-custom')
 					.expect('ETag', 'W/"everything"')
-					.expect('tobi')
-					.end(done);
+					.expect('tobi');
 			});
 		});
 	});
@@ -378,10 +408,10 @@ describe('send(file).pipe(res)', () => {
 		before(() => {
 			server = createServer({ root: fixtures });
 		});
-		it('should respond to errors directly', done => {
-			request(server)
+		it('should respond to errors directly', async () => {
+			await request(server)
 				.get('/foobar')
-				.expect(404, /Not Found/, done);
+				.expect(404, /Not Found/u);
 		});
 	});
 
@@ -391,241 +421,178 @@ describe('send(file).pipe(res)', () => {
 			before(() => {
 				server = createServer({ root: fixtures });
 			});
-			it('should remove Content headers with 304', done => {
-				request(server)
+			it('should remove Content headers with 304', async () => {
+				const res = await request(server)
 					.get('/name.txt')
-					.expect(200, (err, res) => {
-						if (err) {
-							done(err);
-							return;
-						}
-						request(server)
-							.get('/name.txt')
-							// tslint:disable-next-line: no-unsafe-any
-							.set('If-None-Match', res.header.etag)
-							.expect(shouldNotHaveHeader('Content-Length'))
-							.expect(shouldNotHaveHeader('Content-Type'))
-							.expect(304, done);
-					});
+					.expect(200);
+				await request(server)
+					.get('/name.txt')
+					.set('If-None-Match', (<{ [key: string]: string }> res.header).etag)
+					.expect(shouldNotHaveHeader('Content-Length'))
+					.expect(shouldNotHaveHeader('Content-Type'))
+					.expect(304);
 			});
 		});
 
 		describe('where "If-Match" is set', () => {
-			it('should respond with 200 when "*"', done => {
-				request(mainApp)
+			it('should respond with 200 when "*"', async () => {
+				await request(mainApp)
 					.get('/name.txt')
 					.set('If-Match', '*')
-					.expect(200, done);
+					.expect(200);
 			});
 
-			it('should respond with 412 when ETag unmatched', done => {
-				request(mainApp)
+			it('should respond with 412 when ETag unmatched', async () => {
+				await request(mainApp)
 					.get('/name.txt')
 					.set('If-Match', ' "foo", "bar" ')
-					.expect(412, done);
+					.expect(412);
 			});
 
-			it('should respond with 412 when ETag unmatched (HEAD)', done => {
-				request(mainApp)
+			it('should respond with 412 when ETag unmatched (HEAD)', async () => {
+				await request(mainApp)
 					.head('/name.txt')
 					.set('If-Match', ' "foo", "bar" ')
-					.expect(412, done);
+					.expect(412);
 			});
 
 			describe('should respond with 412 when weak ETag matched', () => {
 				let app: http.Server;
 				before(() => {
 					const storage = new FileSystemStorage(fixtures, { weakEtags: true });
-					app = http.createServer(async (req, res) => {
-						try {
-							// tslint:disable-next-line: no-non-null-assertion
+					app = http.createServer((req, res) => {
+						(async () => {
+							// eslint-disable-next-line @typescript-eslint/no-non-null-assertion
 							(await storage.prepareResponse(req.url!, req)).send(res);
-						} catch (err) {
+						})().catch(err => {
 							res.statusCode = 500;
 							res.end(String(err));
-						}
+						});
 					});
 				});
-				it('should respond with 412 when weak ETag matched', done => {
-					request(app)
+				it('should respond with 412 when weak ETag matched', async () => {
+					const res = await request(app)
 						.get('/name.txt')
-						.expect(200, (err, res) => {
-							if (err) {
-								done(err);
-								return;
-							}
-							request(app)
-								.get('/name.txt')
-										// tslint:disable-next-line: no-unsafe-any
-										.set('If-Match', `"foo", "bar", ${ res.header.etag }`)
-								.expect(412, done);
-						});
+						.expect(200);
+					await request(app)
+						.get('/name.txt')
+						.set('If-Match', `"foo", "bar", ${ (<{ [key: string]: string }> res.header).etag }`)
+						.expect(412);
 				});
 			});
 
-			it('should respond with 200 when strong ETag matched', done => {
-				request(mainApp)
+			it('should respond with 200 when strong ETag matched', async () => {
+				const res = await request(mainApp)
 					.get('/name.txt')
-					.expect(200, (err, res) => {
-						if (err) {
-							done(err);
-							return;
-						}
-						request(mainApp)
-							.get('/name.txt')
-									// tslint:disable-next-line: no-unsafe-any
-									.set('If-Match', `"foo", "bar", ${ res.header.etag }`)
-							.expect(200, done);
-					});
+					.expect(200);
+				await request(mainApp)
+					.get('/name.txt')
+					.set('If-Match', `"foo", "bar", ${ (<{ [key: string]: string }> res.header).etag }`)
+					.expect(200);
 			});
 		});
 
 		describe('where "If-Modified-Since" is set', () => {
-			it('should respond with 304 when unmodified', done => {
-				request(mainApp)
+			it('should respond with 304 when unmodified', async () => {
+				const res = await request(mainApp)
 					.get('/name.txt')
-					.expect(200, (err, res) => {
-						if (err) {
-							done(err);
-							return;
-						}
-						request(mainApp)
-							.get('/name.txt')
-							// tslint:disable-next-line: no-unsafe-any
-							.set('If-Modified-Since', res.header['last-modified'])
-							.expect(304, done);
-					});
+					.expect(200);
+				await request(mainApp)
+					.get('/name.txt')
+					.set('If-Modified-Since', (<{ [key: string]: string }> res.header)['last-modified'])
+					.expect(304);
 			});
 
-			it('should respond with 200 when modified', done => {
-				request(mainApp)
+			it('should respond with 200 when modified', async () => {
+				const res = await request(mainApp)
 					.get('/name.txt')
-					.expect(200, (err, res) => {
-						if (err) {
-							done(err);
-							return;
-						}
-						// tslint:disable-next-line: no-unsafe-any
-						const lmod = Date.parse(res.header['last-modified']);
-						const date = new Date(lmod - 60000);
-						request(mainApp)
-							.get('/name.txt')
-							.set('If-Modified-Since', date.toUTCString())
-							.expect(200, 'tobi', done);
-					});
+					.expect(200);
+				const lmod = Date.parse((<{ [key: string]: string }> res.header)['last-modified']);
+				const date = new Date(lmod - 60000);
+				await request(mainApp)
+					.get('/name.txt')
+					.set('If-Modified-Since', date.toUTCString())
+					.expect(200, 'tobi');
 			});
 		});
 
 		describe('where "If-None-Match" is set', () => {
-			it('should respond with 304 when ETag matched', done => {
-				request(mainApp)
+			it('should respond with 304 when ETag matched', async () => {
+				const res = await request(mainApp)
 					.get('/name.txt')
-					.expect(200, (err, res) => {
-						if (err) {
-							done(err);
-							return;
-						}
-						request(mainApp)
-							.get('/name.txt')
-							// tslint:disable-next-line: no-unsafe-any
-							.set('If-None-Match', res.header.etag)
-							.expect(304, done);
-					});
+					.expect(200);
+				await request(mainApp)
+					.get('/name.txt')
+					.set('If-None-Match', (<{ [key: string]: string }> res.header).etag)
+					.expect(304);
 			});
 
 			describe('should respond with 304 when weak ETag matched', () => {
 				let app: http.Server;
 				before(() => {
 					const storage = new FileSystemStorage(fixtures, { weakEtags: true });
-					app = http.createServer(async (req, res) => {
-						try {
-							// tslint:disable-next-line: no-non-null-assertion
+					app = http.createServer((req, res) => {
+						(async () => {
+							// eslint-disable-next-line @typescript-eslint/no-non-null-assertion
 							(await storage.prepareResponse(req.url!, req)).send(res);
-						} catch (err) {
+						})().catch(err => {
 							res.statusCode = 500;
 							res.end(String(err));
-						}
+						});
 					});
 				});
-				it('should respond with 304 when weak ETag matched', done => {
-					request(app)
+				it('should respond with 304 when weak ETag matched', async () => {
+					const res = await request(app)
 						.get('/name.txt')
-						.expect(200, (err, res) => {
-							if (err) {
-								done(err);
-								return;
-							}
-							request(mainApp)
-								.get('/name.txt')
-								// tslint:disable-next-line: no-unsafe-any
-								.set('If-None-Match', res.header.etag)
-								.expect(304, done);
-						});
+						.expect(200);
+					await request(mainApp)
+						.get('/name.txt')
+						.set('If-None-Match', (<{ [key: string]: string }> res.header).etag)
+						.expect(304);
 				});
 			});
 
-			it('should respond with 200 when ETag unmatched', done => {
-				request(mainApp)
+			it('should respond with 200 when ETag unmatched', async () => {
+				await request(mainApp)
 					.get('/name.txt')
-					.expect(200, err => {
-						if (err) {
-							done(err);
-							return;
-						}
-						request(mainApp)
-							.get('/name.txt')
-							.set('If-None-Match', '"123"')
-							.expect(200, 'tobi', done);
-					});
+					.set('If-None-Match', '"123"')
+					.expect(200, 'tobi');
 			});
 
 			it('should respond with 412 when ETag matched on not GET or HEAD', done => {
-				assert.strictEqual(
-					getFreshStatus(false, { 'if-none-match': '"123"' }, '"123"', false), 412);
+				assert.strictEqual(getFreshStatus(false, { 'if-none-match': '"123"' }, '"123"', false), 412);
 				done();
 			});
 		});
 
 		describe('where "If-Unmodified-Since" is set', () => {
-			it('should respond with 200 when unmodified', done => {
-				request(mainApp)
+			it('should respond with 200 when unmodified', async () => {
+				const res = await request(mainApp)
 					.get('/name.txt')
-					.expect(200, (err, res) => {
-						if (err) {
-							done(err);
-							return;
-						}
-						request(mainApp)
-							.get('/name.txt')
-							// tslint:disable-next-line: no-unsafe-any
-							.set('If-Unmodified-Since', res.header['last-modified'])
-							.expect(200, done);
-					});
+					.expect(200);
+				await request(mainApp)
+					.get('/name.txt')
+					.set('If-Unmodified-Since', (<{ [key: string]: string }> res.header)['last-modified'])
+					.expect(200);
 			});
 
-			it('should respond with 412 when modified', done => {
-				request(mainApp)
+			it('should respond with 412 when modified', async () => {
+				const res = await request(mainApp)
 					.get('/name.txt')
-					.expect(200, (err, res) => {
-						if (err) {
-							done(err);
-							return;
-						}
-						// tslint:disable-next-line: no-unsafe-any
-						const lmod = Date.parse(res.header['last-modified']);
-						const date = new Date(lmod - 60000).toUTCString();
-						request(mainApp)
-							.get('/name.txt')
-							.set('If-Unmodified-Since', date)
-							.expect(412, done);
-					});
+					.expect(200);
+				const lmod = Date.parse((<{ [key: string]: string }> res.header)['last-modified']);
+				const date = new Date(lmod - 60000).toUTCString();
+				await request(mainApp)
+					.get('/name.txt')
+					.set('If-Unmodified-Since', date)
+					.expect(412);
 			});
 
-			it('should respond with 200 when invalid date', done => {
-				request(mainApp)
+			it('should respond with 200 when invalid date', async () => {
+				await request(mainApp)
 					.get('/name.txt')
 					.set('If-Unmodified-Since', 'foo')
-					.expect(200, done);
+					.expect(200);
 			});
 		});
 
@@ -634,174 +601,163 @@ describe('send(file).pipe(res)', () => {
 			before(() => {
 				server = createServer({ root: fixtures, statusCode: 418 });
 			});
-			it('statusCode option should disable 304 and always return statusCode', done => {
-				request(server)
+			it('statusCode option should disable 304 and always return statusCode', async () => {
+				await request(server)
 					.get('/name.txt')
 					.expect(shouldNotHaveHeader('ETag'))
 					.expect(shouldNotHaveHeader('Last-Modified'))
-					.expect(418, err => {
-						if (err) {
-							done(err);
-							return;
-						}
-						request(mainApp)
-						.get('/name.txt')
-						.expect(200, (mainErr, res) => {
-							if (mainErr) {
-								done(mainErr);
-								return;
-							}
-							request(server)
-								.get('/name.txt')
-								// tslint:disable-next-line: no-unsafe-any
-								.set('If-None-Match', res.header.etag)
-								.expect(418, done);
-						});
-					});
+					.expect(418);
+				const res = await request(mainApp)
+					.get('/name.txt')
+					.expect(200);
+				await request(server)
+					.get('/name.txt')
+					.set('If-None-Match', (<{ [key: string]: string }> res.header).etag)
+					.expect(418);
 			});
 		});
 	});
 
 	describe('with Range request', () => {
-		it('should support byte ranges', done => {
-			request(mainApp)
+		it('should support byte ranges', async () => {
+			await request(mainApp)
 				.get('/nums.txt')
 				.set('Range', 'bytes=0-4')
-				.expect(206, '12345', done);
+				.expect(206, '12345');
 		});
 
-		it('should ignore non-byte ranges', done => {
-			request(mainApp)
+		it('should ignore non-byte ranges', async () => {
+			await request(mainApp)
 				.get('/nums.txt')
 				.set('Range', 'items=0-4')
-				.expect(200, '123456789', done);
+				.expect(200, '123456789');
 		});
 
-		it('should be inclusive', done => {
-			request(mainApp)
+		it('should be inclusive', async () => {
+			await request(mainApp)
 				.get('/nums.txt')
 				.set('Range', 'bytes=0-0')
-				.expect(206, '1', done);
+				.expect(206, '1');
 		});
 
-		it('should set Content-Range', done => {
-			request(mainApp)
+		it('should set Content-Range', async () => {
+			await request(mainApp)
 				.get('/nums.txt')
 				.set('Range', 'bytes=2-5')
 				.expect('Content-Range', 'bytes 2-5/9')
-				.expect(206, done);
+				.expect(206);
 		});
 
-		it('should support -n', done => {
-			request(mainApp)
+		it('should support -n', async () => {
+			await request(mainApp)
 				.get('/nums.txt')
 				.set('Range', 'bytes=-3')
-				.expect(206, '789', done);
+				.expect(206, '789');
 		});
 
-		it('should support n-', done => {
-			request(mainApp)
+		it('should support n-', async () => {
+			await request(mainApp)
 				.get('/nums.txt')
 				.set('Range', 'bytes=3-')
-				.expect(206, '456789', done);
+				.expect(206, '456789');
 		});
 
-		it('should respond with 206 "Partial Content"', done => {
-			request(mainApp)
+		it('should respond with 206 "Partial Content"', async () => {
+			await request(mainApp)
 				.get('/nums.txt')
 				.set('Range', 'bytes=0-4')
-				.expect(206, done);
+				.expect(206);
 		});
 
-		it('should set Content-Length to the # of octets transferred', done => {
-			request(mainApp)
+		it('should set Content-Length to the # of octets transferred', async () => {
+			await request(mainApp)
 				.get('/nums.txt')
 				.set('Range', 'bytes=2-3')
 				.expect('Content-Length', '2')
-				.expect(206, '34', done);
+				.expect(206, '34');
 		});
 
 		describe('when last-byte-pos of the range is greater the length', () => {
-			it('is taken to be equal to one less than the length', done => {
-				request(mainApp)
+			it('is taken to be equal to one less than the length', async () => {
+				await request(mainApp)
 					.get('/nums.txt')
 					.set('Range', 'bytes=2-50')
 					.expect('Content-Range', 'bytes 2-8/9')
-					.expect(206, done);
+					.expect(206);
 			});
 
-			it('should adapt the Content-Length accordingly', done => {
-				request(mainApp)
+			it('should adapt the Content-Length accordingly', async () => {
+				await request(mainApp)
 					.get('/nums.txt')
 					.set('Range', 'bytes=2-50')
 					.expect('Content-Length', '7')
-					.expect(206, done);
+					.expect(206);
 			});
 		});
 
 		describe('when the first- byte-pos of the range is greater length', () => {
-			it('should respond with 416', done => {
-				request(mainApp)
+			it('should respond with 416', async () => {
+				await request(mainApp)
 					.get('/nums.txt')
 					.set('Range', 'bytes=9-50')
 					.expect('Content-Range', 'bytes */9')
-					.expect(416, done);
+					.expect(416);
 			});
 
-			it('should respond with 416 for head request', done => {
-				request(mainApp)
+			it('should respond with 416 for head request', async () => {
+				await request(mainApp)
 					.head('/nums.txt')
 					.set('Range', 'bytes=9-50')
 					.expect('Content-Range', 'bytes */9')
-					.expect(416, done);
+					.expect(416);
 			});
 		});
 
 		describe('when syntactically invalid', () => {
-			it('should respond with 200 and the entire contents', done => {
-				request(mainApp)
+			it('should respond with 200 and the entire contents', async () => {
+				await request(mainApp)
 					.get('/nums.txt')
 					.set('Range', 'asdf')
-					.expect(200, '123456789', done);
+					.expect(200, '123456789');
 			});
 		});
 
 		describe('when multiple ranges', () => {
-			it('should respond with 206 with the multiple parts', done => {
-				request(mainApp)
+			it('should respond with 206 with the multiple parts', async () => {
+				await request(mainApp)
 					.get('/nums.txt')
 					.set('Range', 'bytes=1-1,3-')
 					.expect(shouldNotHaveHeader('Content-Range'))
-					.expect('Content-Type', /^multipart\/byteranges/)
-					.parse((res: request.Response, cb: (err: Error | null, body: unknown) => void) => {
+					.expect('Content-Type', /^multipart\/byteranges/u)
+					.parse((res, cb) => {
 						const chunks: Buffer[] = [];
 						res.on('data', chunk => {
 							chunks.push(<Buffer> chunk);
 						});
-						res.on('error', err => {
-							cb(<Error> err, Buffer.concat(chunks).toString());
+						res.on('error', (err: Error) => {
+							cb(err, Buffer.concat(chunks).toString());
 						});
 						res.on('end', () => {
 							cb(null, Buffer.concat(chunks).toString());
 						});
 					})
 					.expect(res => {
-						if (// tslint:disable-next-line:max-line-length ter-max-len
-							!/^--[^\r\n]+\r\ncontent-type: text\/plain; charset=UTF-8\r\ncontent-range: bytes 1-1\/9\r\n\r\n2\r\n--[^\r\n]+\r\ncontent-type: text\/plain; charset=UTF-8\r\ncontent-range: bytes 3-8\/9\r\n\r\n456789\r\n--[^\r\n]+--$/
-							.test(<string> res.body)
+						if (
+							// eslint-disable-next-line max-len
+							!/^--[^\r\n]+\r\ncontent-type: text\/plain; charset=UTF-8\r\ncontent-range: bytes 1-1\/9\r\n\r\n2\r\n--[^\r\n]+\r\ncontent-type: text\/plain; charset=UTF-8\r\ncontent-range: bytes 3-8\/9\r\n\r\n456789\r\n--[^\r\n]+--$/u
+								.test(<string> res.body)
 						) {
 							throw new Error('multipart/byteranges seems invalid');
 						}
-					})
-					.end(done);
+					});
 			});
 
-			it('should respond with 206 is all ranges can be combined', done => {
-				request(mainApp)
+			it('should respond with 206 is all ranges can be combined', async () => {
+				await request(mainApp)
 					.get('/nums.txt')
 					.set('Range', 'bytes=1-2,3-5')
 					.expect('Content-Range', 'bytes 1-5/9')
-					.expect(206, '23456', done);
+					.expect(206, '23456');
 			});
 		});
 
@@ -810,118 +766,88 @@ describe('send(file).pipe(res)', () => {
 				let app: http.Server;
 				before(() => {
 					const storage = new FileSystemStorage(fixtures, { weakEtags: true });
-					app = http.createServer(async (req, res) => {
-						try {
-							// tslint:disable-next-line: no-non-null-assertion
+					app = http.createServer((req, res) => {
+						(async () => {
+							// eslint-disable-next-line @typescript-eslint/no-non-null-assertion
 							(await storage.prepareResponse(req.url!, req)).send(res);
-						} catch (err) {
+						})().catch(err => {
 							res.statusCode = 500;
 							res.end(String(err));
-						}
-					});
-				});
-				it('should not respond with parts when weak etag unchanged', done => {
-					request(app)
-						.get('/nums.txt')
-						.expect(200, (err, res) => {
-							if (err) {
-								done(err);
-								return;
-							}
-							// tslint:disable-next-line: no-unsafe-any
-							const etag = <string> res.header.etag;
-
-							request(app)
-								.get('/nums.txt')
-								.set('If-Range', etag)
-								.set('Range', 'bytes=0-0')
-								.expect(200, '123456789', done);
 						});
+					});
+				});
+				it('should not respond with parts when weak etag unchanged', async () => {
+					const res = await request(app)
+						.get('/nums.txt')
+						.expect(200);
+					const { etag } = <{ [key: string]: string }> res.header;
+
+					await request(app)
+						.get('/nums.txt')
+						.set('If-Range', etag)
+						.set('Range', 'bytes=0-0')
+						.expect(200, '123456789');
 				});
 			});
 
-			it('should respond with parts when strong etag unchanged', done => {
-				request(mainApp)
+			it('should respond with parts when strong etag unchanged', async () => {
+				const res = await request(mainApp)
 					.get('/nums.txt')
-					.expect(200, (err, res) => {
-						if (err) {
-							done(err);
-							return;
-						}
-						// tslint:disable-next-line: no-unsafe-any
-						const etag = <string> res.header.etag;
+					.expect(200);
+				const { etag } = <{ [key: string]: string }> res.header;
 
-						request(mainApp)
-							.get('/nums.txt')
-							.set('If-Range', etag)
-							.set('Range', 'bytes=0-0')
-							.expect(206, '1', done);
-					});
+				await request(mainApp)
+					.get('/nums.txt')
+					.set('If-Range', etag)
+					.set('Range', 'bytes=0-0')
+					.expect(206, '1');
 			});
 
-			it('should respond with 200 when etag changed', done => {
-				request(mainApp)
+			it('should respond with 200 when etag changed', async () => {
+				const res = await request(mainApp)
 					.get('/nums.txt')
-					.expect(200, (err, res) => {
-						if (err) {
-							done(err);
-							return;
-						}
-						// tslint:disable-next-line: no-unsafe-any
-						const etag = (<string> res.header.etag).replace(/"(.)/, '"0$1');
+					.expect(200);
+				const etag = (<{ [key: string]: string }> res.header).etag.replace(/"(?<c>.)/u, '"0$<c>');
 
-						request(mainApp)
-							.get('/nums.txt')
-							.set('If-Range', etag)
-							.set('Range', 'bytes=0-0')
-							.expect(200, '123456789', done);
-					});
+				await request(mainApp)
+					.get('/nums.txt')
+					.set('If-Range', etag)
+					.set('Range', 'bytes=0-0')
+					.expect(200, '123456789');
 			});
 
-			it('should respond with parts when modified unchanged', done => {
-				request(mainApp)
+			it('should respond with parts when modified unchanged', async () => {
+				const res = await request(mainApp)
 					.get('/nums.txt')
-					.expect(200, (err, res) => {
-						if (err) {
-							done(err);
-							return;
-						}
-						// tslint:disable-next-line: no-unsafe-any
-						const modified = <string> res.header['last-modified'];
+					.expect(200);
+				const { 'last-modified': modified } = <{ [key: string]: string }> res.header;
 
-						request(mainApp)
-							.get('/nums.txt')
-							.set('If-Range', modified)
-							.set('Range', 'bytes=0-0')
-							.expect(206, '1', done);
-					});
+				await request(mainApp)
+					.get('/nums.txt')
+					.set('If-Range', modified)
+					.set('Range', 'bytes=0-0')
+					.expect(206, '1');
 			});
 
-			it('should respond with 200 when modified changed', done => {
-				request(mainApp)
+			it('should respond with 200 when modified changed', async () => {
+				const res = await request(mainApp)
 					.get('/nums.txt')
-					.expect(200, (err, res) => {
-						if (err) {
-							done(err);
-							return;
-						}
-						// tslint:disable-next-line: no-unsafe-any
-						const modified = Date.parse(res.header['last-modified']) - 20000;
+					.expect(200);
+				const modified = Date.parse((<{ [key: string]: string }> res.header)['last-modified']) - 20000;
 
-						request(mainApp)
-							.get('/nums.txt')
-							.set('If-Range', new Date(modified).toUTCString())
-							.set('Range', 'bytes=0-0')
-							.expect(200, '123456789', done);
-					});
+				await request(mainApp)
+					.get('/nums.txt')
+					.set('If-Range', new Date(modified).toUTCString())
+					.set('Range', 'bytes=0-0')
+					.expect(200, '123456789');
 			});
 
-			it('should respond with 200 when invalid value', done => {
-				request(mainApp)
+			it('should respond with 200 when invalid value', async () => {
+				await request(mainApp)
 					.get('/nums.txt')
 					.set('If-Range', 'foo')
 					.set('Range', 'bytes=0-0')
-					.expect(200, '123456789', done);
+					.expect(200, '123456789');
 			});
 		});
 
@@ -930,11 +856,11 @@ describe('send(file).pipe(res)', () => {
 			before(() => {
 				server = createServer({ root: fixtures, statusCode: 418 });
 			});
-			it('statusCode should disable byte ranges', done => {
-				request(server)
+			it('statusCode should disable byte ranges', async () => {
+				await request(server)
 					.get('/nums.txt')
 					.set('Range', 'bytes=0-4')
-					.expect(418, '123456789', done);
+					.expect(418, '123456789');
 			});
 		});
 	});
@@ -942,101 +868,101 @@ describe('send(file).pipe(res)', () => {
 	describe('.etag()', () => {
 		let app: http.Server;
 		before(() => {
-			app = http.createServer(async (req, res) => {
-				try {
-					// tslint:disable-next-line: no-non-null-assertion
+			app = http.createServer((req, res) => {
+				(async () => {
+					// eslint-disable-next-line @typescript-eslint/no-non-null-assertion
 					(await mainStorage.prepareResponse(req.url!, req, { etag: false })).send(res);
-				} catch (err) {
+				})().catch(err => {
 					res.statusCode = 500;
 					res.end(String(err));
-				}
+				});
 			});
 		});
-		it('should support disabling etags', done => {
-			request(app)
+		it('should support disabling etags', async () => {
+			await request(app)
 				.get('/name.txt')
 				.expect(shouldNotHaveHeader('ETag'))
-				.expect(200, done);
+				.expect(200);
 		});
 	});
 
 	describe('.maxage()', () => {
-		it('should default to 0', done => {
-			request(mainApp)
+		it('should default to 0', async () => {
+			await request(mainApp)
 				.get('/name.txt')
-				.expect('Cache-Control', 'public, max-age=0', done);
+				.expect('Cache-Control', 'public, max-age=0');
 		});
 
 		describe('should be configurable', () => {
 			let app: http.Server;
 			before(() => {
-				app = http.createServer(async (req, res) => {
-					try {
-						// tslint:disable-next-line: no-non-null-assertion
+				app = http.createServer((req, res) => {
+					(async () => {
+						// eslint-disable-next-line @typescript-eslint/no-non-null-assertion
 						(await mainStorage.prepareResponse(req.url!, req, { cacheControl: 'public, max-age=1' }))
 							.send(res);
-					} catch (err) {
+					})().catch(err => {
 						res.statusCode = 500;
 						res.end(String(err));
-					}
+					});
 				});
 			});
-			it('should be configurable', done => {
-				request(app)
+			it('should be configurable', async () => {
+				await request(app)
 					.get('/name.txt')
-					.expect('Cache-Control', 'public, max-age=1', done);
+					.expect('Cache-Control', 'public, max-age=1');
 			});
 		});
 	});
 
 	describe('relative paths', () => {
-		it('should redirect on relative path', done => {
-			request(mainApp)
+		it('should redirect on relative path', async () => {
+			await request(mainApp)
 				.get('/pets/../name.txt')
 				.expect('Location', '/name.txt')
-				.expect(301, done);
+				.expect(301);
 		});
 
-		it('should redirect on relative path on head', done => {
-			request(mainApp)
+		it('should redirect on relative path on head', async () => {
+			await request(mainApp)
 				.head('/pets/../name.txt')
 				.expect('Location', '/name.txt')
-				.expect(301, done);
+				.expect(301);
 		});
 
-		it('should redirect on relative path with query params', done => {
-			request(mainApp)
+		it('should redirect on relative path with query params', async () => {
+			await request(mainApp)
 				.get('/pets/../name.txt?foo=bar')
 				.expect('Location', '/name.txt?foo=bar')
-				.expect(301, done);
+				.expect(301);
 		});
 
-		it('should redirect on relative path with dot', done => {
-			request(mainApp)
+		it('should redirect on relative path with dot', async () => {
+			await request(mainApp)
 				.get('/name.txt/.')
 				.expect('Location', '/name.txt/')
-				.expect(301, done);
+				.expect(301);
 		});
 
-		it('should redirect on relative path with dot and query params', done => {
-			request(mainApp)
+		it('should redirect on relative path with dot and query params', async () => {
+			await request(mainApp)
 				.get('/name.txt/.?foo=bar')
 				.expect('Location', '/name.txt/?foo=bar')
-				.expect(301, done);
+				.expect(301);
 		});
 
-		it('should redirect on relative path with dot bis', done => {
-			request(mainApp)
+		it('should redirect on relative path with dot bis', async () => {
+			await request(mainApp)
 				.get('/./name.txt')
 				.expect('Location', '/name.txt')
-				.expect(301, done);
+				.expect(301);
 		});
 
-		it('should redirect on relative path with dot and query params bis', done => {
-			request(mainApp)
+		it('should redirect on relative path with dot and query params bis', async () => {
+			await request(mainApp)
 				.get('/./name.txt?foo=bar')
 				.expect('Location', '/name.txt?foo=bar')
-				.expect(301, done);
+				.expect(301);
 		});
 	});
 });
@@ -1048,11 +974,11 @@ describe('send(file, options)', () => {
 			before(() => {
 				server = createServer({ maxRanges: 0, root: fixtures });
 			});
-			it('should support disabling accept-ranges', done => {
-				request(server)
+			it('should support disabling accept-ranges', async () => {
+				await request(server)
 					.get('/nums.txt')
 					.expect('Accept-Ranges', 'none')
-					.expect(200, done);
+					.expect(200);
 			});
 		});
 
@@ -1061,13 +987,13 @@ describe('send(file, options)', () => {
 			before(() => {
 				server = createServer({ maxRanges: 0, root: fixtures });
 			});
-			it('should ignore requested range when maxRange is zero', done => {
-				request(server)
+			it('should ignore requested range when maxRange is zero', async () => {
+				await request(server)
 					.get('/nums.txt')
 					.set('Range', 'bytes=0-2')
 					.expect('Accept-Ranges', 'none')
 					.expect(shouldNotHaveHeader('Content-Range'))
-					.expect(200, '123456789', done);
+					.expect(200, '123456789');
 			});
 		});
 
@@ -1076,13 +1002,13 @@ describe('send(file, options)', () => {
 			before(() => {
 				server = createServer({ maxRanges: 1, root: fixtures });
 			});
-			it('should ignore requested range when maxRange below', done => {
-				request(server)
+			it('should ignore requested range when maxRange below', async () => {
+				await request(server)
 					.get('/nums.txt')
 					.set('Range', 'bytes=0-2,4-5')
 					.expect('Accept-Ranges', 'bytes')
 					.expect(shouldNotHaveHeader('Content-Range'))
-					.expect(200, '123456789', done);
+					.expect(200, '123456789');
 			});
 		});
 	});
@@ -1093,11 +1019,11 @@ describe('send(file, options)', () => {
 			before(() => {
 				server = createServer({ cacheControl: false, root: fixtures });
 			});
-			it('should support disabling cache-control', done => {
-				request(server)
+			it('should support disabling cache-control', async () => {
+				await request(server)
 					.get('/name.txt')
 					.expect(shouldNotHaveHeader('Cache-Control'))
-					.expect(200, done);
+					.expect(200);
 			});
 		});
 
@@ -1106,11 +1032,11 @@ describe('send(file, options)', () => {
 			before(() => {
 				server = createServer({ cacheControl: false, root: fixtures });
 			});
-			it('should ignore maxAge option', done => {
-				request(server)
+			it('should ignore maxAge option', async () => {
+				await request(server)
 					.get('/name.txt')
 					.expect(shouldNotHaveHeader('Cache-Control'))
-					.expect(200, done);
+					.expect(200);
 			});
 		});
 	});
@@ -1120,11 +1046,11 @@ describe('send(file, options)', () => {
 		before(() => {
 			server = createServer({ etag: false, root: fixtures });
 		});
-		it('should support disabling etags', done => {
-			request(server)
+		it('should support disabling etags', async () => {
+			await request(server)
 				.get('/name.txt')
 				.expect(shouldNotHaveHeader('ETag'))
-				.expect(200, done);
+				.expect(200);
 		});
 	});
 
@@ -1133,10 +1059,10 @@ describe('send(file, options)', () => {
 		before(() => {
 			server = createServer({ root: fixtures });
 		});
-		it('should be not be enabled by default', done => {
-			request(server)
+		it('should be not be enabled by default', async () => {
+			await request(server)
 				.get('/tobi')
-				.expect(404, done);
+				.expect(404);
 		});
 	});
 
@@ -1145,11 +1071,11 @@ describe('send(file, options)', () => {
 		before(() => {
 			server = createServer({ lastModified: false, root: fixtures });
 		});
-		it('should support disabling last-modified', done => {
-			request(server)
+		it('should support disabling last-modified', async () => {
+			await request(server)
 				.get('/name.txt')
 				.expect(shouldNotHaveHeader('Last-Modified'))
-				.expect(200, done);
+				.expect(200);
 		});
 	});
 
@@ -1159,10 +1085,10 @@ describe('send(file, options)', () => {
 			before(() => {
 				server = createServer({ root: fixtures });
 			});
-			it('should default to "ignore"', done => {
-				request(server)
+			it('should default to "ignore"', async () => {
+				await request(server)
 					.get('/.hidden.txt')
-					.expect(404, done);
+					.expect(404);
 			});
 		});
 
@@ -1171,10 +1097,10 @@ describe('send(file, options)', () => {
 			before(() => {
 				server = createServer({ root: fixtures });
 			});
-			it('should ignore folder too', done => {
-				request(server)
+			it('should ignore folder too', async () => {
+				await request(server)
 					.get('/.mine/name.txt')
-					.expect(404, done);
+					.expect(404);
 			});
 		});
 
@@ -1183,22 +1109,22 @@ describe('send(file, options)', () => {
 			before(() => {
 				server = createServer({ ignorePattern: false, root: fixtures });
 			});
-			it('should send dotfile', done => {
-				request(server)
+			it('should send dotfile', async () => {
+				await request(server)
 					.get('/.hidden.txt')
-					.expect(200, 'secret', done);
+					.expect(200, 'secret');
 			});
 
-			it('should send within dotfile directory', done => {
-				request(server)
+			it('should send within dotfile directory', async () => {
+				await request(server)
 					.get('/.mine/name.txt')
-					.expect(200, /tobi/, done);
+					.expect(200, /tobi/u);
 			});
 
-			it('should 404 for non-existent dotfile', done => {
-				request(server)
+			it('should 404 for non-existent dotfile', async () => {
+				await request(server)
 					.get('/.nothere')
-					.expect(404, done);
+					.expect(404);
 			});
 		});
 
@@ -1206,54 +1132,54 @@ describe('send(file, options)', () => {
 			describe('when "ignore" 1', () => {
 				let server: http.Server;
 				before(() => {
-					server = createServer({ ignorePattern: /^\.[^.]/, root: fixtures });
+					server = createServer({ ignorePattern: /^\.[^.]/u, root: fixtures });
 				});
-				it('should 404 for dotfile', done => {
-					request(server)
+				it('should 404 for dotfile', async () => {
+					await request(server)
 						.get('/.hidden.txt')
-						.expect(404, done);
+						.expect(404);
 				});
 
-				it('should 404 for dotfile directory', done => {
-					request(server)
+				it('should 404 for dotfile directory', async () => {
+					await request(server)
 						.get('/.mine')
-						.expect(404, done);
+						.expect(404);
 				});
 
-				it('should 404 for dotfile directory with trailing slash', done => {
-					request(server)
+				it('should 404 for dotfile directory with trailing slash', async () => {
+					await request(server)
 						.get('/.mine/')
-						.expect(404, done);
+						.expect(404);
 				});
 
-				it('should 404 for file within dotfile directory', done => {
-					request(server)
+				it('should 404 for file within dotfile directory', async () => {
+					await request(server)
 						.get('/.mine/name.txt')
-						.expect(404, done);
+						.expect(404);
 				});
 
-				it('should 404 for non-existent dotfile', done => {
-					request(server)
+				it('should 404 for non-existent dotfile', async () => {
+					await request(server)
 						.get('/.nothere')
-						.expect(404, done);
+						.expect(404);
 				});
 
-				it('should 404 for non-existent dotfile directory', done => {
-					request(server)
+				it('should 404 for non-existent dotfile directory', async () => {
+					await request(server)
 						.get('/.what/name.txt')
-						.expect(404, done);
+						.expect(404);
 				});
 			});
 
 			describe('when "ignore" 2', () => {
 				let server: http.Server;
 				before(() => {
-					server = createServer({ ignorePattern: /^\.[^.]/, root: join(fixtures, '.mine') });
+					server = createServer({ ignorePattern: /^\.[^.]/u, root: join(fixtures, '.mine') });
 				});
-				it('should send files in root dotfile directory', done => {
-					request(server)
+				it('should send files in root dotfile directory', async () => {
+					await request(server)
 						.get('/name.txt')
-						.expect(200, /tobi/, done);
+						.expect(200, /tobi/u);
 				});
 			});
 		});
@@ -1266,11 +1192,11 @@ describe('send(file, options)', () => {
 				before(() => {
 					server = createServer({ root: fixtures });
 				});
-				it('should not join root', done => {
-					request(server)
+				it('should not join root', async () => {
+					await request(server)
 						.get('/pets/../name.txt')
 						.expect('Location', '/name.txt')
-						.expect(301, done);
+						.expect(301);
 				});
 			});
 
@@ -1279,10 +1205,10 @@ describe('send(file, options)', () => {
 				before(() => {
 					server = createServer({ root: fixtures });
 				});
-				it('double slash should be ignored', done => {
-					request(server)
+				it('double slash should be ignored', async () => {
+					await request(server)
 						.get('//name.txt')
-						.expect(404, done);
+						.expect(404);
 				});
 			});
 
@@ -1291,22 +1217,22 @@ describe('send(file, options)', () => {
 				before(() => {
 					server = createServer({ root: fixtures });
 				});
-				it('double slash in sub path should be ignored', done => {
-					request(server)
+				it('double slash in sub path should be ignored', async () => {
+					await request(server)
 						.get('/pets//index.html')
-						.expect(404, done);
+						.expect(404);
 				});
 			});
 
 			describe('should work with trailing slash', () => {
 				let server: http.Server;
 				before(() => {
-					server = createServer({ root: `${fixtures}/` });
+					server = createServer({ root: `${ fixtures }/` });
 				});
-				it('should work with trailing slash', done => {
-					request(server)
+				it('should work with trailing slash', async () => {
+					await request(server)
 						.get('/name.txt')
-						.expect(200, 'tobi', done);
+						.expect(200, 'tobi');
 				});
 			});
 
@@ -1315,10 +1241,10 @@ describe('send(file, options)', () => {
 				before(() => {
 					server = createServer({ root: join(fixtures, 'name.txt') });
 				});
-				it('should 404 on empty path', done => {
-					request(server)
+				it('should 404 on empty path', async () => {
+					await request(server)
 						.get('')
-						.expect(404, done);
+						.expect(404);
 				});
 			});
 
@@ -1327,11 +1253,11 @@ describe('send(file, options)', () => {
 				before(() => {
 					server = createServer({ root: fixtures });
 				});
-				it('should restrict paths to within root', done => {
-					request(server)
+				it('should restrict paths to within root', async () => {
+					await request(server)
 						.get('/pets/../../http.spec.ts')
 						.expect('Location', '/http.spec.ts')
-						.expect(301, done);
+						.expect(301);
 				});
 			});
 
@@ -1339,33 +1265,33 @@ describe('send(file, options)', () => {
 				let app: http.Server;
 				before(() => {
 					const storage = new FileSystemStorage(fixtures);
-					app = http.createServer(async (req, res) => {
-						try {
-							// tslint:disable-next-line: no-non-null-assertion
+					app = http.createServer((req, res) => {
+						(async () => {
+							// eslint-disable-next-line @typescript-eslint/no-non-null-assertion
 							(await storage.prepareResponse(req.url!.split('/'), req)).send(res);
-						} catch (err) {
+						})().catch(err => {
 							res.statusCode = 500;
 							res.end(String(err));
-						}
+						});
 					});
 				});
-				it('should restrict paths to within root with path parts', done => {
-					request(app)
+				it('should restrict paths to within root with path parts', async () => {
+					await request(app)
 						.get('/pets/../../http.spec.ts')
-						.expect(404, done);
+						.expect(404);
 				});
 			});
 
 			describe('should allow .. in root', () => {
 				let server: http.Server;
 				before(() => {
-					server = createServer({ root: `${fixtures}/../fixtures-http` });
+					server = createServer({ root: `${ fixtures }/../fixtures-http` });
 				});
-				it('should allow .. in root', done => {
-					request(server)
+				it('should allow .. in root', async () => {
+					await request(server)
 						.get('/pets/../../http.spec.ts')
 						.expect('Location', '/http.spec.ts')
-						.expect(301, done);
+						.expect(301);
 				});
 			});
 
@@ -1374,11 +1300,11 @@ describe('send(file, options)', () => {
 				before(() => {
 					server = createServer({ root: join(fixtures, 'name.d') });
 				});
-				it('should not allow root transversal', done => {
-					request(server)
+				it('should not allow root transversal', async () => {
+					await request(server)
 						.get('/../name.dir/name.txt')
 						.expect('Location', '/name.dir/name.txt')
-						.expect(301, done);
+						.expect(301);
 				});
 			});
 
@@ -1387,11 +1313,11 @@ describe('send(file, options)', () => {
 				before(() => {
 					server = createServer({ root: fixtures });
 				});
-				it('should not allow root path disclosure', done => {
-					request(server)
+				it('should not allow root path disclosure', async () => {
+					await request(server)
 						.get('/pets/../../fixtures-http/name.txt')
 						.expect('Location', '/fixtures-http/name.txt')
-						.expect(301, done);
+						.expect(301);
 				});
 			});
 		});
@@ -1399,57 +1325,57 @@ describe('send(file, options)', () => {
 		describe('when missing', () => {
 			let mainApp: http.Server;
 			before(() => {
-				mainApp = http.createServer(async (req, res) => {
-					try {
-						// tslint:disable-next-line: no-non-null-assertion
+				mainApp = http.createServer((req, res) => {
+					(async () => {
+						// eslint-disable-next-line @typescript-eslint/no-non-null-assertion
 						(await mainStorage.prepareResponse(req.url!, req)).send(res);
-					} catch (err) {
+					})().catch(err => {
 						res.statusCode = 500;
 						res.end(String(err));
-					}
+					});
 				});
 			});
 
-			it('should consider .. malicious', done => {
-				request(mainApp)
+			it('should consider .. malicious', async () => {
+				await request(mainApp)
 					.get('/../http.spec.ts')
 					.expect('Location', '/http.spec.ts')
-					.expect(301, done);
+					.expect(301);
 			});
 
-			it('should still serve files with dots in name', done => {
-				request(mainApp)
+			it('should still serve files with dots in name', async () => {
+				await request(mainApp)
 					.get('/do..ts.txt')
-					.expect(200, '...', done);
+					.expect(200, '...');
 			});
 		});
 	});
 	describe('other methods', () => {
 		let mainApp: http.Server;
 		before(() => {
-			mainApp = http.createServer(async (req, res) => {
-				try {
-					// tslint:disable-next-line: no-non-null-assertion
+			mainApp = http.createServer((req, res) => {
+				(async () => {
+					// eslint-disable-next-line @typescript-eslint/no-non-null-assertion
 					(await mainStorage.prepareResponse(req.url!, req)).send(res);
-				} catch (err) {
+				})().catch(err => {
 					res.statusCode = 500;
 					res.end(String(err));
-				}
+				});
 			});
 		});
 
-		it('should 405 when OPTIONS request', done => {
-			request(mainApp)
+		it('should 405 when OPTIONS request', async () => {
+			await request(mainApp)
 				.options('/name.txt')
 				.expect('Allow', 'GET, HEAD')
-				.expect(405, done);
+				.expect(405);
 		});
 
-		it('should 405 on post', done => {
-			request(mainApp)
+		it('should 405 on post', async () => {
+			await request(mainApp)
 				.post('/name.txt')
 				.expect('Allow', 'GET, HEAD')
-				.expect(405, done);
+				.expect(405);
 		});
 
 		describe('should not 405 on post allowed', () => {
@@ -1457,15 +1383,15 @@ describe('send(file, options)', () => {
 			before(() => {
 				server = createServer({ root: fixtures, allowedMethods: ['POST'] });
 			});
-			it('should not 405 on post allowed', done => {
-				request(server)
+			it('should not 405 on post allowed', async () => {
+				await request(server)
 					.post('/name.txt')
-					.expect(200, done);
+					.expect(200);
 			});
-			it('should 405 on not head allowed', done => {
-				request(server)
+			it('should 405 on not head allowed', async () => {
+				await request(server)
 					.head('/name.txt')
-					.expect(405, done);
+					.expect(405);
 			});
 		});
 
@@ -1474,11 +1400,11 @@ describe('send(file, options)', () => {
 			before(() => {
 				server = createServer({ root: fixtures, allowedMethods: ['GET'] });
 			});
-			it('should 405 on head not allowed', done => {
-				request(server)
+			it('should 405 on head not allowed', async () => {
+				await request(server)
 					.post('/name.txt')
 					.expect('Allow', 'GET')
-					.expect(405, done);
+					.expect(405);
 			});
 		});
 	});
@@ -1488,45 +1414,72 @@ describe('when something happenned too soon', () => {
 	describe('should ignore if headers already sent', () => {
 		let app: http.Server;
 		before(() => {
-			app = http.createServer(async (req, res) => {
-				res.write('the end');
-				res.end();
-				try {
-					// tslint:disable-next-line: no-non-null-assertion
+			app = http.createServer((req, res) => {
+				(async () => {
+					res.write('the end');
+					res.end();
+					// eslint-disable-next-line @typescript-eslint/no-non-null-assertion
 					(await mainStorage.prepareResponse(req.url!, req)).send(res);
-				} catch (err) {
+				})().catch(err => {
 					res.statusCode = 500;
 					res.end(String(err));
-				}
+				});
 			});
 		});
-		it('should ignore if headers already sent', done => {
-			request(app)
+		it('should ignore if headers already sent', async () => {
+			await request(app)
 				.get('/nums.txt')
-				.expect(200, done);
+				.expect(200);
 		});
 	});
 
 	describe('should ignore if connection already destroyed', () => {
 		let app: http.Server;
 		before(() => {
-			app = http.createServer(async (req, res) => {
-				res.destroy();
-				try {
-					// tslint:disable-next-line: no-non-null-assertion
+			app = http.createServer((req, res) => {
+				(async () => {
+					res.destroy();
+					// eslint-disable-next-line @typescript-eslint/no-non-null-assertion
 					(await mainStorage.prepareResponse(req.url!, req)).send(res);
-				} catch (err) {
+				})().catch(err => {
 					res.statusCode = 500;
 					res.end(String(err));
-				}
+				});
 			});
 		});
-		it('should ignore if connection already destroyed', done => {
-			request(app)
-				.get('/nums.txt')
-				.catch(() => {
-					done();
+		it('should ignore if connection already destroyed', async () => {
+			try {
+				await request(app)
+					.get('/nums.txt');
+				assert.fail();
+			} catch {
+				// noop
+			}
+		});
+	});
+
+	describe('should handle connection destroyed', () => {
+		let app: http.Server;
+		before(() => {
+			app = http.createServer((req, res) => {
+				(async () => {
+					// eslint-disable-next-line @typescript-eslint/no-non-null-assertion
+					(await mainStorage.prepareResponse(req.url!, req)).send(res);
+					res.destroy(new Error('olala'));
+				})().catch(err => {
+					res.statusCode = 500;
+					res.end(String(err));
 				});
+			});
+		});
+		it('should handle connection destroyed', async () => {
+			try {
+				await request(app)
+					.get('/nums.txt');
+				assert.fail();
+			} catch {
+				// noop
+			}
 		});
 	});
 
@@ -1534,44 +1487,44 @@ describe('when something happenned too soon', () => {
 		let app: http.Server;
 		before(() => {
 			class ErrorStorage extends FileSystemStorage {
-				createReadableStream(
-					si: StorageInfo<FileData>,
-					_range: StreamRange | undefined,
-					_autoclose: boolean
-				): Readable {
-					// tslint:disable-next-line: no-this-assignment
+				createReadableStream(si: StorageInfo<FileData>): Readable {
+					// eslint-disable-next-line @typescript-eslint/no-this-alias
 					const st = this;
-					return new (class extends Readable {
-						pipe<T extends NodeJS.WritableStream>(_destination: T, _options?: { end?: boolean }): T {
+					return new class extends Readable {
+						// eslint-disable-next-line class-methods-use-this
+						pipe<T extends NodeJS.WritableStream>(): T {
 							throw new Error('oops');
 						}
-						// tslint:disable-next-line: function-name
+
+						// eslint-disable-next-line class-methods-use-this
 						async _destroy(error: Error | null, callback: (error?: Error | null) => void) {
 							await st.close(si);
 							callback(error);
 						}
-					})();
+					}();
 				}
 			}
 
 			const errorStorage = new ErrorStorage(fixtures);
 
-			app = http.createServer(async (req, res) => {
-				try {
-					// tslint:disable-next-line: no-non-null-assertion
+			app = http.createServer((req, res) => {
+				(async () => {
+					// eslint-disable-next-line @typescript-eslint/no-non-null-assertion
 					(await errorStorage.prepareResponse(req.url!, req)).send(res);
-				} catch (err) {
+				})().catch(err => {
 					res.statusCode = 500;
 					res.end(String(err));
-				}
+				});
 			});
 		});
-		it('should handle stream pipe error', done => {
-			request(app)
-				.get('/nums.txt')
-				.catch(() => {
-					done();
-				});
+		it('should handle stream pipe error', async () => {
+			try {
+				await request(app)
+					.get('/nums.txt');
+				assert.fail();
+			} catch {
+				// noop
+			}
 		});
 	});
 
@@ -1579,55 +1532,54 @@ describe('when something happenned too soon', () => {
 		let app: http.Server;
 		before(() => {
 			class ErrorStorage extends FileSystemStorage {
-				createReadableStream(
-					si: StorageInfo<FileData>,
-					_range: StreamRange | undefined,
-					_autoclose: boolean
-				): Readable {
-					// tslint:disable-next-line: no-this-assignment
+				createReadableStream(si: StorageInfo<FileData>): Readable {
+					// eslint-disable-next-line @typescript-eslint/no-this-alias
 					const st = this;
-					return new (class extends Readable {
-						pipe<T extends NodeJS.WritableStream>(_destination: T, _options?: { end?: boolean }): T {
+					return new class extends Readable {
+						// eslint-disable-next-line class-methods-use-this
+						pipe<T extends NodeJS.WritableStream>(): T {
 							throw new Error('oops');
 						}
-						// tslint:disable-next-line: function-name
+
+						// eslint-disable-next-line class-methods-use-this
 						async _destroy(error: Error | null, callback: (error?: Error | null) => void) {
 							await st.close(si);
 							callback(error);
 						}
-					})();
+					}();
 				}
 			}
 
 			const errorStorage = new ErrorStorage(fixtures);
 
-			app = http.createServer(async (req, res) => {
-				try {
-					// tslint:disable-next-line: no-non-null-assertion
+			app = http.createServer((req, res) => {
+				(async () => {
+					// eslint-disable-next-line @typescript-eslint/no-non-null-assertion
 					const resp = await errorStorage.prepareResponse(req.url!, req);
-					// tslint:disable-next-line: no-unbound-method
-					const p = resp.stream.pipe;
-					resp.stream.pipe = function <T extends NodeJS.WritableStream>(
-						// tslint:disable-next-line: no-unnecessary-type-annotation
-						this: ReadableStream, destination: T, options?: { end?: boolean }
+					const { stream: { pipe: p } } = resp;
+					resp.stream.pipe = function pipe<T extends NodeJS.WritableStream>(
+						this: ReadableStream,
+						destination: T,
+						options?: { end?: boolean },
 					): T {
 						res.destroy();
-						// tslint:disable-next-line: no-any
-						return <any> p.call(this, destination, options);
+						return <T> p.call(this, destination, options);
 					};
 					resp.send(res);
-				} catch (err) {
+				})().catch(err => {
 					res.statusCode = 500;
 					res.end(String(err));
-				}
+				});
 			});
 		});
-		it('should handle stream read error on already closed stream', done => {
-			request(app)
-				.get('/nums.txt')
-				.catch(() => {
-					done();
-				});
+		it('should handle stream read error on already closed stream', async () => {
+			try {
+				await request(app)
+					.get('/nums.txt');
+				assert.fail();
+			} catch {
+				// noop
+			}
 		});
 	});
 
@@ -1637,47 +1589,43 @@ describe('when something happenned too soon', () => {
 		const sessions: http2.ServerHttp2Session[] = [];
 		before(done => {
 			class ErrorStorage extends FileSystemStorage {
-				createReadableStream(
-					si: StorageInfo<FileData>,
-					_range: StreamRange | undefined,
-					_autoclose: boolean
-				): Readable {
-					// tslint:disable-next-line: no-this-assignment
+				createReadableStream(si: StorageInfo<FileData>): Readable {
+					// eslint-disable-next-line @typescript-eslint/no-this-alias
 					const st = this;
-					// tslint:disable-next-line: max-classes-per-file
-					return new (class extends Readable {
-						pipe<T extends NodeJS.WritableStream>(_destination: T, _options?: { end?: boolean }): T {
+					return new class extends Readable {
+						// eslint-disable-next-line class-methods-use-this
+						pipe<T extends NodeJS.WritableStream>(): T {
 							throw new Error('oops');
 						}
-						// tslint:disable-next-line: function-name
+
+						// eslint-disable-next-line class-methods-use-this
 						async _destroy(error: Error | null, callback: (error?: Error | null) => void) {
 							await st.close(si);
 							callback(error);
 						}
-					})();
+					}();
 				}
 			}
 
 			const errorStorage = new ErrorStorage(fixtures);
 
-			app = http2.createServer(async (req, res) => {
-				try {
+			app = http2.createServer((req, res) => {
+				(async () => {
 					const resp = await errorStorage.prepareResponse(req.url, req);
-					// tslint:disable-next-line: no-unbound-method
-					const p = resp.stream.pipe;
-					resp.stream.pipe = function <T extends NodeJS.WritableStream>(
-						// tslint:disable-next-line: no-unnecessary-type-annotation
-						this: ReadableStream, destination: T, options?: { end?: boolean }
+					const { stream: { pipe: p } } = resp;
+					resp.stream.pipe = function pipe<T extends NodeJS.WritableStream>(
+						this: ReadableStream,
+						destination: T,
+						options?: { end?: boolean },
 					): T {
 						res.stream.destroy();
-						// tslint:disable-next-line: no-any
-						return <any> p.call(this, destination, options);
+						return <T> p.call(this, destination, options);
 					};
 					resp.send(res);
-				} catch (err) {
+				})().catch(err => {
 					res.statusCode = 500;
 					res.end(String(err));
-				}
+				});
 			});
 
 			app.on('session', session => {
@@ -1686,7 +1634,7 @@ describe('when something happenned too soon', () => {
 
 			app.listen(0, () => {
 				const newAddress = app.address();
-				if (!newAddress || typeof newAddress === 'string') {
+				if (newAddress === null || typeof newAddress === 'string') {
 					throw new Error('should not happen');
 				}
 				address = newAddress;
@@ -1725,16 +1673,17 @@ describe('http2 server', () => {
 			const storage = new FileSystemStorage(fixtures);
 			app = http2.createServer();
 
-			app.on('stream', async (stream, headers) => {
-				(await storage.prepareResponse(
-					// tslint:disable-next-line: no-non-null-assertion
-					headers[':path']!,
-					headers
-				)).send(stream);
-			});
-
-			app.on('error', err => {
-				done(err);
+			app.on('stream', (stream, headers) => {
+				(async () => {
+					(await storage.prepareResponse(
+						// eslint-disable-next-line @typescript-eslint/no-non-null-assertion
+						headers[':path']!,
+						headers,
+					)).send(stream);
+				})().catch(err => {
+					stream.respond({ ':status': 500 });
+					stream.end(String(err));
+				});
 			});
 
 			app.on('session', session => {
@@ -1743,7 +1692,7 @@ describe('http2 server', () => {
 
 			app.listen(0, () => {
 				const newAddress = app.address();
-				if (!newAddress || typeof newAddress === 'string') {
+				if (newAddress === null || typeof newAddress === 'string') {
 					throw new Error('should not happen');
 				}
 				address = newAddress;
@@ -1763,8 +1712,8 @@ describe('http2 server', () => {
 			client.on('error', err => {
 				client.close();
 				if (!hasError) {
-					done(err);
 					hasError = true;
+					done(err);
 				}
 			});
 
@@ -1776,8 +1725,8 @@ describe('http2 server', () => {
 				}
 				client.close();
 				if (!hasError) {
-					done(new Error(`status received ${ headers[':status'] } does not equals 200`));
 					hasError = true;
+					done(new Error(`status received ${ headers[':status'] ?? '<no status>' } does not equals 200`));
 				}
 			});
 
@@ -1788,11 +1737,12 @@ describe('http2 server', () => {
 			});
 			req.on('end', () => {
 				if (data !== 'tobi' && !hasError) {
-					done(new Error(`body received ${ JSON.stringify(data) } does not equals "tobi"`));
 					hasError = true;
+					done(new Error(`body received ${ JSON.stringify(data) } does not equals "tobi"`));
 				}
 				client.close();
 				if (!hasError) {
+					hasError = true;
 					done();
 				}
 			});
@@ -1806,15 +1756,16 @@ describe('http2 server', () => {
 		const sessions: http2.ServerHttp2Session[] = [];
 		before(done => {
 			const storage = new FileSystemStorage(fixtures);
-			app = http2.createServer(async (req, res) => {
-				(await storage.prepareResponse(
-					req.url,
-					req
-				)).send(res);
-			});
-
-			app.on('error', err => {
-				done(err);
+			app = http2.createServer((req, res) => {
+				(async () => {
+					(await storage.prepareResponse(
+						req.url,
+						req,
+					)).send(res);
+				})().catch(err => {
+					res.statusCode = 500;
+					res.end(String(err));
+				});
 			});
 
 			app.on('session', session => {
@@ -1823,7 +1774,7 @@ describe('http2 server', () => {
 
 			app.listen(0, () => {
 				const newAddress = app.address();
-				if (!newAddress || typeof newAddress === 'string') {
+				if (newAddress === null || typeof newAddress === 'string') {
 					throw new Error('should not happen');
 				}
 				address = newAddress;
@@ -1843,8 +1794,8 @@ describe('http2 server', () => {
 			client.on('error', err => {
 				client.close();
 				if (!hasError) {
-					done(err);
 					hasError = true;
+					done(err);
 				}
 			});
 
@@ -1856,8 +1807,8 @@ describe('http2 server', () => {
 				}
 				client.close();
 				if (!hasError) {
-					done(new Error(`status received ${ headers[':status'] } does not equals 200`));
 					hasError = true;
+					done(new Error(`status received ${ headers[':status'] ?? '<no status>' } does not equals 200`));
 				}
 			});
 
@@ -1868,11 +1819,12 @@ describe('http2 server', () => {
 			});
 			req.on('end', () => {
 				if (data !== 'tobi' && !hasError) {
-					done(new Error(`body received ${ JSON.stringify(data) } does not equals "tobi"`));
 					hasError = true;
+					done(new Error(`body received ${ JSON.stringify(data) } does not equals "tobi"`));
 				}
 				client.close();
 				if (!hasError) {
+					hasError = true;
 					done();
 				}
 			});
@@ -1887,16 +1839,17 @@ describe('http2 server', () => {
 		before(done => {
 			const storage = new FileSystemStorage(fixtures);
 
-			app = http2.createServer(async (req, res) => {
-				res.stream.destroy();
-				(await storage.prepareResponse(
-					req.url,
-					req
-				)).send(res);
-			});
-
-			app.on('error', err => {
-				done(err);
+			app = http2.createServer((req, res) => {
+				(async () => {
+					res.stream.destroy();
+					(await storage.prepareResponse(
+						req.url,
+						req,
+					)).send(res);
+				})().catch(err => {
+					res.statusCode = 500;
+					res.end(String(err));
+				});
 			});
 
 			app.on('session', session => {
@@ -1905,7 +1858,7 @@ describe('http2 server', () => {
 
 			app.listen(0, () => {
 				const newAddress = app.address();
-				if (!newAddress || typeof newAddress === 'string') {
+				if (newAddress === null || typeof newAddress === 'string') {
 					throw new Error('should not happen');
 				}
 				address = newAddress;
@@ -1925,8 +1878,8 @@ describe('http2 server', () => {
 			client.on('error', err => {
 				client.close();
 				if (!hasError) {
-					done(err);
 					hasError = true;
+					done(err);
 				}
 			});
 
@@ -1947,23 +1900,38 @@ describe('http2 server', () => {
 		let address: AddressInfo;
 		const sessions: http2.ServerHttp2Session[] = [];
 		before(done => {
-			const storage = new FileSystemStorage(fixtures);
+			class ErrorStorage extends FileSystemStorage {
+				// eslint-disable-next-line class-methods-use-this
+				createReadableStream(
+					_si: StorageInfo<FileData>,
+					_range: StreamRange | undefined,
+					autoclose: boolean,
+				) {
+					return new Readable({
+						autoDestroy: autoclose,
+						read() {
+							process.nextTick(() => {
+								this.destroy(new Error('oops'));
+							});
+						},
+					});
+				}
+			}
+			const storage = new ErrorStorage(fixtures);
 			app = http2.createServer();
 
-			app.on('stream', async (stream, headers) => {
-				const result = await storage.prepareResponse(
-					// tslint:disable-next-line: no-non-null-assertion
-					headers[':path']!,
-					headers
-				);
-				result.send(stream);
-				process.nextTick(() => {
-					result.stream.emit('error', new Error('oops'));
+			app.on('stream', (stream, headers) => {
+				(async () => {
+					const result = await storage.prepareResponse(
+						// eslint-disable-next-line @typescript-eslint/no-non-null-assertion
+						headers[':path']!,
+						headers,
+					);
+					result.send(stream);
+				})().catch(err => {
+					stream.respond({ ':status': 500 });
+					stream.end(String(err));
 				});
-			});
-
-			app.on('error', err => {
-				done(err);
 			});
 
 			app.on('session', session => {
@@ -1972,7 +1940,7 @@ describe('http2 server', () => {
 
 			app.listen(0, () => {
 				const newAddress = app.address();
-				if (!newAddress || typeof newAddress === 'string') {
+				if (newAddress === null || typeof newAddress === 'string') {
 					throw new Error('should not happen');
 				}
 				address = newAddress;
@@ -1992,8 +1960,8 @@ describe('http2 server', () => {
 			client.on('error', err => {
 				client.close();
 				if (!hasError) {
-					done(err);
 					hasError = true;
+					done(err);
 				}
 			});
 
@@ -2005,13 +1973,14 @@ describe('http2 server', () => {
 				}
 				client.close();
 				if (!hasError) {
-					done(new Error(`status received ${ headers[':status'] } does not equals 200`));
 					hasError = true;
+					done(new Error(`status received ${ headers[':status'] ?? '<no status>' } does not equals 200`));
 				}
 			});
 
 			req.on('error', () => {
 				if (!hasError) {
+					hasError = true;
 					done();
 				}
 			});
@@ -2023,8 +1992,8 @@ describe('http2 server', () => {
 			});
 			req.on('end', () => {
 				if (data !== '' && !hasError) {
-					done(new Error(`body received ${ JSON.stringify(data) } does not equals "tobi"`));
 					hasError = true;
+					done(new Error(`body received ${ JSON.stringify(data) } does not equals "tobi"`));
 				}
 				client.close();
 			});
@@ -2040,22 +2009,18 @@ describe('http2 server', () => {
 			const storage = new FileSystemStorage(fixtures);
 			app = http2.createServer();
 
-			app.on('stream', async (stream, headers) => {
-				try {
+			app.on('stream', (stream, headers) => {
+				(async () => {
 					headers[':method'] = '';
 					(await storage.prepareResponse(
-						// tslint:disable-next-line: no-non-null-assertion
+						// eslint-disable-next-line @typescript-eslint/no-non-null-assertion
 						headers[':path']!,
-						headers
+						headers,
 					)).send(stream);
-				} catch {
+				})().catch(err => {
 					stream.respond({ ':status': 500 });
-					stream.end();
-				}
-			});
-
-			app.on('error', err => {
-				done(err);
+					stream.end(String(err));
+				});
 			});
 
 			app.on('session', session => {
@@ -2064,7 +2029,7 @@ describe('http2 server', () => {
 
 			app.listen(0, () => {
 				const newAddress = app.address();
-				if (!newAddress || typeof newAddress === 'string') {
+				if (newAddress === null || typeof newAddress === 'string') {
 					throw new Error('should not happen');
 				}
 				address = newAddress;
@@ -2084,8 +2049,8 @@ describe('http2 server', () => {
 			client.on('error', err => {
 				client.close();
 				if (!hasError) {
-					done(err);
 					hasError = true;
+					done(err);
 				}
 			});
 
@@ -2097,15 +2062,20 @@ describe('http2 server', () => {
 				}
 				client.close();
 				if (!hasError) {
-					done(new Error(`status received ${ headers[':status'] } does not equals 500`));
 					hasError = true;
+					done(new Error(`status received ${ headers[':status'] ?? 'no status' } does not equals 500`));
 				}
 			});
 
 			req.setEncoding('utf8');
+			let data = '';
+			req.on('data', chunk => {
+				data += chunk;
+			});
 			req.on('end', () => {
 				client.close();
-				if (!hasError) {
+				if (!hasError && data !== '') {
+					hasError = true;
 					done();
 				}
 			});
@@ -2113,42 +2083,3 @@ describe('http2 server', () => {
 		});
 	});
 });
-
-function createServer(
-	opts: PrepareResponseOptions & FileSystemStorageOptions & { root: string }
-) {
-	const storage = new FileSystemStorage(opts.root, opts);
-	return http.createServer(async (req, res) => {
-		try {
-			// tslint:disable-next-line: no-non-null-assertion
-			(await storage.prepareResponse(req.url!, req, opts)).send(res);
-		} catch (err) {
-			res.statusCode = 500;
-			res.end(String(err));
-		}
-	});
-}
-
-function shouldNotHaveHeader(header: string) {
-	return (res: request.Response) => {
-		// tslint:disable-next-line: no-unsafe-any
-		const value = res.header[header.toLowerCase()];
-		assert.strictEqual(
-			value, undefined,
-			`should not have header ${ header } (actual value: "${ value }")`
-		);
-	};
-}
-
-function shouldHaveHeader(header: string) {
-	return (res: request.Response) => {
-		// tslint:disable-next-line: no-unsafe-any
-		const value = res.header[header.toLowerCase()];
-		assert.notStrictEqual(
-			value, undefined,
-			`should not have header ${ header } (actual value: "${ value }")`
-		);
-	};
-}
-
-// tslint:enable:no-identical-functions

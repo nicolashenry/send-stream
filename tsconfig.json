@@ -1,6 +1,7 @@
 {
   "compilerOptions": {
-    "target": "esnext",
+    "lib": ["ES2019"],
+    "target": "ES2019",
     "module": "commonjs",
     "strict": true,
     "esModuleInterop": true,
@@ -8,10 +9,6 @@
     "declaration": true,
     "useDefineForClassFields": true,
     "isolatedModules": true,
-    "outDir": "dist/",
-    "plugins": [{
-      "name": "typescript-tslint-plugin",
-      "suppressWhileTypeErrorsPresent": true
-    }]
+    "outDir": "dist/"
   }
 }

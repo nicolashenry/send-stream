@@ -1,11 +1,11 @@
 
+import { Readable } from 'stream';
+import { basename } from 'path';
 import * as assert from 'assert';
 import express from 'express';
 import * as mongodb from 'mongodb';
-import { Readable } from 'stream';
-import { basename } from 'path';
 
-import { Storage, StorageOptions, StorageRequestHeaders, StorageInfo, StorageError, StreamRange } from '../lib';
+import { Storage, StorageOptions, StorageInfo, StorageError, StreamRange } from '../lib';
 
 const uri = 'mongodb://localhost:27017';
 const dbName = 'test';
@@ -27,32 +27,30 @@ class GridFSStorage extends Storage<string, File> {
 		super(opts);
 	}
 
-	async open(path: string, _requestHeaders: StorageRequestHeaders) {
+	async open(path: string) {
 		const filename = basename(decodeURIComponent(new URL(path, 'http://localhost').pathname));
-		const files = await (<mongodb.Cursor<File>> this.bucket.find(
-			{ filename }, { limit: 1 }
-		)).toArray();
+		const files = await (<mongodb.Cursor<File>> this.bucket.find({ filename }, { limit: 1 })).toArray();
 		if (files.length === 0) {
 			throw new StorageError('not_found', `filename ${ filename } not found`, path);
 		}
-		const file = files[0];
+		const [file] = files;
 		return {
 			attachedData: file,
 			fileName: file.filename,
 			mtimeMs: file.uploadDate.getTime(),
-			size: file.length
+			size: file.length,
 		};
 	}
 
 	createContentType(storageInfo: StorageInfo<File>) {
-		if (storageInfo.attachedData.metadata && storageInfo.attachedData.metadata.contentType) {
+		if (storageInfo.attachedData.metadata && storageInfo.attachedData.metadata.contentType !== undefined) {
 			return storageInfo.attachedData.metadata.contentType;
 		}
 		return super.createContentType(storageInfo);
 	}
 
 	createEtag(storageInfo: StorageInfo<File>) {
-		if (storageInfo.attachedData.metadata && storageInfo.attachedData.metadata.etag) {
+		if (storageInfo.attachedData.metadata && storageInfo.attachedData.metadata.etag !== undefined) {
 			return storageInfo.attachedData.metadata.etag;
 		}
 		return super.createEtag(storageInfo);
@@ -60,22 +58,24 @@ class GridFSStorage extends Storage<string, File> {
 
 	createReadableStream(storageInfo: StorageInfo<File>, range: StreamRange | undefined, autoClose: boolean): Readable {
 		const result = this.bucket.openDownloadStream(
+			// eslint-disable-next-line no-underscore-dangle
 			storageInfo.attachedData._id,
-			range ? { start: range.start, end: range.end + 1 } : undefined
+			range ? { start: range.start, end: range.end + 1 } : undefined,
 		);
 		if (autoClose) {
-			result.once('end', () => {
+			const onClose = () => {
+				result.off('end', onClose);
+				result.off('error', onClose);
 				result.destroy();
-			});
-			result.once('error', () => {
-				result.destroy();
-			});
+			};
+			result.on('end', onClose);
+			result.on('error', onClose);
 		}
 		return result;
 	}
 
-	// tslint:disable-next-line: no-async-without-await
-	async close(_storageInfo: StorageInfo<File>) {
+	// eslint-disable-next-line class-methods-use-this
+	async close() {
 		// noop
 	}
 }
@@ -97,6 +97,7 @@ client.connect(error => {
 		try {
 			(await storage.prepareResponse(req.url, req)).send(res);
 		} catch (err) {
+			// eslint-disable-next-line node/callback-return
 			next(err);
 		}
 	});

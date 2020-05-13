@@ -1,0 +1,761 @@
+{
+    "root": true,
+    "env": {
+        "es2020": true,
+        "node": true
+    },
+    "parser": "@typescript-eslint/parser",
+    "parserOptions": {
+        "project": "tsconfig.json",
+        "sourceType": "module"
+    },
+    "plugins": [
+        "@typescript-eslint",
+        "import",
+        "jsdoc",
+        "unicorn",
+        "node"
+    ],
+    "settings": {
+        "import/parsers": {
+            "@typescript-eslint/parser": [
+                ".ts"
+            ]
+        },
+        "import/resolver": {
+            // use <root>/tsconfig.json
+            "typescript": {
+                "alwaysTryTypes": true // always try to resolve types under `<root>@types` directory even it doesn"t contain any source code, like `@types/unist`
+            }
+        }
+    },
+    "rules": {
+        "@typescript-eslint/adjacent-overload-signatures": "warn",
+        "@typescript-eslint/array-type": "warn",
+        "@typescript-eslint/await-thenable": "warn",
+        "@typescript-eslint/ban-ts-comment": "warn",
+        "@typescript-eslint/ban-types": [
+            "warn",
+            {
+                "types": {
+                    "Object": "Avoid using the `Object` type. Did you mean `object`?",
+                    "Function": "Avoid using the `Function` type. Prefer a specific function type, like `() => void`.",
+                    "Boolean": "Avoid using the `Boolean` type. Did you mean `boolean`?",
+                    "Number": "Avoid using the `Number` type. Did you mean `number`?",
+                    "BigInt": "Avoid using the `BigInt` type. Did you mean `bigint`?",
+                    "String": "Avoid using the `String` type. Did you mean `string`?",
+                    "Symbol": "Avoid using the `Symbol` type. Did you mean `symbol`?"
+                }
+            }
+        ],
+        "@typescript-eslint/brace-style": "warn",
+        "@typescript-eslint/class-literal-property-style": "warn",
+        "@typescript-eslint/comma-spacing": "warn",
+        "@typescript-eslint/consistent-type-assertions": [
+            "warn",
+            {
+                "assertionStyle": "angle-bracket"
+            }
+        ],
+        "@typescript-eslint/consistent-type-definitions": "warn",
+        "@typescript-eslint/default-param-last": "warn",
+        "@typescript-eslint/dot-notation": "off", // too restrictive
+        "@typescript-eslint/explicit-function-return-type": "off", // not needed: seems useless
+        "@typescript-eslint/explicit-member-accessibility": [
+            "warn",
+            {
+                "accessibility": "no-public"
+            }
+        ],
+        "@typescript-eslint/explicit-module-boundary-types": "off", // not needed: seems useless
+        "@typescript-eslint/func-call-spacing": "warn",
+        "@typescript-eslint/indent": [
+            "warn",
+            "tab",
+            {}
+        ],
+        "@typescript-eslint/init-declarations": "off", // too restrictive
+        "@typescript-eslint/keyword-spacing": "warn",
+        "@typescript-eslint/lines-between-class-members": "warn",
+        "@typescript-eslint/member-delimiter-style": "warn",
+        "@typescript-eslint/member-ordering": "warn",
+        "@typescript-eslint/method-signature-style": "warn",
+        "@typescript-eslint/naming-convention": "warn",
+        "@typescript-eslint/no-array-constructor": "warn",
+        "@typescript-eslint/no-base-to-string": "warn",
+        "@typescript-eslint/no-dupe-class-members": "warn",
+        "@typescript-eslint/no-dynamic-delete": "warn",
+        "@typescript-eslint/no-empty-function": "warn",
+        "@typescript-eslint/no-empty-interface": "warn",
+        "@typescript-eslint/no-explicit-any": "warn",
+        "@typescript-eslint/no-extra-non-null-assertion": "warn",
+        "@typescript-eslint/no-extra-parens": [
+            "warn",
+            "all",
+            {
+                "nestedBinaryExpressions": false
+            }
+        ],
+        "@typescript-eslint/no-extra-semi": "warn",
+        "@typescript-eslint/no-extraneous-class": "warn",
+        "@typescript-eslint/no-floating-promises": "warn",
+        "@typescript-eslint/no-for-in-array": "warn",
+        "@typescript-eslint/no-implied-eval": "warn",
+        "@typescript-eslint/no-inferrable-types": "warn",
+        "@typescript-eslint/no-invalid-this": "warn",
+        "@typescript-eslint/no-invalid-void-type": "warn",
+        "@typescript-eslint/no-magic-numbers": "off", // too restrictive
+        "@typescript-eslint/no-misused-new": "warn",
+        "@typescript-eslint/no-misused-promises": "warn",
+        "@typescript-eslint/no-namespace": "warn",
+        "@typescript-eslint/no-non-null-asserted-optional-chain": "warn",
+        "@typescript-eslint/no-non-null-assertion": "warn",
+        "@typescript-eslint/no-parameter-properties": "off", // not needed: seems useless
+        "@typescript-eslint/no-require-imports": "warn",
+        "@typescript-eslint/no-this-alias": "warn",
+        "@typescript-eslint/no-throw-literal": "warn",
+        "@typescript-eslint/no-type-alias": [
+            "warn",
+            {
+                "allowAliases": "in-unions-and-intersections"
+            }
+        ],
+        "@typescript-eslint/no-unnecessary-boolean-literal-compare": "warn",
+        "@typescript-eslint/no-unnecessary-condition": "warn",
+        "@typescript-eslint/no-unnecessary-qualifier": "warn",
+        "@typescript-eslint/no-unnecessary-type-arguments": "warn",
+        "@typescript-eslint/no-unnecessary-type-assertion": "warn",
+        "@typescript-eslint/no-unsafe-assignment": "warn",
+        "@typescript-eslint/no-unsafe-call": "warn",
+        "@typescript-eslint/no-unsafe-member-access": "warn",
+        "@typescript-eslint/no-unsafe-return": "warn",
+        "@typescript-eslint/no-unused-expressions": "warn",
+        "@typescript-eslint/no-unused-vars": [
+            "warn",
+            {
+                "argsIgnorePattern": "^_"
+            }
+        ],
+        "@typescript-eslint/no-unused-vars-experimental": "off", // experimental / slow
+        "@typescript-eslint/no-use-before-define": "warn",
+        "@typescript-eslint/no-useless-constructor": "warn",
+        "@typescript-eslint/no-var-requires": "off", // not needed: seems useless
+        "@typescript-eslint/prefer-as-const": "warn",
+        "@typescript-eslint/prefer-for-of": "warn",
+        "@typescript-eslint/prefer-function-type": "warn",
+        "@typescript-eslint/prefer-includes": "warn",
+        "@typescript-eslint/prefer-namespace-keyword": "warn",
+        "@typescript-eslint/prefer-nullish-coalescing": "warn",
+        "@typescript-eslint/prefer-optional-chain": "off", // bug: https://github.com/typescript-eslint/typescript-eslint/issues/1893
+        "@typescript-eslint/prefer-readonly": "warn",
+        "@typescript-eslint/prefer-readonly-parameter-types": "off", // too restrictive
+        "@typescript-eslint/prefer-reduce-type-parameter": "warn",
+        "@typescript-eslint/prefer-regexp-exec": "warn",
+        "@typescript-eslint/prefer-string-starts-ends-with": "warn",
+        "@typescript-eslint/prefer-ts-expect-error": "warn",
+        "@typescript-eslint/promise-function-async": "warn",
+        "@typescript-eslint/quotes": [
+            "warn",
+            "single",
+            {
+                "avoidEscape": true
+            }
+        ],
+        "@typescript-eslint/require-array-sort-compare": "warn",
+        "@typescript-eslint/require-await": "warn",
+        "@typescript-eslint/restrict-plus-operands": "warn",
+        "@typescript-eslint/restrict-template-expressions": [
+            "warn",
+            {
+                "allowNumber": true,
+                "allowBoolean": true
+            }
+        ],
+        "@typescript-eslint/return-await": "warn",
+        "@typescript-eslint/semi": "warn",
+        "@typescript-eslint/space-before-function-paren": [
+            "warn",
+            {
+                "anonymous": "always",
+                "named": "never",
+                "asyncArrow": "always"
+            }
+        ],
+        "@typescript-eslint/strict-boolean-expressions": "off", // too restrictive
+        "@typescript-eslint/switch-exhaustiveness-check": "warn",
+        "@typescript-eslint/triple-slash-reference": "warn",
+        "@typescript-eslint/type-annotation-spacing": "warn",
+        "@typescript-eslint/typedef": "off", // not needed: opposite of projet rules
+        "@typescript-eslint/unbound-method": "warn",
+        "@typescript-eslint/unified-signatures": "warn",
+        "accessor-pairs": "warn",
+        "array-bracket-newline": "warn",
+        "array-bracket-spacing": "warn",
+        "array-callback-return": "off", // not needed: covered by typescript
+        "array-element-newline": [
+            "warn",
+            "consistent"
+        ],
+        "arrow-body-style": "warn",
+        "arrow-parens": [
+            "warn",
+            "as-needed"
+        ],
+        "arrow-spacing": "warn",
+        "block-scoped-var": "off", // not needed: seems useless
+        "block-spacing": "warn",
+        "brace-style": "off", // disabled by typescript-eslint
+        "camelcase": "warn",
+        "capitalized-comments": "off", // not needed: seems useless
+        "class-methods-use-this": "warn",
+        "comma-dangle": [
+            "warn",
+            "always-multiline"
+        ],
+        "comma-spacing": "off", // disabled by typescript-eslint
+        "comma-style": "warn",
+        "complexity": [
+            "warn",
+            50
+        ],
+        "computed-property-spacing": "warn",
+        "consistent-return": "warn",
+        "consistent-this": "off", // not needed: seems useless
+        "constructor-super": "off", // not needed: covered by typescript
+        "curly": "warn",
+        "default-case": "warn",
+        "default-case-last": "warn",
+        "default-param-last": "off", // disabled by typescript-eslint
+        "dot-location": [
+            "warn",
+            "property"
+        ],
+        "dot-notation": "off", // disabled by typescript-eslint
+        "eol-last": "warn",
+        "eqeqeq": "warn",
+        "for-direction": "warn",
+        "func-call-spacing": "off", // disabled by typescript-eslint
+        "func-name-matching": "warn",
+        "func-names": "warn",
+        "func-style": [
+            "warn",
+            "declaration",
+            {
+                "allowArrowFunctions": true
+            }
+        ],
+        "function-call-argument-newline": [
+            "warn",
+            "consistent"
+        ],
+        "function-paren-newline": [
+            "warn",
+            "multiline-arguments"
+        ],
+        "generator-star-spacing": "warn",
+        "getter-return": "off", // not needed: covered by typescript
+        "grouped-accessor-pairs": "warn",
+        "guard-for-in": "warn",
+        "id-blacklist": [
+            "warn",
+            "any",
+            "Number",
+            "number",
+            "String",
+            "string",
+            "Boolean",
+            "boolean",
+            "Undefined",
+            "undefined",
+            "BigInt",
+            "bigint"
+        ],
+        "id-length": "off", // not needed: seems useless
+        "id-match": "warn",
+        "implicit-arrow-linebreak": "warn",
+        "indent": "off", // disabled by typescript-eslint
+        "init-declarations": "off", // disabled by typescript-eslint
+        "jsx-quotes": "off", // not needed: seems useless
+        "key-spacing": "warn",
+        "keyword-spacing": "off", // disabled by typescript-eslint
+        "line-comment-position": "warn",
+        "linebreak-style": "warn",
+        "lines-around-comment": "off", // too restrictive
+        "lines-between-class-members": "off", // disabled by typescript-eslint
+        "max-classes-per-file": [
+            "warn",
+            5
+        ],
+        "max-depth": [
+            "warn",
+            10
+        ],
+        "max-len": [
+            "warn",
+            {
+                "code": 120
+            }
+        ],
+        "max-lines": [
+            "warn",
+            1200
+        ],
+        "max-lines-per-function": [
+            "warn",
+            400
+        ],
+        "max-nested-callbacks": "warn",
+        "max-params": [
+            "warn",
+            6
+        ],
+        "max-statements": [
+            "warn",
+            120
+        ],
+        "max-statements-per-line": "warn",
+        "multiline-comment-style": "warn",
+        "multiline-ternary": "off", // not needed: seems useless
+        "new-cap": "warn",
+        "new-parens": "warn",
+        "newline-per-chained-call": "warn",
+        "no-alert": "warn",
+        "no-array-constructor": "off", // disabled by typescript-eslint
+        "no-async-promise-executor": "warn",
+        "no-await-in-loop": "warn",
+        "no-bitwise": "warn",
+        "no-caller": "warn",
+        "no-case-declarations": "warn",
+        "no-class-assign": "off", // not needed: covered by typescript
+        "no-compare-neg-zero": "warn",
+        "no-cond-assign": "warn",
+        "no-confusing-arrow": "off", // not needed: seems useless
+        "no-console": [
+            "warn",
+            {
+                "allow": [
+                    "info",
+                    "warn",
+                    "error"
+                ]
+            }
+        ],
+        "no-const-assign": "off", // not needed: covered by typescript
+        "no-constant-condition": "warn",
+        "no-constructor-return": "warn",
+        "no-continue": "off", // not needed: seems useless
+        "no-control-regex": "warn",
+        "no-debugger": "warn",
+        "no-delete-var": "warn",
+        "no-div-regex": "off", // not needed: seems useless
+        "no-dupe-args": "off", // not needed: covered by typescript
+        "no-dupe-class-members": "off", // disabled by typescript-eslint
+        "no-dupe-else-if": "warn",
+        "no-dupe-keys": "off", // not needed: covered by typescript
+        "no-duplicate-case": "warn",
+        "no-duplicate-imports": "warn",
+        "no-else-return": "warn",
+        "no-empty": "warn",
+        "no-empty-character-class": "warn",
+        "no-empty-function": "off", // disabled by typescript-eslint
+        "no-empty-pattern": "warn",
+        "no-eq-null": "off", // not needed: covered by eqeqeq rule
+        "no-eval": "warn",
+        "no-ex-assign": "warn",
+        "no-extend-native": "warn",
+        "no-extra-bind": "off", // not needed: covered by typescript
+        "no-extra-boolean-cast": "warn",
+        "no-extra-label": "warn",
+        "no-extra-parens": "off", // disabled by typescript-eslint
+        "no-extra-semi": "off", // disabled by typescript-eslint
+        "no-fallthrough": "warn",
+        "no-floating-decimal": "warn",
+        "no-func-assign": "off", // not needed: covered by typescript
+        "no-global-assign": "off", // not needed: covered by typescript
+        "no-implicit-coercion": "warn",
+        "no-implicit-globals": "off", // not needed: covered by typescript
+        "no-implied-eval": "warn",
+        "no-import-assign": "off", // not needed: covered by typescript
+        "no-inline-comments": "warn",
+        "no-inner-declarations": "warn",
+        "no-invalid-regexp": "warn",
+        "no-invalid-this": "off", // disabled by typescript-eslint
+        "no-irregular-whitespace": "warn",
+        "no-iterator": "warn",
+        "no-label-var": "warn",
+        "no-labels": "off", // not needed: seems useless
+        "no-lone-blocks": "warn",
+        "no-lonely-if": "warn",
+        "no-loop-func": "warn",
+        "no-magic-numbers": "off", // disabled by typescript-eslint
+        "no-misleading-character-class": "warn",
+        "no-mixed-operators": "warn",
+        "no-mixed-spaces-and-tabs": "warn",
+        "no-multi-assign": "warn",
+        "no-multi-spaces": "warn",
+        "no-multi-str": "warn",
+        "no-multiple-empty-lines": "warn",
+        "no-negated-condition": "warn",
+        "no-nested-ternary": "off", // not needed: seems useless
+        "no-new": "warn",
+        "no-new-func": "warn",
+        "no-new-object": "warn",
+        "no-new-symbol": "warn",
+        "no-new-wrappers": "warn",
+        "no-obj-calls": "off", // not needed: covered by typescript
+        "no-octal": "off", // not needed: covered by typescript
+        "no-octal-escape": "warn",
+        "no-param-reassign": "warn",
+        "no-plusplus": [
+            "warn",
+            {
+                "allowForLoopAfterthoughts": true
+            }
+        ],
+        "no-proto": "off", // not needed: covered by typescript
+        "no-prototype-builtins": "warn",
+        "no-redeclare": "warn",
+        "no-regex-spaces": "warn",
+        "no-restricted-exports": "off", // not needed: not any export name to exclude
+        "no-restricted-globals": "off", // not needed: not any globals name to exclude
+        "no-restricted-imports": "off", // not needed: not any import name to exclude
+        "no-restricted-properties": "off", // not needed: not any property name to exclude
+        "no-restricted-syntax": [
+            "warn",
+            {
+                "selector": "ForInStatement",
+                "message": "Use for...of instead (use Object.keys if you need object keys)."
+            }
+        ],
+        "no-return-assign": "warn",
+        "no-return-await": "off", // disabled by typescript-eslint
+        "no-script-url": "off", // not needed: not executed in a browser
+        "no-self-assign": "warn",
+        "no-self-compare": "warn",
+        "no-sequences": "warn",
+        "no-setter-return": "off", // not needed: covered by typescript
+        "no-shadow": [
+            "warn",
+            {
+                "hoist": "all"
+            }
+        ],
+        "no-shadow-restricted-names": "warn",
+        "no-sparse-arrays": "warn",
+        "no-tabs": "off", // not needed: opposite of project rules
+        "no-template-curly-in-string": "warn",
+        "no-ternary": "off", // not needed: seems useless
+        "no-this-before-super": "off", // not needed: covered by typescript
+        "no-throw-literal": "off", // not needed: covered by @typescript-eslint/no-throw-literal rule
+        "no-trailing-spaces": "warn",
+        "no-undef": "warn",
+        "no-undef-init": "warn",
+        "no-undefined": "off", // not needed: seems useless
+        "no-underscore-dangle": "warn",
+        "no-unexpected-multiline": "warn",
+        "no-unmodified-loop-condition": "warn",
+        "no-unneeded-ternary": "warn",
+        "no-unreachable": "off", // not needed: covered by typescript
+        "no-unsafe-finally": "warn",
+        "no-unsafe-negation": "off", // not needed: covered by typescript
+        "no-unused-expressions": "off", // disabled by typescript-eslint
+        "no-unused-labels": "warn",
+        "no-unused-vars": "off", // disabled by typescript-eslint
+        "no-use-before-define": "off", // disabled by typescript-eslint
+        "no-useless-backreference": "warn",
+        "no-useless-call": "warn",
+        "no-useless-catch": "warn",
+        "no-useless-computed-key": "warn",
+        "no-useless-concat": "warn",
+        "no-useless-constructor": "off", // disabled by typescript-eslint
+        "no-useless-escape": "warn",
+        "no-useless-rename": "warn",
+        "no-useless-return": "warn",
+        "no-var": "warn",
+        "no-void": "warn",
+        "no-warning-comments": "warn",
+        "no-whitespace-before-property": "warn",
+        "no-with": "off", // not needed: covered by typescript
+        "nonblock-statement-body-position": "off", // not needed: opposite of project rules
+        "object-curly-newline": "warn",
+        "object-curly-spacing": [
+            "warn",
+            "always"
+        ],
+        "object-property-newline": [
+            "warn",
+            {
+                "allowAllPropertiesOnSameLine": true
+            }
+        ],
+        "object-shorthand": "warn",
+        "one-var": [
+            "warn",
+            "never"
+        ],
+        "one-var-declaration-per-line": "off", // not needed: seems useless
+        "operator-assignment": "warn",
+        "operator-linebreak": [
+            "warn",
+            "before"
+        ],
+        "padded-blocks": [
+            "warn",
+            "never"
+        ],
+        "padding-line-between-statements": "off", // not needed: seems useless
+        "prefer-arrow-callback": "warn",
+        "prefer-const": "warn",
+        "prefer-destructuring": [
+            "warn",
+            {
+                "VariableDeclarator": {
+                    "array": true,
+                    "object": true
+                },
+                "AssignmentExpression": {
+                    "array": false,
+                    "object": false
+                }
+            },
+            {
+                "enforceForRenamedProperties": true
+            }
+        ],
+        "prefer-exponentiation-operator": "warn",
+        "prefer-named-capture-group": "warn",
+        "prefer-numeric-literals": "warn",
+        "prefer-object-spread": "warn",
+        "prefer-promise-reject-errors": "warn",
+        "prefer-regex-literals": "warn",
+        "prefer-rest-params": "warn",
+        "prefer-spread": "warn",
+        "prefer-template": "warn",
+        "quote-props": [
+            "warn",
+            "as-needed"
+        ],
+        "quotes": "off", // disabled by typescript-eslint
+        "radix": "warn",
+        "require-atomic-updates": "off", // bug: https://github.com/eslint/eslint/issues/11899
+        "require-await": "off", // disabled by typescript-eslint
+        "require-unicode-regexp": "warn",
+        "require-yield": "warn",
+        "rest-spread-spacing": "warn",
+        "semi": "off", // disabled by typescript-eslint
+        "semi-spacing": "warn",
+        "semi-style": "warn",
+        "sort-imports": "off", // not needed: seems useless
+        "sort-keys": "off", // not needed: seems useless
+        "sort-vars": "off", // not needed: seems useless
+        "space-before-blocks": "warn",
+        "space-before-function-paren": "off", // disabled by typescript-eslint
+        "space-in-parens": "warn",
+        "space-infix-ops": "warn",
+        "space-unary-ops": "warn",
+        "spaced-comment": "warn",
+        "strict": "warn",
+        "switch-colon-spacing": "warn",
+        "symbol-description": "warn",
+        "template-curly-spacing": [
+            "warn",
+            "always"
+        ],
+        "template-tag-spacing": "warn",
+        "unicode-bom": "warn",
+        "use-isnan": "warn",
+        "valid-typeof": "warn",
+        "vars-on-top": "off", // not needed: seems useless
+        "wrap-iife": "warn",
+        "wrap-regex": "off", // not needed: seems useless
+        "yield-star-spacing": "warn",
+        "yoda": "warn",
+        "import/default": "off", // not needed: covered by typescript
+        "import/dynamic-import-chunkname": "off", // not needed: seems useless
+        "import/export": "off", // not needed: covered by typescript
+        "import/exports-last": "warn",
+        "import/extensions": "off", // not needed: covered by typescript
+        "import/first": "warn",
+        "import/group-exports": "off", // not needed: seems useless
+        "import/max-dependencies": ["warn", {"max": 20}],
+        "import/named": "off", // not needed: covered by typescript
+        "import/namespace": "off", // not needed: covered by typescript
+        "import/newline-after-import": "warn",
+        "import/no-absolute-path": "off", // not needed: covered by typescript
+        "import/no-amd": "off", // not needed: covered by typescript
+        "import/no-anonymous-default-export": "off", // not needed: seems useless
+        "import/no-commonjs": "off", // not needed: covered by typescript
+        "import/no-cycle": "warn", // "import/no-cycle": ["warn", { "ignoreExternal": true }], // bug: https://github.com/benmosher/eslint-plugin-import/pull/1681
+        "import/no-default-export": "warn",
+        "import/no-deprecated": "off", // not needed: slow and cases are rare
+        "import/no-duplicates": "warn",
+        "import/no-dynamic-require": "off", // not needed: covered by typescript
+        "import/no-extraneous-dependencies": [
+            "warn",
+            {
+                "devDependencies": [
+                    "examples/**/*",
+                    "test/**/*"
+                ]
+            }
+        ],
+        "import/no-internal-modules": "warn",
+        "import/no-mutable-exports": "warn",
+        "import/no-named-as-default-member": "warn",
+        "import/no-named-as-default": "warn",
+        "import/no-named-default": "warn",
+        "import/no-named-export": "off", // not needed: opposite of project rules
+        "import/no-namespace": "off", // too restrictive
+        "import/no-nodejs-modules": "off", // not needed: opposite of project rules
+        "import/no-relative-parent-imports": "off", // not needed: opposite of project rules
+        "import/no-restricted-paths": "off", // not needed: not any path to exclude
+        "import/no-self-import": "warn",
+        "import/no-unassigned-import": "warn",
+        "import/no-unresolved": "off", // not needed: covered by typescript
+        "import/no-unused-modules": ["warn", { "missingExports": true, "unusedExports": true, "ignoreExports": ["examples", "test", "lib/index.ts"] }],
+        "import/no-useless-path-segments": "warn",
+        "import/no-webpack-loader-syntax": "warn",
+        "import/order": "warn",
+        "import/prefer-default-export": "off", // not needed: seems useless
+        "import/unambiguous": "warn",
+        "jsdoc/check-access": "warn",
+        "jsdoc/check-alignment": "warn",
+        "jsdoc/check-examples": "warn",
+        "jsdoc/check-indentation": "warn",
+        "jsdoc/check-param-names": "warn",
+        "jsdoc/check-property-names": "warn",
+        "jsdoc/check-syntax": "warn",
+        "jsdoc/check-tag-names": "warn",
+        "jsdoc/check-types": "warn",
+        "jsdoc/check-values": "warn",
+        "jsdoc/empty-tags": "warn",
+        "jsdoc/implements-on-classes": "warn",
+        "jsdoc/match-description": "off", // not needed: seems useless
+        "jsdoc/newline-after-description": "warn",
+        "jsdoc/no-bad-blocks": "warn",
+        "jsdoc/no-defaults": "warn",
+        "jsdoc/no-types": "warn",
+        "jsdoc/no-undefined-types": "warn",
+        "jsdoc/require-description-complete-sentence": "off", // not needed: seems useless
+        "jsdoc/require-description": "warn",
+        "jsdoc/require-example": "off", // not needed: seems useless
+        "jsdoc/require-file-overview": "off", // not needed: seems useless
+        "jsdoc/require-hyphen-before-param-description": "warn",
+        "jsdoc/require-jsdoc": [
+            "warn",
+            {
+                "publicOnly": true
+            }
+        ],
+        "jsdoc/require-param-description": "warn",
+        "jsdoc/require-param-name": "warn",
+        "jsdoc/require-param-type": "off", // not needed: covered by typescript
+        "jsdoc/require-param": "warn",
+        "jsdoc/require-property-description": "warn",
+        "jsdoc/require-property-name": "warn",
+        "jsdoc/require-property-type": "off", // not needed: covered by typescript
+        "jsdoc/require-property": "warn",
+        "jsdoc/require-returns-check": "warn",
+        "jsdoc/require-returns-description": "warn",
+        "jsdoc/require-returns-type": "off", // not needed: covered by typescript
+        "jsdoc/require-returns": "warn",
+        "jsdoc/valid-types": "warn",
+        "unicorn/better-regex": "warn",
+        "unicorn/catch-error-name": [
+            "error",
+            {
+                "ignore": [
+                    "^.*[eE]rr.*$"
+                ]
+            }
+        ],
+        "unicorn/consistent-function-scoping": "warn",
+        "unicorn/custom-error-definition": "warn",
+        "unicorn/error-message": "warn",
+        "unicorn/escape-case": "warn",
+        "unicorn/expiring-todo-comments": "off", // not needed: seems useless
+        "unicorn/explicit-length-check": "warn",
+        "unicorn/filename-case": "warn",
+        "unicorn/import-index": "warn",
+        "unicorn/new-for-builtins": "warn",
+        "unicorn/no-abusive-eslint-disable": "warn",
+        "unicorn/no-array-instanceof": "warn",
+        "unicorn/no-console-spaces": "warn",
+        "unicorn/no-fn-reference-in-iterator": "off", // not needed: covered by typescript
+        "unicorn/no-for-loop": "warn",
+        "unicorn/no-hex-escape": "warn",
+        "unicorn/no-keyword-prefix": "off", // not needed: seems useless
+        "unicorn/no-nested-ternary": "off", // not needed: seems useless
+        "unicorn/no-new-buffer": "warn",
+        "unicorn/no-null": "off", // not needed: seems useless
+        "unicorn/no-process-exit": "warn",
+        "unicorn/no-unreadable-array-destructuring": "off", // too restrictive
+        "unicorn/no-unsafe-regex": "off", // too restrictive
+        "unicorn/no-unused-properties": "warn",
+        "unicorn/no-zero-fractions": "warn",
+        "unicorn/number-literal-case": "warn",
+        "unicorn/prefer-add-event-listener": "warn",
+        "unicorn/prefer-dataset": "off", // not needed: not executed in a browser
+        "unicorn/prefer-event-key": "off", // not needed: not executed in a browser
+        "unicorn/prefer-flat-map": "warn",
+        "unicorn/prefer-includes": "warn",
+        "unicorn/prefer-modern-dom-apis": "off", // not needed: not executed in a browser
+        "unicorn/prefer-negative-index": "warn",
+        "unicorn/prefer-node-append": "off", // not needed: not executed in a browser
+        "unicorn/prefer-node-remove": "off", // not needed: not executed in a browser
+        "unicorn/prefer-number-properties": "warn",
+        "unicorn/prefer-query-selector": "off", // not needed: not executed in a browser
+        "unicorn/prefer-reflect-apply": "warn",
+        "unicorn/prefer-replace-all": "warn",
+        "unicorn/prefer-set-has": "warn",
+        "unicorn/prefer-spread": "warn",
+        "unicorn/prefer-starts-ends-with": "warn",
+        "unicorn/prefer-string-slice": "warn",
+        "unicorn/prefer-text-content": "off", // not needed: not executed in a browser
+        "unicorn/prefer-trim-start-end": "warn",
+        "unicorn/prefer-type-error": "warn",
+        "unicorn/prevent-abbreviations": "off", // too restrictive
+        "unicorn/string-content": "off", // not needed: seems useless
+        "unicorn/throw-new-error": "warn",
+        "node/callback-return": "warn",
+        "node/exports-style": "warn", // not needed: covered by typescript
+        "node/file-extension-in-import": "off", // not needed: covered by typescript
+        "node/global-require": "off", // not needed: covered by typescript
+        "node/handle-callback-err": "warn",
+        "node/no-callback-literal": "warn",
+        "node/no-deprecated-api": "warn",
+        "node/no-exports-assign": "off", // not needed: covered by typescript
+        "node/no-extraneous-import": "warn",
+        "node/no-extraneous-require": "off", // not needed: seems useless
+        "node/no-missing-import": "off", // not needed: covered by typescript
+        "node/no-missing-require": "off", // not needed: covered by typescript
+        "node/no-mixed-requires": "off", // not needed: seems useless
+        "node/no-new-require": "off", // not needed: seems useless
+        "node/no-path-concat": "warn",
+        "node/no-process-env": "warn",
+        "node/no-process-exit": "warn",
+        "node/no-restricted-import": "off", // not needed: not any import to exclude
+        "node/no-restricted-require": "off", // not needed: seems useless
+        "node/no-sync": "warn",
+        "node/no-unpublished-bin": "warn",
+        "node/no-unpublished-import": "warn",
+        "node/no-unpublished-require": "off", // not needed: seems useless
+        "node/no-unsupported-features/es-builtins": "warn",
+        "node/no-unsupported-features/es-syntax": [
+            "warn",
+            { "ignores": ["modules"] }
+        ],
+        "node/no-unsupported-features/node-builtins": "warn",
+        "node/prefer-global/buffer": "warn",
+        "node/prefer-global/console": "warn",
+        "node/prefer-global/process": "warn",
+        "node/prefer-global/text-decoder": "warn",
+        "node/prefer-global/text-encoder": "warn",
+        "node/prefer-global/url-search-params": "warn",
+        "node/prefer-global/url": "warn",
+        "node/prefer-promises/dns": "warn",
+        "node/prefer-promises/fs": "warn",
+        "node/process-exit-as-throw": "warn",
+        "node/shebang": "warn"
+    }
+}

@@ -8,18 +8,20 @@ import { FileSystemStorage, FileSystemStorageError } from '../lib';
 const storage = new FileSystemStorage(join(__dirname, 'assets'));
 
 const app = http2.createSecureServer({
+	// eslint-disable-next-line node/no-sync
 	key: fs.readFileSync(join(__dirname, 'cert', 'localhost.key')),
+	// eslint-disable-next-line node/no-sync
 	cert: fs.readFileSync(join(__dirname, 'cert', 'localhost.crt')),
-	allowHTTP1: true
+	allowHTTP1: true,
 });
 
 app.on('error', err => {
 	console.error(err);
 });
 
-app.on('stream', async (stream, headers) => {
-	try {
-		if (!headers[':path']) {
+app.on('stream', (stream, headers) => {
+	(async () => {
+		if (headers[':path'] === undefined) {
 			throw new Error('path not set');
 		}
 		let result = await storage.prepareResponse(headers[':path'], headers);
@@ -28,22 +30,22 @@ app.on('stream', async (stream, headers) => {
 			result = await storage.prepareResponse([...result.error.pathParts.slice(0, -1), 'index.html'], headers);
 		}
 		result.send(stream);
-	} catch (err) {
+	})().catch(err => {
 		console.error(err);
 		if (!stream.headersSent) {
 			const message = 'Internal Server Error';
 			stream.respond({
 				':status': 500,
 				'Content-Type': 'text/plain; charset=UTF-8',
-				'Content-Length': String(Buffer.byteLength(message))
+				'Content-Length': String(Buffer.byteLength(message)),
 			});
 			stream.end(message);
 			return;
 		}
 		stream.destroy(err instanceof Error ? err : new Error(String(err)));
-	}
+	});
 });
 
-app.listen(3000, () => {
-	console.info('listening on https://localhost:3000');
+app.listen(3001, () => {
+	console.info('listening on https://localhost:3001');
 });

@@ -1,6 +1,6 @@
 
-import fastify from 'fastify';
 import { join } from 'path';
+import fastify from 'fastify';
 
 import { FileSystemStorage, FileSystemStorageError } from '../lib';
 
@@ -9,8 +9,8 @@ const app = fastify();
 const storage = new FileSystemStorage(join(__dirname, 'assets'));
 
 app.get('*', async (request, reply) => {
-	const req = request.req;
-	const res = reply.res;
+	const { req } = request;
+	const { res } = reply;
 	if (req.url === undefined) {
 		throw new Error('url not set');
 	}
@@ -23,9 +23,9 @@ app.get('*', async (request, reply) => {
 });
 
 app.listen(3000)
-.then(() => {
-	console.info('listening on http://localhost:3000');
-})
-.catch(err => {
-	console.error(err);
-});
+	.then(() => {
+		console.info('listening on http://localhost:3000');
+	})
+	.catch(err => {
+		console.error(err);
+	});

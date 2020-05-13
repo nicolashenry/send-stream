@@ -14,12 +14,22 @@ export class StorageError <T> extends Error {
 	 * Error code
 	 */
 	readonly code: string;
+
 	/**
 	 * Storage reference
 	 */
 	readonly reference: T;
+
+	/**
+	 * Create a storage error
+	 *
+	 * @param code - error code
+	 * @param message - error message
+	 * @param reference - error storage reference
+	 */
 	constructor(code: string, message: string, reference: T) {
 		super(message);
+		this.name = 'StorageError';
 		this.code = code;
 		this.reference = reference;
 	}
@@ -61,135 +71,98 @@ export interface StorageInfo<AttachedData> {
 export class StreamResponse<AttachedData> extends EventEmitter {
 	/**
 	 * Create stream response
-	 * @param statusCode the status code matching the required resource
-	 * @param headers the response headers to be sent for the required resource
-	 * @param stream the response stream to be sent for the required resource
-	 * @param storageInfo the storage information for the required resource (if existing)
-	 * @param error the error if the resource can not be found or openned for any reason
+	 *
+	 * @param statusCode - the status code matching the required resource
+	 * @param headers - the response headers to be sent for the required resource
+	 * @param stream - the response stream to be sent for the required resource
+	 * @param storageInfo - the storage information for the required resource (if existing)
+	 * @param error - the error if the resource can not be found or openned for any reason
 	 */
 	constructor(
 		public statusCode: number,
 		public headers: ResponseHeaders,
 		public stream: Readable,
 		public storageInfo?: StorageInfo<AttachedData>,
-		public error?: StorageError<unknown>
+		public error?: StorageError<unknown>,
 	) {
 		super();
 	}
 
 	/**
 	 * Send response to http response
-	 * @param res http response
+	 *
+	 * @param res - http response
 	 * @returns self
 	 */
-	send(
-		res: http.ServerResponse | http2.Http2ServerResponse | http2.ServerHttp2Stream
-	) {
-		const statusCode = this.statusCode;
-		const responseHeaders = this.headers;
-		const readStream = this.stream;
-		try {
-			let readableClosed = false;
-			let responseClosed = false;
-			let readableError: (err: Error) => void;
-			const responseError = (err: Error) => {
-				this.emit('responseError', err);
-			};
-			const responseAborted = () => {
-				this.emit('responseError', new Error('response aborted'));
-			};
-			let offResponseEvents: () => void;
-			readStream.once('close', () => {
-				readableClosed = true;
-				if (!responseClosed) {
-					return;
-				}
-				// tslint:disable-next-line: no-commented-code
-				// readStream.off('error', readableError);
-				offResponseEvents();
-				this.emit('responseClose');
-			});
+	send(res: http.ServerResponse | http2.Http2ServerResponse | http2.ServerHttp2Stream) {
+		const { statusCode } = this;
+		const { headers: responseHeaders, stream: readStream } = this;
 
-			const resultClose = () => {
-				responseClosed = true;
-				if (!readableClosed) {
-					readStream.destroy();
-					return;
-				}
-				// tslint:disable-next-line: no-commented-code
-				// readStream.off('error', readableError);
-				offResponseEvents();
-				this.emit('responseClose');
-			};
-
-			if (res.headersSent) {
+		if (res.headersSent) {
+			readStream.destroy();
+			this.emit('responseError', new Error('response headers already sent'));
+			return this;
+		}
+		let endResponseOnError: () => void;
+		if (res instanceof http.ServerResponse) {
+			const { connection } = res;
+			if (res.destroyed || connection.destroyed) {
 				readStream.destroy();
-				process.nextTick(() => {
-					this.emit('responseError', new Error('response headers already sent'));
-				});
+				this.emit('responseError', new Error('response already closed'));
 				return this;
 			}
-			if (res instanceof http.ServerResponse) {
-				const connection = res.connection;
-				if (connection.destroyed) {
+			res.writeHead(statusCode, responseHeaders);
+			endResponseOnError = () => {
+				res.destroy();
+			};
+			const responseClose = () => {
+				res.off('error', responseClose);
+				res.off('close', responseClose);
+				if (!readStream.destroyed) {
 					readStream.destroy();
-					process.nextTick(() => {
-						this.emit('responseError', new Error('response already closed'));
-					});
-					return this;
 				}
-				res.writeHead(statusCode, responseHeaders);
-				readableError = err => {
-					this.emit('readError', err);
-					if (connection.destroyed) {
-						return;
-					}
-					res.destroy(err);
-				};
-				readStream.on('error', readableError);
-				connection.on('error', responseError);
-				res.on('close', resultClose);
-				res.on('finish', resultClose);
-				offResponseEvents = () => {
-					connection.off('error', responseError);
-					res.off('close', resultClose);
-					res.off('finish', resultClose);
-				};
-				readStream.pipe(res);
-			} else {
-				const resStream = res instanceof http2.Http2ServerResponse ? res.stream : res;
-				if (resStream.destroyed || resStream.closed) {
-					readStream.destroy();
-					process.nextTick(() => {
-						this.emit('responseError', new Error('response already closed'));
-					});
-					return this;
-				}
-				resStream.respond({
-					':status': statusCode,
-					...responseHeaders
-				});
-				readableError = err => {
-					this.emit('readError', err);
-					if (resStream.destroyed || resStream.closed) {
-						return;
-					}
-					resStream.destroy(err);
-				};
-				readStream.on('error', readableError);
-				resStream.on('error', responseError);
-				resStream.on('aborted', responseAborted);
-				resStream.on('close', resultClose);
-				offResponseEvents = () => {
-					resStream.off('error', responseError);
-					resStream.off('aborted', responseAborted);
-					resStream.off('close', resultClose);
-				};
-				readStream.pipe(resStream);
+			};
+			res.on('error', responseClose);
+			res.on('close', responseClose);
+			readStream.pipe(res);
+		} else {
+			const resStream = res instanceof http2.Http2ServerResponse ? res.stream : res;
+			if (resStream.destroyed || resStream.closed) {
+				readStream.destroy();
+				this.emit('responseError', new Error('response already closed'));
+				return this;
 			}
-		} catch (err) {
-			readStream.destroy(<Error> err);
+			resStream.respond({
+				':status': statusCode,
+				...responseHeaders,
+			});
+			endResponseOnError = () => {
+				resStream.close(http2.constants.NGHTTP2_INTERNAL_ERROR);
+			};
+			const responseClose = () => {
+				resStream.off('error', responseClose);
+				resStream.off('close', responseClose);
+				if (!readStream.destroyed) {
+					readStream.destroy();
+				}
+			};
+			resStream.on('error', responseClose);
+			resStream.on('close', responseClose);
+			readStream.pipe(resStream);
 		}
+		// eslint-disable-next-line prefer-const
+		let offReadableEvents: () => void;
+
+		const readableError = (err: Error) => {
+			offReadableEvents();
+			endResponseOnError();
+			this.emit('readError', err);
+		};
+		readStream.on('error', readableError);
+		offReadableEvents = () => {
+			readStream.off('error', readableError);
+		};
+
 		return this;
 	}
 }
