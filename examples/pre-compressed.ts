@@ -12,6 +12,7 @@ const storage = new FileSystemStorage(
 	{
 		contentEncodingMappings: [
 			{
+				// configure .html/.js/.css/.json files to have precompressed versions matching .br/.gz extensions
 				matcher: /^(?<path>.+\.(?:html|js|css|json))$/u,
 				encodings: [{ name: 'br', path: '$<path>.br' }, { name: 'gzip', path: '$<path>.gz' }],
 			},

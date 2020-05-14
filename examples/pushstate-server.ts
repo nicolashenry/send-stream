@@ -12,12 +12,10 @@ const storage = new FileSystemStorage(join(__dirname, 'assets'));
 app.use(async (req, res, next) => {
 	try {
 		let result = await storage.prepareResponse(req.url, req);
+		// if a path is not found and does not have extension then return root index.html
 		if (result.error
 				&& result.error instanceof FileSystemStorageError
-				&& (
-					result.error.pathParts.length === 0
-					|| extname(result.error.pathParts[result.error.pathParts.length - 1]) === ''
-				)
+				&& extname(result.error.pathParts[result.error.pathParts.length - 1]) === ''
 		) {
 			result.stream.destroy();
 			result = await storage.prepareResponse(['', 'index.html'], req);

@@ -222,10 +222,19 @@ export class FileSystemStorage extends Storage<FilePath, FileData> {
 
 		if (typeof path === 'string') {
 			const fullPath = path.startsWith('/') ? path : `/${ path }`;
-			const url = new URL(`http://localhost${ fullPath }`);
-			const { pathname } = url;
-			const normalizedPath = pathname + url.search;
-			pathParts = pathname.split('/').map(decodeURIComponent);
+			const { pathname, search } = new URL(`http://localhost${ fullPath }`);
+			pathParts = pathname.split('/');
+			try {
+				pathParts = pathParts.map(decodeURIComponent);
+			} catch (err) {
+				throw new FileSystemStorageError(
+					'malformed_path',
+					String(err),
+					path,
+					pathParts,
+				);
+			}
+			const normalizedPath = pathname + search;
 			if (fullPath !== normalizedPath) {
 				throw new RedirectFileSystemStorageError(
 					'not_normalized_path',
@@ -257,8 +266,19 @@ export class FileSystemStorage extends Storage<FilePath, FileData> {
 		// eslint-disable-next-line no-control-regex
 		if (pathParts.find(v => /[/?<>\\:*|":\u0000-\u001F\u0080-\u009F]/u.test(v))) {
 			throw new FileSystemStorageError(
-				'forbidden_characters',
-				`${ String(path) } has forbidden characters`,
+				'forbidden_character',
+				`${ String(path) } has one or more forbidden characters`,
+				path,
+				pathParts,
+			);
+		}
+
+		// ignored files
+		const { ignorePattern } = this;
+		if (ignorePattern && pathParts.find(v => ignorePattern.test(v)) !== undefined) {
+			throw new FileSystemStorageError(
+				'ignored_file',
+				`${ String(path) } is ignored`,
 				path,
 				pathParts,
 			);
@@ -279,17 +299,6 @@ export class FileSystemStorage extends Storage<FilePath, FileData> {
 			throw new FileSystemStorageError(
 				'trailing_slash',
 				`${ String(path) } have a trailing slash`,
-				path,
-				pathParts,
-			);
-		}
-
-		// ignored files
-		const { ignorePattern } = this;
-		if (ignorePattern && pathParts.find(v => ignorePattern.test(v)) !== undefined) {
-			throw new FileSystemStorageError(
-				'ignored_files',
-				`${ String(path) } is ignored`,
 				path,
 				pathParts,
 			);

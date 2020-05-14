@@ -12,9 +12,11 @@ const storage = new FileSystemStorage(join(__dirname, 'assets'));
 app.get('*', async (req, res, next) => {
 	try {
 		let result = await storage.prepareResponse(req.url, req);
-		if (result.error && result.error instanceof FileSystemStorageError && result.error.code === 'trailing_slash') {
+		const { error } = result;
+		// if the path is not found and the reason is a trailing slash then try to load matching index.html
+		if (error && error instanceof FileSystemStorageError && error.code === 'trailing_slash') {
 			result.stream.destroy();
-			result = await storage.prepareResponse([...result.error.pathParts.slice(0, -1), 'index.html'], req);
+			result = await storage.prepareResponse([...error.pathParts.slice(0, -1), 'index.html'], req);
 		}
 		result.send(res);
 	} catch (err) {

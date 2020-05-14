@@ -368,9 +368,10 @@ The path cannot be parsed for some reason.
 ### error.code = 'not_normalized_path'
 
 Storages only accept normalized paths for security reasons.
-For example, `'/../index.html'` will be refused.
+Note this will redirect to the normalized path instead of 404.
+For example, `'/../index.html'` will be refused and redirected to `'/index.html'`.
 
-### error.code = 'forbidden_characters'
+### error.code = 'forbidden_character'
 
 Storages refuse some forbidden characters like encoded slashes.
 
@@ -382,7 +383,7 @@ Storages refuse pathes like `'/dir//index.html'` because it should not contain t
 
 Storages refuse pathes like `'/dir/'` because it is probably pointing to a directory.
 
-### error.code = 'ignored_files'
+### error.code = 'ignored_file'
 
 Storages can ignore some files/folders composing the path (see [ignorePattern](#ignorePattern)).
 
@@ -407,8 +408,8 @@ See `examples/` folder in this repository for full examples
 ```js
 let result = (await storage.prepareResponse(req.url, req));
 const error = result.error;
+// if the path is not found and the reason is a trailing slash then try to load matching index.html
 if (error && error instanceof FileSystemStorageError && error.code === 'trailing_slash') {
-  // use index.html on trailing slash
   result.stream.destroy();
   result = await storage.prepareResponse([...error.pathParts.slice(0, -1), 'index.html'], req);
 }
@@ -418,66 +419,52 @@ result.send(res);
 ### Serve directory with file listing
 
 ```js
-const { join } = require('path');
+const path = require('path');
 const fs = require('fs');
 const util = require('util');
+
+const readdir = util.promisify(fs.readdir);
 
 ...
 
 const result = await storage.prepareResponse(req.url, req);
-if (
-  result.error
-  && result.error instanceof FileSystemStorageError
-  && result.error.code === 'trailing_slash'
-) {
-  // custom file listing
-  result.stream.destroy();
-  const pathParts = result.error.pathParts;
+// if the path is not found and the reason is a trailing slash then try to load files in folder
+if (result.error && result.error instanceof FileSystemStorageError && result.error.code === 'trailing_slash') {
+  const { error: { pathParts } } = result;
   let files;
   try {
-    files = await util.promisify(fs.readdir)(
-      join(storage.root, ...pathParts),
-      { withFileTypes: true }
-    );
-  } catch (err) {
-    // search index.html if the folder can not be read
-    (await storage.prepareResponse([...pathParts.slice(0, -1), 'index.html'], req)).send(res);
+    files = await readdir(path.join(storage.root, ...pathParts), { withFileTypes: true });
+  }
+  catch (err) {
     if (err.code !== 'ENOENT') {
-      console.log(err);
+      console.error(err);
     }
+    // return the original error
+    result.send(res);
     return;
   }
-
+  result.stream.destroy();
   const display = pathParts.length > 2 ? pathParts[pathParts.length - 2] : '/';
-
-  let html = `<!DOCTYPE html><html><head><meta charset="utf-8"><title>${ display }</title>`;
+  let html = `<!DOCTYPE html><html><head><meta charset="utf-8"><title>${display}</title>`;
   html += '<meta name="viewport" content="width=device-width"></head>';
   html += `<body><h1>Directory: ${ pathParts.join('/') }</h1><ul>`;
-
   if (pathParts.length > 2) {
     html += '<li><a href="..">..</a></li>';
   }
-
   for (const file of files) {
-    const ignorePattern = storage.ignorePattern;
+    const { ignorePattern } = storage;
     if (ignorePattern && ignorePattern.test(file.name)) {
       continue;
     }
     const filename = file.name + (file.isDirectory() ? '/' : '');
     html += `<li><a href="./${ filename }">${ filename }</a></li>`;
   }
-
   html += '</ul></body></html>';
-
   res.setHeader('Cache-Control', 'max-age=0');
   res.send(html);
   return;
 }
 result.send(res);
-} catch (err) {
-console.error(err);
-res.destroy(err);
-}
 ```
 
 ### Serve index.html for history.pushState application
@@ -503,7 +490,6 @@ if (
 }
 result.send(res);
 ```
-
 ## License
 
 [MIT](LICENSE)

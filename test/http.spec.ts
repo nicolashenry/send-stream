@@ -31,7 +31,11 @@ function createServer(opts: PrepareResponseOptions & FileSystemStorageOptions & 
 	return http.createServer((req, res) => {
 		(async () => {
 			// eslint-disable-next-line @typescript-eslint/no-non-null-assertion
-			(await storage.prepareResponse(req.url!, req, opts)).send(res);
+			const response = await storage.prepareResponse(req.url!, req, opts);
+			if (response.error) {
+				response.headers['X-Send-Stream-Error'] = response.error.code;
+			}
+			response.send(res);
 		})().catch(err => {
 			res.statusCode = 500;
 			res.end(String(err));
@@ -67,7 +71,11 @@ describe('send(file).pipe(res)', () => {
 		mainApp = http.createServer((req, res) => {
 			(async () => {
 				// eslint-disable-next-line @typescript-eslint/no-non-null-assertion
-				(await mainStorage.prepareResponse(req.url!, req)).send(res);
+				const response = await mainStorage.prepareResponse(req.url!, req);
+				if (response.error) {
+					response.headers['X-Send-Stream-Error'] = response.error.code;
+				}
+				response.send(res);
 			})().catch(err => {
 				res.statusCode = 500;
 				res.end(String(err));
@@ -124,19 +132,22 @@ describe('send(file).pipe(res)', () => {
 	it('should treat a malformed URI as a bad request', async () => {
 		await request(mainApp)
 			.get('/some%99thing.txt')
+			.expect('X-Send-Stream-Error', 'malformed_path')
 			.expect(404);
 	});
 
 	it('should 404 on NULL bytes', async () => {
 		await request(mainApp)
 			.get('/some%00thing.txt')
+			.expect('X-Send-Stream-Error', 'forbidden_character')
 			.expect(404);
 	});
 
 	it('should treat an ENAMETOOLONG as a 404', async () => {
-		const path = new Array(100).join('foobar');
+		const path = new Array(1000).join('foobar');
 		await request(mainApp)
 			.get(`/${ path }`)
+			.expect('X-Send-Stream-Error', 'does_not_exist')
 			.expect(404);
 	});
 
@@ -220,12 +231,14 @@ describe('send(file).pipe(res)', () => {
 	it('should 404 if the file does not exist', async () => {
 		await request(mainApp)
 			.get('/meow')
+			.expect('X-Send-Stream-Error', 'does_not_exist')
 			.expect(404);
 	});
 
 	it('should 404 if the file does not exist (HEAD)', async () => {
 		await request(mainApp)
 			.head('/meow')
+			.expect('X-Send-Stream-Error', 'does_not_exist')
 			.expect(404);
 	});
 
@@ -401,18 +414,6 @@ describe('send(file).pipe(res)', () => {
 					.expect('ETag', 'W/"everything"')
 					.expect('tobi');
 			});
-		});
-	});
-
-	describe('when no "error" listeners are present', () => {
-		let server: http.Server;
-		before(() => {
-			server = createServer({ root: fixtures });
-		});
-		it('should respond to errors directly', async () => {
-			await request(server)
-				.get('/foobar')
-				.expect(404, /Not Found/u);
 		});
 	});
 
@@ -1055,18 +1056,6 @@ describe('send(file, options)', () => {
 		});
 	});
 
-	describe('extensions', () => {
-		let server: http.Server;
-		before(() => {
-			server = createServer({ root: fixtures });
-		});
-		it('should be not be enabled by default', async () => {
-			await request(server)
-				.get('/tobi')
-				.expect(404);
-		});
-	});
-
 	describe('lastModified', () => {
 		let server: http.Server;
 		before(() => {
@@ -1089,6 +1078,7 @@ describe('send(file, options)', () => {
 			it('should default to "ignore"', async () => {
 				await request(server)
 					.get('/.hidden.txt')
+					.expect('X-Send-Stream-Error', 'ignored_file')
 					.expect(404);
 			});
 		});
@@ -1101,6 +1091,7 @@ describe('send(file, options)', () => {
 			it('should ignore folder too', async () => {
 				await request(server)
 					.get('/.mine/name.txt')
+					.expect('X-Send-Stream-Error', 'ignored_file')
 					.expect(404);
 			});
 		});
@@ -1125,6 +1116,7 @@ describe('send(file, options)', () => {
 			it('should 404 for non-existent dotfile', async () => {
 				await request(server)
 					.get('/.nothere')
+					.expect('X-Send-Stream-Error', 'does_not_exist')
 					.expect(404);
 			});
 		});
@@ -1138,36 +1130,42 @@ describe('send(file, options)', () => {
 				it('should 404 for dotfile', async () => {
 					await request(server)
 						.get('/.hidden.txt')
+						.expect('X-Send-Stream-Error', 'ignored_file')
 						.expect(404);
 				});
 
 				it('should 404 for dotfile directory', async () => {
 					await request(server)
 						.get('/.mine')
+						.expect('X-Send-Stream-Error', 'ignored_file')
 						.expect(404);
 				});
 
 				it('should 404 for dotfile directory with trailing slash', async () => {
 					await request(server)
 						.get('/.mine/')
+						.expect('X-Send-Stream-Error', 'ignored_file')
 						.expect(404);
 				});
 
 				it('should 404 for file within dotfile directory', async () => {
 					await request(server)
 						.get('/.mine/name.txt')
+						.expect('X-Send-Stream-Error', 'ignored_file')
 						.expect(404);
 				});
 
 				it('should 404 for non-existent dotfile', async () => {
 					await request(server)
 						.get('/.nothere')
+						.expect('X-Send-Stream-Error', 'ignored_file')
 						.expect(404);
 				});
 
 				it('should 404 for non-existent dotfile directory', async () => {
 					await request(server)
 						.get('/.what/name.txt')
+						.expect('X-Send-Stream-Error', 'ignored_file')
 						.expect(404);
 				});
 			});
@@ -1209,6 +1207,7 @@ describe('send(file, options)', () => {
 				it('double slash should be ignored', async () => {
 					await request(server)
 						.get('//name.txt')
+						.expect('X-Send-Stream-Error', 'consecutive_slashes')
 						.expect(404);
 				});
 			});
@@ -1221,6 +1220,7 @@ describe('send(file, options)', () => {
 				it('double slash in sub path should be ignored', async () => {
 					await request(server)
 						.get('/pets//index.html')
+						.expect('X-Send-Stream-Error', 'consecutive_slashes')
 						.expect(404);
 				});
 			});
@@ -1245,6 +1245,7 @@ describe('send(file, options)', () => {
 				it('should 404 on empty path', async () => {
 					await request(server)
 						.get('')
+						.expect('X-Send-Stream-Error', 'trailing_slash')
 						.expect(404);
 				});
 			});
@@ -1269,7 +1270,11 @@ describe('send(file, options)', () => {
 					app = http.createServer((req, res) => {
 						(async () => {
 							// eslint-disable-next-line @typescript-eslint/no-non-null-assertion
-							(await storage.prepareResponse(req.url!.split('/'), req)).send(res);
+							const response = await storage.prepareResponse(req.url!.split('/'), req);
+							if (response.error) {
+								response.headers['X-Send-Stream-Error'] = response.error.code;
+							}
+							response.send(res);
 						})().catch(err => {
 							res.statusCode = 500;
 							res.end(String(err));
@@ -1279,6 +1284,7 @@ describe('send(file, options)', () => {
 				it('should restrict paths to within root with path parts', async () => {
 					await request(app)
 						.get('/pets/../../http.spec.ts')
+						.expect('X-Send-Stream-Error', 'invalid_path')
 						.expect(404);
 				});
 			});

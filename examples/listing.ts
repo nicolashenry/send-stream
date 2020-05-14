@@ -16,6 +16,7 @@ const storage = new FileSystemStorage(join(__dirname, 'assets'));
 app.get('*', async (req, res, next) => {
 	try {
 		const result = await storage.prepareResponse(req.url, req);
+		// if the path is not found and the reason is a trailing slash then try to load files in folder
 		if (result.error && result.error instanceof FileSystemStorageError && result.error.code === 'trailing_slash') {
 			const { error: { pathParts } } = result;
 			let files;
