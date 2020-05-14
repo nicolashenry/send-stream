@@ -3,7 +3,7 @@ import * as fs from 'fs';
 import * as http2 from 'http2';
 import { join } from 'path';
 
-import { FileSystemStorage, FileSystemStorageError } from '../lib';
+import { FileSystemStorage } from '../src/send-stream';
 
 const storage = new FileSystemStorage(join(__dirname, 'assets'));
 
@@ -24,25 +24,21 @@ app.on('stream', (stream, headers) => {
 		if (headers[':path'] === undefined) {
 			throw new Error('path not set');
 		}
-		let result = await storage.prepareResponse(headers[':path'], headers);
-		if (result.error && result.error instanceof FileSystemStorageError && result.error.code === 'trailing_slash') {
-			result.stream.destroy();
-			result = await storage.prepareResponse([...result.error.pathParts.slice(0, -1), 'index.html'], headers);
-		}
+		const result = await storage.prepareResponse(headers[':path'], headers);
 		result.send(stream);
 	})().catch(err => {
 		console.error(err);
-		if (!stream.headersSent) {
-			const message = 'Internal Server Error';
-			stream.respond({
-				':status': 500,
-				'Content-Type': 'text/plain; charset=UTF-8',
-				'Content-Length': String(Buffer.byteLength(message)),
-			});
-			stream.end(message);
+		if (stream.headersSent) {
+			stream.destroy(err instanceof Error ? err : new Error(String(err)));
 			return;
 		}
-		stream.destroy(err instanceof Error ? err : new Error(String(err)));
+		const message = 'Internal Server Error';
+		stream.respond({
+			':status': 500,
+			'Content-Type': 'text/plain; charset=UTF-8',
+			'Content-Length': String(Buffer.byteLength(message)),
+		});
+		stream.end(message);
 	});
 });
 

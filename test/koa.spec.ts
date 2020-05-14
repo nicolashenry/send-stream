@@ -8,8 +8,8 @@ import { join } from 'path';
 import { Readable } from 'stream';
 import * as http from 'http';
 import { promisify } from 'util';
+
 import Koa from 'koa';
-// eslint-disable-next-line import/no-internal-modules
 import Mime from 'mime/Mime';
 import request from 'supertest';
 import * as memfs from 'memfs';
@@ -25,7 +25,7 @@ import {
 	FilePath,
 	StorageRequestHeaders,
 	BufferStream,
-} from '../lib';
+} from '../src/send-stream';
 
 function brotliParser(res: request.Response, cb: (err: Error | null, body: unknown) => void) {
 	const decompress = res.pipe(createBrotliDecompress());

@@ -3,6 +3,7 @@
 import * as assert from 'assert';
 import * as http from 'http';
 import * as path from 'path';
+
 import request from 'supertest';
 
 import {
@@ -10,7 +11,7 @@ import {
 	FileSystemStorage,
 	PrepareResponseOptions,
 	FileSystemStorageError,
-} from '../lib';
+} from '../src/send-stream';
 
 const fixtures = path.join(__dirname, '/fixtures-static');
 

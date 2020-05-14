@@ -1,8 +1,9 @@
 
 import { join, extname } from 'path';
+
 import express from 'express';
 
-import { FileSystemStorage, FileSystemStorageError } from '../lib';
+import { FileSystemStorage, FileSystemStorageError } from '../src/send-stream';
 
 const app = express();
 

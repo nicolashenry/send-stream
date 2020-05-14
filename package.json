@@ -62,17 +62,16 @@
     "mocha": "nyc mocha test/*.spec.ts",
     "test": "npm run build && npm run lint && npm run mocha"
   },
-  "main": "dist/lib/index.js",
-  "typings": "dist/lib/index.d.ts",
+  "main": "dist/src/send-stream.js",
+  "typings": "dist/src/send-stream.d.ts",
   "files": [
-    "dist/lib/*.js",
-    "dist/lib/*.js.map",
-    "dist/lib/*.d.ts"
+    "dist/src/*.js",
+    "dist/src/*.js.map",
+    "dist/src/*.d.ts"
   ],
   "nyc": {
     "include": [
-      "index.ts",
-      "lib/*.ts"
+      "src/*.ts"
     ],
     "extension": [
       ".ts"

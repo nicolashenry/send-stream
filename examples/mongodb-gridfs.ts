@@ -1,11 +1,12 @@
 
 import { Readable } from 'stream';
-import { basename } from 'path';
+import { relative } from 'path';
 import * as assert from 'assert';
+
 import express from 'express';
 import * as mongodb from 'mongodb';
 
-import { Storage, StorageOptions, StorageInfo, StorageError, StreamRange } from '../lib';
+import { Storage, StorageOptions, StorageInfo, StorageError, StreamRange } from '../src/send-stream';
 
 const uri = 'mongodb://localhost:27017';
 const dbName = 'test';
@@ -28,7 +29,7 @@ class GridFSStorage extends Storage<string, File> {
 	}
 
 	async open(path: string) {
-		const filename = basename(decodeURIComponent(new URL(path, 'http://localhost').pathname));
+		const filename = relative('/', decodeURIComponent(new URL(`http://localhost${ path }`).pathname));
 		const files = await (<mongodb.Cursor<File>> this.bucket.find({ filename }, { limit: 1 })).toArray();
 		if (files.length === 0) {
 			throw new StorageError('not_found', `filename ${ filename } not found`, path);

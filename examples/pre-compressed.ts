@@ -1,8 +1,9 @@
 
 import { join } from 'path';
+
 import express from 'express';
 
-import { FileSystemStorage, FileSystemStorageError } from '../lib';
+import { FileSystemStorage } from '../src/send-stream';
 
 const app = express();
 
@@ -20,11 +21,7 @@ const storage = new FileSystemStorage(
 
 app.get('*', async (req, res, next) => {
 	try {
-		let result = await storage.prepareResponse(req.url, req);
-		if (result.error && result.error instanceof FileSystemStorageError && result.error.code === 'trailing_slash') {
-			result.stream.destroy();
-			result = await storage.prepareResponse([...result.error.pathParts.slice(0, -1), 'index.html'], req);
-		}
+		const result = await storage.prepareResponse(req.url, req);
 		result.send(res);
 	} catch (err) {
 		// eslint-disable-next-line node/callback-return

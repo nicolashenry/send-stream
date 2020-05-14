@@ -3,6 +3,7 @@ import { join } from 'path';
 import * as crypto from 'crypto';
 import * as fs from 'fs';
 import { promisify } from 'util';
+
 import express from 'express';
 
 import {
@@ -10,8 +11,9 @@ import {
 	FileData,
 	StorageInfo,
 	FileSystemStorageOptions,
-	FileSystemStorageError,
-} from '../lib';
+} from '../src/send-stream';
+
+const readdir = promisify(fs.readdir);
 
 const app = express();
 
@@ -33,22 +35,24 @@ class EtagHashCacheStorage extends FileSystemStorage {
 	}
 
 	async addAllFilesInEtagCache(dir: string) {
-		const files = await promisify(fs.readdir)(dir);
+		const files = await readdir(dir);
 		await Promise.all(files.map(async file => {
 			const filePath = join(dir, file);
-			const fileStats = await promisify(fs.stat)(filePath);
+			const fd = await this.fsOpen(filePath, this.fsConstants.O_RDONLY);
+			const fileStats = await this.fsFstat(fd);
 			if (fileStats.isDirectory()) {
 				await this.addAllFilesInEtagCache(filePath);
 			} else {
-				await this.addFileInEtagCache(filePath, fileStats);
+				const etag = await this.addFileInEtagCache(filePath, fileStats, fd);
+				console.info('hash etag calculated', filePath, etag);
 			}
 		}));
 	}
 
-	async addFileInEtagCache(filePath: string, stats: fs.Stats, fd?: number) {
+	async addFileInEtagCache(filePath: string, stats: fs.Stats, fd: number) {
 		const stream = fs.createReadStream(
 			filePath,
-			{ start: 0, end: stats.size - 1, fd, autoClose: fd === undefined },
+			{ start: 0, end: stats.size - 1, fd },
 		);
 		const hash = crypto.createHash('sha1');
 		hash.setEncoding('hex');
@@ -57,7 +61,6 @@ class EtagHashCacheStorage extends FileSystemStorage {
 			stream.on('end', () => {
 				hash.end();
 				const newEtag = `"${ <string> hash.read() }"`;
-				console.info('hash etag calculated', filePath, newEtag);
 				this.etagCache.set(filePath, newEtag);
 				resolve(newEtag);
 			});
@@ -81,11 +84,7 @@ const storage = new EtagHashCacheStorage(join(__dirname, 'assets'));
 
 app.get('*', async (req, res, next) => {
 	try {
-		let result = await storage.prepareResponse(req.url, req);
-		if (result.error && result.error instanceof FileSystemStorageError && result.error.code === 'trailing_slash') {
-			result.stream.destroy();
-			result = await storage.prepareResponse([...result.error.pathParts.slice(0, -1), 'index.html'], req);
-		}
+		const result = await storage.prepareResponse(req.url, req);
 		result.send(res);
 	} catch (err) {
 		// eslint-disable-next-line node/callback-return

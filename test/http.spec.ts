@@ -7,6 +7,7 @@ import * as http2 from 'http2';
 import { normalize, join } from 'path';
 import { Readable } from 'stream';
 import { AddressInfo } from 'net';
+
 import request from 'supertest';
 
 import {
@@ -17,7 +18,7 @@ import {
 	StorageInfo,
 	FileData,
 	StreamRange,
-} from '../lib';
+} from '../src/send-stream';
 
 // test server
 
