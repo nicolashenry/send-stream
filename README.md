@@ -31,7 +31,7 @@ Serve all files from a directory with Fastify, Koa or Express
 Using Fastify:
 ```js
 const path = require('path');
-const http = require('fastify');
+const fastify = require('fastify');
 const { FileSystemStorage } = require('send-stream');
 
 const app = fastify();
