@@ -82,10 +82,21 @@ function multipartHandler(res: request.Response, cb: (err: Error | null, body: u
 	res.on('data', chunk => {
 		chunks.push(<Buffer> chunk);
 	});
-	res.on('error', cb);
+	let end = false;
+	res.on('error', err => {
+		end = true;
+		cb(err, null);
+	});
 	res.on('end', () => {
+		end = true;
 		res.text = Buffer.concat(chunks).toString();
 		cb(null, res.text);
+	});
+	res.on('close', () => {
+		if (end) {
+			return;
+		}
+		cb(new Error('incomplete data'), null);
 	});
 }
 
