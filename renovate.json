@@ -2,6 +2,5 @@
   "extends": [
     "config:base"
   ],
-  "rangeStrategy": "bump",
-  "bumpVersion": "minor"
+  "rangeStrategy": "bump"
 }
