@@ -77,6 +77,18 @@ async function send(
 	return result;
 }
 
+function multipartHandler(res: request.Response, cb: (err: Error | null, body: unknown) => void) {
+	const chunks: Buffer[] = [];
+	res.on('data', chunk => {
+		chunks.push(<Buffer> chunk);
+	});
+	res.on('error', cb);
+	res.on('end', () => {
+		res.text = Buffer.concat(chunks).toString();
+		cb(null, res.text);
+	});
+}
+
 describe('send(ctx, file)', () => {
 	describe('when simple path', () => {
 		describe('should 200 on plain text', () => {
@@ -1933,20 +1945,9 @@ describe('send(ctx, file)', () => {
 				await request(server)
 					.get('/')
 					.set('Range', 'bytes=0-0,2-2')
+					.parse(multipartHandler)
 					.expect(206)
 					.expect('Content-Type', /^multipart\/byteranges/u)
-					.parse((res, cb) => {
-						const chunks: Buffer[] = [];
-						res.on('data', chunk => {
-							chunks.push(<Buffer> chunk);
-						});
-						res.on('error', (err: Error) => {
-							cb(err, Buffer.concat(chunks).toString());
-						});
-						res.on('end', () => {
-							cb(null, Buffer.concat(chunks).toString());
-						});
-					})
 					.expect(res => {
 						if (
 							// eslint-disable-next-line max-len
@@ -1977,6 +1978,7 @@ describe('send(ctx, file)', () => {
 				await request(server)
 					.get('/')
 					.set('Range', 'bytes=0-0,2-2')
+					.parse(multipartHandler)
 					.expect(206)
 					.expect('Content-Type', /^multipart\/byteranges/u);
 			});
@@ -2176,7 +2178,8 @@ describe('send(ctx, file)', () => {
 				try {
 					await request(server)
 						.get('/')
-						.set('Range', 'bytes=0-0,2-2');
+						.set('Range', 'bytes=0-0,2-2')
+						.parse(multipartHandler);
 					assert.fail();
 				} catch {
 					// noop
@@ -2224,7 +2227,8 @@ describe('send(ctx, file)', () => {
 				try {
 					await request(server)
 						.get('/')
-						.set('Range', 'bytes=0-0,2-2');
+						.set('Range', 'bytes=0-0,2-2')
+						.parse(multipartHandler);
 					assert.fail();
 				} catch {
 					// noop
@@ -2258,6 +2262,7 @@ describe('send(ctx, file)', () => {
 				await request(server)
 					.get('/')
 					.set('Range', 'bytes=0-0,2-2')
+					.parse(multipartHandler)
 					.expect(206);
 			});
 		});
@@ -2299,7 +2304,8 @@ describe('send(ctx, file)', () => {
 				try {
 					await request(server)
 						.get('/')
-						.set('Range', 'bytes=0-0,2-2');
+						.set('Range', 'bytes=0-0,2-2')
+						.parse(multipartHandler);
 					assert.fail();
 				} catch {
 					// noop

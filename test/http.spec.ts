@@ -65,6 +65,18 @@ function shouldHaveHeader(header: string) {
 	};
 }
 
+function multipartHandler(res: request.Response, cb: (err: Error | null, body: unknown) => void) {
+	const chunks: Buffer[] = [];
+	res.on('data', chunk => {
+		chunks.push(<Buffer> chunk);
+	});
+	res.on('error', cb);
+	res.on('end', () => {
+		res.text = Buffer.concat(chunks).toString();
+		cb(null, res.text);
+	});
+}
+
 describe('send(file).pipe(res)', () => {
 	let mainApp: http.Server;
 	before(() => {
@@ -731,18 +743,7 @@ describe('send(file).pipe(res)', () => {
 					.set('Range', 'bytes=1-1,3-')
 					.expect(shouldNotHaveHeader('Content-Range'))
 					.expect('Content-Type', /^multipart\/byteranges/u)
-					.parse((res, cb) => {
-						const chunks: Buffer[] = [];
-						res.on('data', chunk => {
-							chunks.push(<Buffer> chunk);
-						});
-						res.on('error', (err: Error) => {
-							cb(err, Buffer.concat(chunks).toString());
-						});
-						res.on('end', () => {
-							cb(null, Buffer.concat(chunks).toString());
-						});
-					})
+					.parse(multipartHandler)
 					.expect(res => {
 						if (
 							// eslint-disable-next-line max-len
@@ -758,6 +759,7 @@ describe('send(file).pipe(res)', () => {
 				await request(mainApp)
 					.get('/nums.txt')
 					.set('Range', 'bytes=1-2,3-5')
+					.parse(multipartHandler)
 					.expect('Content-Range', 'bytes 1-5/9')
 					.expect(206, '23456');
 			});
@@ -1008,6 +1010,7 @@ describe('send(file, options)', () => {
 				await request(server)
 					.get('/nums.txt')
 					.set('Range', 'bytes=0-2,4-5')
+					.parse(multipartHandler)
 					.expect('Accept-Ranges', 'bytes')
 					.expect(shouldNotHaveHeader('Content-Range'))
 					.expect(200, '123456789');
