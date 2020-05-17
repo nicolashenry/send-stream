@@ -57,11 +57,11 @@
     "build": "tsc",
     "clean-build": "npm run clean && npm run build",
     "watch": "tsc -w",
-    "prepare": "npm run clean-build",
-    "prepublishOnly": "npm run test",
+    "prepublishOnly": "npm run clean-build && npm run test",
     "lint": "eslint . --ext .ts --max-warnings 0 --report-unused-disable-directives",
-    "mocha": "nyc mocha test/*.spec.ts",
-    "test": "npm run build && npm run lint && npm run mocha"
+    "test-no-coverage": "mocha test/*.spec.ts",
+    "test-coverage": "nyc mocha test/*.spec.ts",
+    "test": "npm run test-coverage"
   },
   "main": "dist/src/send-stream.js",
   "typings": "dist/src/send-stream.d.ts",
