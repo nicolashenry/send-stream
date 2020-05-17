@@ -1,7 +1,7 @@
 {
   "extends": [
-    "config:base",
-    ":preserveSemverRanges"
+    "config:base"
   ],
+  "rangeStrategy": "bump",
   "bumpVersion": "minor"
 }
