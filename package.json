@@ -46,6 +46,7 @@
   },
   "license": "MIT",
   "dependencies": {
+    "@istanbuljs/nyc-config-typescript": "^1.0.1",
     "content-disposition": "^0.5.3",
     "mime": "^2.4.5",
     "range-parser": "^1.2.1",
@@ -69,24 +70,6 @@
     "dist/src/*.js.map",
     "dist/src/*.d.ts"
   ],
-  "nyc": {
-    "include": [
-      "src/*.ts"
-    ],
-    "extension": [
-      ".ts"
-    ],
-    "reporter": [
-      "lcovonly",
-      "text"
-    ],
-    "cache": false,
-    "check-coverage": true,
-    "branches": 100,
-    "lines": 100,
-    "functions": 100,
-    "statements": 100
-  },
   "engines": {
     "node": ">= 12.13.0"
   }

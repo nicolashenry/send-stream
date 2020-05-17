@@ -77,7 +77,7 @@ export interface ContentEncodingMapping {
 	/**
 	 * Regexp used to match file path
 	 */
-	matcher: RegExp;
+	matcher: RegExp | string;
 	/**
 	 * Encodings to search once file path is matched
 	 */
@@ -95,7 +95,7 @@ export interface FileSystemStorageOptions extends StorageOptions {
 	/**
 	 * Ignore pattern, defaults to /^\../ (files/folders beginning with a dot)
 	 */
-	ignorePattern?: RegExp | false;
+	ignorePattern?: RegExp | string | false;
 	/**
 	 * "fs" module to use
 	 */
@@ -166,7 +166,7 @@ export class RedirectFileSystemStorageError extends FileSystemStorageError {
 export class FileSystemStorage extends Storage<FilePath, FileData> {
 	readonly root: string;
 
-	readonly contentEncodingMappings?: readonly ContentEncodingMapping[];
+	readonly contentEncodingMappings?: readonly (ContentEncodingMapping & { matcher: RegExp })[];
 
 	readonly ignorePattern?: RegExp | false;
 
@@ -199,10 +199,17 @@ export class FileSystemStorage extends Storage<FilePath, FileData> {
 				if (!encodings.find(e => e.name === 'identity')) {
 					encodings.push({ name: 'identity', path: '$1' });
 				}
-				return { ...encodingConfig, encodings };
+				const matcher = encodingConfig.matcher instanceof RegExp
+					? encodingConfig.matcher
+					: new RegExp(encodingConfig.matcher, 'u');
+				return { matcher, encodings };
 			});
 		}
-		this.ignorePattern = opts.ignorePattern === undefined ? /^\./u : opts.ignorePattern;
+		this.ignorePattern = opts.ignorePattern === undefined
+			? /^\./u
+			: opts.ignorePattern === false || opts.ignorePattern instanceof RegExp
+				? opts.ignorePattern
+				: new RegExp(opts.ignorePattern, 'u');
 		const fsModule = opts.fsModule === undefined ? fs : opts.fsModule;
 		this.fsOpen = promisify(fsModule.open);
 		this.fsFstat = promisify(fsModule.fstat);

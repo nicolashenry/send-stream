@@ -486,6 +486,51 @@ describe('send(ctx, file)', () => {
 			});
 		});
 
+		describe('should return the path when a directory have the encoding extension (with regexp as text)', () => {
+			let server: http.Server;
+			before(() => {
+				const app = new Koa<object>();
+
+				app.use(async ctx => {
+					const p = '/fixtures-koa/hello.txt';
+					const sent = await send(ctx, __dirname, p, {
+						contentEncodingMappings: [
+							{
+								matcher: '^(?<path>.*\\.txt)$',
+								encodings: [
+									{
+										name: 'br',
+										path: '$<path>.br',
+									},
+									{
+										name: 'gzip',
+										path: '$<path>.gz',
+									},
+								],
+							},
+						],
+					});
+					assert.strictEqual(
+						sent.storageInfo ? sent.storageInfo.attachedData.resolvedPath : undefined,
+						join(__dirname, '/fixtures-koa/hello.txt'),
+					);
+				});
+
+				server = app.listen();
+			});
+			after(done => {
+				server.close(done);
+			});
+			it('should return the path when a directory have the encoding extension', async () => {
+				await request(server)
+					.get('/')
+					.set('Accept-Encoding', 'br, gzip, identity')
+					.expect('Content-Length', '5')
+					.expect('world')
+					.expect(200);
+			});
+		});
+
 		describe('should not return the path when a directory have the encoding extension but matcher not ok', () => {
 			let server: http.Server;
 			before(() => {
@@ -1306,6 +1351,29 @@ describe('send(ctx, file)', () => {
 				app.use(async ctx => {
 					await send(ctx, __dirname, '/fixtures-koa/world/index.html', {
 						defaultCharsets: [{ matcher: /^text\/.*/u, charset: 'windows-1252' }],
+					});
+				});
+
+				server = app.listen();
+			});
+			after(done => {
+				server.close(done);
+			});
+			it('should set the Content-Type with a charset when option used', async () => {
+				await request(server)
+					.get('/')
+					.expect('Content-Type', 'text/html; charset=windows-1252');
+			});
+		});
+
+		describe('should set the Content-Type with a charset when option used (with regexp as text)', () => {
+			let server: http.Server;
+			before(() => {
+				const app = new Koa<object>();
+
+				app.use(async ctx => {
+					await send(ctx, __dirname, '/fixtures-koa/world/index.html', {
+						defaultCharsets: [{ matcher: '^text\\/.*', charset: 'windows-1252' }],
 					});
 				});
 

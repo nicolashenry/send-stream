@@ -138,7 +138,7 @@ export abstract class Storage<Reference, AttachedData> {
 
 	readonly defaultContentType?: string;
 
-	readonly defaultCharsets: readonly CharsetMapping[] | false;
+	readonly defaultCharsets: readonly (CharsetMapping & { matcher: RegExp })[] | false;
 
 	readonly maxRanges: number;
 
@@ -154,7 +154,12 @@ export abstract class Storage<Reference, AttachedData> {
 		this.defaultContentType = opts.defaultContentType;
 		this.defaultCharsets = opts.defaultCharsets === undefined
 			? defaultCharset
-			: opts.defaultCharsets;
+			: opts.defaultCharsets === false
+				? opts.defaultCharsets
+				: opts.defaultCharsets.map(({ matcher, charset }) => ({
+					matcher: matcher instanceof RegExp ? matcher : new RegExp(matcher, 'u'),
+					charset,
+				}));
 		this.maxRanges = opts.maxRanges === undefined ? DEFAULT_MAX_RANGES : opts.maxRanges;
 		this.weakEtags = opts.weakEtags === true;
 	}

@@ -139,7 +139,7 @@ export interface CharsetMapping {
 	/**
 	 * Regexp pattern used to match content type
 	 */
-	matcher: RegExp;
+	matcher: RegExp | string;
 	/**
 	 * Charset to use with the matched content type
 	 */
@@ -153,7 +153,10 @@ export interface CharsetMapping {
  * @param charsetMappings - charset mapping
  * @returns content type with charset
  */
-export function getContentTypeWithCharset(contentType: string, charsetMappings: readonly CharsetMapping[]) {
+export function getContentTypeWithCharset(
+	contentType: string,
+	charsetMappings: readonly (CharsetMapping & { matcher: RegExp })[],
+) {
 	for (const { matcher, charset } of charsetMappings) {
 		if (matcher.test(contentType)) {
 			return `${ contentType }; charset=${ charset }`;

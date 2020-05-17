@@ -1170,6 +1170,54 @@ describe('send(file, options)', () => {
 				});
 			});
 
+			describe('when "ignore" 1 (using regexp as text)', () => {
+				let server: http.Server;
+				before(() => {
+					server = createServer({ ignorePattern: '^\\.[^.]', root: fixtures });
+				});
+				it('should 404 for dotfile', async () => {
+					await request(server)
+						.get('/.hidden.txt')
+						.expect('X-Send-Stream-Error', 'ignored_file')
+						.expect(404);
+				});
+
+				it('should 404 for dotfile directory', async () => {
+					await request(server)
+						.get('/.mine')
+						.expect('X-Send-Stream-Error', 'ignored_file')
+						.expect(404);
+				});
+
+				it('should 404 for dotfile directory with trailing slash', async () => {
+					await request(server)
+						.get('/.mine/')
+						.expect('X-Send-Stream-Error', 'ignored_file')
+						.expect(404);
+				});
+
+				it('should 404 for file within dotfile directory', async () => {
+					await request(server)
+						.get('/.mine/name.txt')
+						.expect('X-Send-Stream-Error', 'ignored_file')
+						.expect(404);
+				});
+
+				it('should 404 for non-existent dotfile', async () => {
+					await request(server)
+						.get('/.nothere')
+						.expect('X-Send-Stream-Error', 'ignored_file')
+						.expect(404);
+				});
+
+				it('should 404 for non-existent dotfile directory', async () => {
+					await request(server)
+						.get('/.what/name.txt')
+						.expect('X-Send-Stream-Error', 'ignored_file')
+						.expect(404);
+				});
+			});
+
 			describe('when "ignore" 2', () => {
 				let server: http.Server;
 				before(() => {
