@@ -2,7 +2,7 @@
 # send-stream
 
 [![NPM](https://img.shields.io/npm/v/send-stream.svg)](https://www.npmjs.com/package/send-stream)
-[![Build Status](https://travis-ci.com/nicolashenry/send-stream.svg?branch=master)](https://travis-ci.com/nicolashenry/send-stream)
+[![Build Status](https://github.com/nicolashenry/send-stream/workflows/Node.js%20CI/badge.svg?branch=master)](https://github.com/nicolashenry/send-stream/actions?query=workflow%3A%22Node.js+CI%22+branch%3Amaster)
 [![Coverage Status](https://coveralls.io/repos/github/nicolashenry/send-stream/badge.svg?branch=master)](https://coveralls.io/github/nicolashenry/send-stream?branch=master)
 
 `send-stream` is a library for streaming files from the file system or any other source.
