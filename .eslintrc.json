@@ -14,7 +14,8 @@
     "import",
     "jsdoc",
     "unicorn",
-    "node"
+    "node",
+    "sonarjs"
   ],
   "settings": {
     "import/parsers": {
@@ -850,6 +851,31 @@
     "node/prefer-promises/dns": "warn",
     "node/prefer-promises/fs": "warn",
     "node/process-exit-as-throw": "warn",
-    "node/shebang": "warn"
+    "node/shebang": "warn",
+    "sonarjs/cognitive-complexity": ["warn", 120],
+    "sonarjs/max-switch-cases": "warn",
+    "sonarjs/no-all-duplicated-branches": "warn",
+    "sonarjs/no-collapsible-if": "warn",
+    "sonarjs/no-collection-size-mischeck": "warn",
+    "sonarjs/no-duplicate-string": "off", // too restrictive
+    "sonarjs/no-duplicated-branches": "warn",
+    "sonarjs/no-element-overwrite": "warn",
+    "sonarjs/no-extra-arguments": "off", // not needed: covered by typescript
+    "sonarjs/no-identical-conditions": "warn",
+    "sonarjs/no-identical-functions": "warn",
+    "sonarjs/no-identical-expressions": "warn",
+    "sonarjs/no-inverted-boolean-check": "warn",
+    "sonarjs/no-one-iteration-loop": "warn",
+    "sonarjs/no-redundant-boolean": "warn",
+    "sonarjs/no-redundant-jump": "warn",
+    "sonarjs/no-same-line-conditional": "warn",
+    "sonarjs/no-small-switch": "warn",
+    "sonarjs/no-unused-collection": "warn",
+    "sonarjs/no-use-of-empty-return-value": "off", // not needed: covered by typescript
+    "sonarjs/no-useless-catch": "warn",
+    "sonarjs/prefer-immediate-return": "warn",
+    "sonarjs/prefer-object-literal": "warn",
+    "sonarjs/prefer-single-boolean-return": "warn",
+    "sonarjs/prefer-while": "warn"
   }
 }

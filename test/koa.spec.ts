@@ -1,4 +1,4 @@
-/* eslint-disable max-classes-per-file, max-lines, max-lines-per-function */
+/* eslint-disable max-classes-per-file, max-lines, max-lines-per-function, sonarjs/no-identical-functions */
 /* eslint-env node, mocha */
 
 import * as assert from 'assert';

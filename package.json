@@ -29,6 +29,7 @@
     "eslint-plugin-import": "~2.20.2",
     "eslint-plugin-jsdoc": "~25.4.1",
     "eslint-plugin-node": "~11.1.0",
+    "eslint-plugin-sonarjs": "~0.5.0",
     "eslint-plugin-unicorn": "~20.0.0",
     "express": "~4.17.1",
     "fastify": "~2.14.1",
