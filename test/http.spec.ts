@@ -2048,10 +2048,11 @@ describe('http2 server', () => {
 			});
 
 			req.on('error', () => {
-				if (!hasError) {
-					hasError = true;
-					done();
+				if (hasError) {
+					return;
 				}
+				hasError = true;
+				done();
 			});
 
 			req.setEncoding('utf8');

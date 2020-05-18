@@ -15,7 +15,8 @@
     "jsdoc",
     "unicorn",
     "node",
-    "sonarjs"
+    "sonarjs",
+    "@regru/prefer-early-return"
   ],
   "settings": {
     "import/parsers": {
@@ -876,6 +877,7 @@
     "sonarjs/prefer-immediate-return": "warn",
     "sonarjs/prefer-object-literal": "warn",
     "sonarjs/prefer-single-boolean-return": "warn",
-    "sonarjs/prefer-while": "warn"
+    "sonarjs/prefer-while": "warn",
+    "@regru/prefer-early-return/prefer-early-return": "warn"
   }
 }
