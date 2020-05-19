@@ -204,7 +204,7 @@ The storage will ignore files which have any parts of the path matching this pat
 
 `false` will disable it
 
-Defaults to `/^\../` (files/folders beginning with a dot)
+Defaults to `/^\./` (files/folders beginning with a dot)
 
 Example:
 
