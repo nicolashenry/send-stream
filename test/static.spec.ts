@@ -42,6 +42,9 @@ function createServer(
 					opts,
 				);
 			}
+			if (result.error) {
+				result.headers['X-Send-Stream-Error'] = result.error.code;
+			}
 			result.send(res);
 		})().catch(err => {
 			console.error(err);
@@ -113,6 +116,7 @@ describe('serveStatic()', () => {
 		it('should not choke on auth-looking URL', async () => {
 			await request(server)
 				.get('//todo@txt')
+				.expect('X-Send-Stream-Error', 'consecutive_slashes')
 				.expect(404);
 		});
 
@@ -164,6 +168,7 @@ describe('serveStatic()', () => {
 		it('should ignore hidden files', async () => {
 			await request(server)
 				.get('/.hidden')
+				.expect('X-Send-Stream-Error', 'ignored_file')
 				.expect(404);
 		});
 	});
@@ -259,6 +264,7 @@ describe('serveStatic()', () => {
 			it('should 404 when URL malformed', async () => {
 				await request(server)
 					.get('/%')
+					.expect('X-Send-Stream-Error', 'malformed_path')
 					.expect(404);
 			});
 

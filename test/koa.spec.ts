@@ -54,6 +54,9 @@ async function sendStorage<Reference, AttachedData>(
 		opts,
 	);
 	ctx.status = result.statusCode;
+	if (result.error) {
+		result.headers['X-Send-Stream-Error'] = result.error.code;
+	}
 	ctx.set(<{ [key: string]: string }> result.headers);
 	ctx.body = result.stream;
 	return result;
@@ -72,6 +75,9 @@ async function send(
 		opts,
 	);
 	ctx.status = result.statusCode;
+	if (result.error) {
+		result.headers['X-Send-Stream-Error'] = result.error.code;
+	}
 	ctx.set(<{ [key: string]: string }> result.headers);
 	ctx.body = result.stream;
 	return result;
@@ -162,6 +168,7 @@ describe('send(ctx, file)', () => {
 			it('should 404 when does not exist', async () => {
 				await request(server)
 					.get('/')
+					.expect('X-Send-Stream-Error', 'does_not_exist')
 					.expect(404);
 			});
 		});
@@ -230,6 +237,7 @@ describe('send(ctx, file)', () => {
 			it('should 404 with /', async () => {
 				await request(server)
 					.get('/')
+					.expect('X-Send-Stream-Error', 'trailing_slash')
 					.expect(404);
 			});
 		});
@@ -250,6 +258,7 @@ describe('send(ctx, file)', () => {
 			it('should 404 without /', async () => {
 				await request(server)
 					.get('/')
+					.expect('X-Send-Stream-Error', 'is_directory')
 					.expect(404);
 			});
 		});
@@ -272,6 +281,7 @@ describe('send(ctx, file)', () => {
 		it('should 404', async () => {
 			await request(server)
 				.get('/')
+				.expect('X-Send-Stream-Error', 'malformed_path')
 				.expect(404);
 		});
 	});
@@ -294,6 +304,7 @@ describe('send(ctx, file)', () => {
 			it('should 404 on null bytes', async () => {
 				await request(server)
 					.get('/')
+					.expect('X-Send-Stream-Error', 'forbidden_character')
 					.expect(404);
 			});
 		});
@@ -314,6 +325,7 @@ describe('send(ctx, file)', () => {
 			it('should 404 on encoded slash', async () => {
 				await request(server)
 					.get('/')
+					.expect('X-Send-Stream-Error', 'forbidden_character')
 					.expect(404);
 			});
 		});
@@ -421,6 +433,7 @@ describe('send(ctx, file)', () => {
 				await request(server)
 					.get('/')
 					.set('Accept-Encoding', 'br, gzip, identity')
+					.expect('X-Send-Stream-Error', 'does_not_exist')
 					.expect(404);
 			});
 		});
@@ -460,6 +473,7 @@ describe('send(ctx, file)', () => {
 				await request(server)
 					.get('/')
 					.set('Accept-Encoding', 'br, gzip, identity;q=0')
+					.expect('X-Send-Stream-Error', 'does_not_exist')
 					.expect(404);
 			});
 		});
@@ -1240,6 +1254,7 @@ describe('send(ctx, file)', () => {
 				await request(server)
 					.get('/')
 					.set('Accept-Encoding', 'br, gzip, identity')
+					.expect('X-Send-Stream-Error', 'is_directory')
 					.expect(404);
 			});
 		});
@@ -2455,6 +2470,7 @@ describe('send(ctx, file)', () => {
 			it('should handle custom streams open errors as 404', async () => {
 				await request(server)
 					.get('/')
+					.expect('X-Send-Stream-Error', 'unknown_error')
 					.expect(404);
 			});
 		});
