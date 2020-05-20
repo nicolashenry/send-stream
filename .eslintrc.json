@@ -498,6 +498,10 @@
       {
         "selector": "ForInStatement",
         "message": "Use for...of instead (use Object.keys if you need object keys)."
+      },
+      {
+        "selector": "MemberExpression[property.name='forEach']",
+        "message": "Use for...of instead."
       }
     ],
     "no-return-assign": "warn",
