@@ -1,3 +1,16 @@
+0.4.0
+==================
+
+* Enhance CI ans tests
+* Replace `tslint` with `eslint`
+* Enhance documentation and examples
+* Change default ignore pattern from `/^\../` to `/^\./`
+* Rename error code `forbidden_characters` to `forbidden_character`
+* Rename error code `ignored_files` to `ignored_file`
+* Restore `malformed_path` error
+* Throw `ignored_file` error before `trailing_slash`
+* Drop `responseClose` event
+* Add textual regexp support in options
 
 0.3.0
 ==================
