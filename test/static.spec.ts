@@ -132,7 +132,7 @@ describe('serveStatic()', () => {
 			await request(server)
 				.head('/todo.txt')
 				.expect(res => {
-					assert.ok(res.text === undefined, 'should not have body');
+					assert.ok((<string | undefined> res.text) === undefined, 'should not have body');
 				})
 				.expect(200);
 		});

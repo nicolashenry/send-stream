@@ -42,8 +42,8 @@ app.get('*', async (req, res, next) => {
 				html += '<li><a href="..">..</a></li>';
 			}
 
+			const { ignorePattern } = storage;
 			for (const file of files) {
-				const { ignorePattern } = storage;
 				if (ignorePattern && ignorePattern.test(file.name)) {
 					continue;
 				}

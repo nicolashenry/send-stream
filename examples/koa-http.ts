@@ -5,7 +5,7 @@ import Koa from 'koa';
 
 import { FileSystemStorage } from '../src/send-stream';
 
-const app = new Koa<object>();
+const app = new Koa();
 
 const storage = new FileSystemStorage(join(__dirname, 'assets'));
 

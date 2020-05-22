@@ -180,7 +180,7 @@ describe('send(file).pipe(res)', () => {
 			.expect(200)
 			.expect('Content-Length', '4')
 			.expect(res => {
-				assert.ok(res.text === undefined, 'should not have body');
+				assert.ok((<string | undefined> res.text) === undefined, 'should not have body');
 			});
 	});
 

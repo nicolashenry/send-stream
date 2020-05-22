@@ -36,20 +36,7 @@
     "@typescript-eslint/array-type": "warn",
     "@typescript-eslint/await-thenable": "warn",
     "@typescript-eslint/ban-ts-comment": "warn",
-    "@typescript-eslint/ban-types": [
-      "warn",
-      {
-        "types": {
-          "Object": "Avoid using the `Object` type. Did you mean `object`?",
-          "Function": "Avoid using the `Function` type. Prefer a specific function type, like `() => void`.",
-          "Boolean": "Avoid using the `Boolean` type. Did you mean `boolean`?",
-          "Number": "Avoid using the `Number` type. Did you mean `number`?",
-          "BigInt": "Avoid using the `BigInt` type. Did you mean `bigint`?",
-          "String": "Avoid using the `String` type. Did you mean `string`?",
-          "Symbol": "Avoid using the `Symbol` type. Did you mean `symbol`?"
-        }
-      }
-    ],
+    "@typescript-eslint/ban-types": "warn",
     "@typescript-eslint/brace-style": "warn",
     "@typescript-eslint/class-literal-property-style": "warn",
     "@typescript-eslint/comma-spacing": "warn",
@@ -175,7 +162,7 @@
     ],
     "@typescript-eslint/no-extra-semi": "warn",
     "@typescript-eslint/no-extraneous-class": "warn",
-    "@typescript-eslint/no-floating-promises": "warn",
+    "@typescript-eslint/no-floating-promises": ["warn", { "ignoreVoid": false }],
     "@typescript-eslint/no-for-in-array": "warn",
     "@typescript-eslint/no-implied-eval": "warn",
     "@typescript-eslint/no-inferrable-types": "warn",
@@ -283,7 +270,7 @@
     "block-scoped-var": "off", // not needed: seems useless
     "block-spacing": "warn",
     "brace-style": "off", // disabled by typescript-eslint
-    "camelcase": "warn",
+    "camelcase": "off", // not needed: covered by @typescript-eslint/naming-convention
     "capitalized-comments": "off", // not needed: seems useless
     "class-methods-use-this": "warn",
     "comma-dangle": [
@@ -299,7 +286,7 @@
     "computed-property-spacing": "warn",
     "consistent-return": "warn",
     "consistent-this": "off", // not needed: seems useless
-    "constructor-super": "off", // not needed: covered by typescript
+    "constructor-super": "off", // disabled by typescript-eslint
     "curly": "warn",
     "default-case": "off", // too restrictive
     "default-case-last": "warn",
@@ -331,7 +318,7 @@
       "multiline-arguments"
     ],
     "generator-star-spacing": "warn",
-    "getter-return": "off", // not needed: covered by typescript
+    "getter-return": "off", // disabled by typescript-eslint
     "grouped-accessor-pairs": "warn",
     "guard-for-in": "warn",
     "id-blacklist": [
@@ -418,7 +405,7 @@
         ]
       }
     ],
-    "no-const-assign": "off", // not needed: covered by typescript
+    "no-const-assign": "off", // disabled by typescript-eslint
     "no-constant-condition": "warn",
     "no-constructor-return": "warn",
     "no-continue": "off", // not needed: seems useless
@@ -426,10 +413,10 @@
     "no-debugger": "warn",
     "no-delete-var": "warn",
     "no-div-regex": "off", // not needed: seems useless
-    "no-dupe-args": "off", // not needed: covered by typescript
+    "no-dupe-args": "off", // disabled by typescript-eslint
     "no-dupe-class-members": "off", // disabled by typescript-eslint
     "no-dupe-else-if": "warn",
-    "no-dupe-keys": "off", // not needed: covered by typescript
+    "no-dupe-keys": "off", // disabled by typescript-eslint
     "no-duplicate-case": "warn",
     "no-duplicate-imports": "warn",
     "no-else-return": "warn",
@@ -448,12 +435,12 @@
     "no-extra-semi": "off", // disabled by typescript-eslint
     "no-fallthrough": "warn",
     "no-floating-decimal": "warn",
-    "no-func-assign": "off", // not needed: covered by typescript
+    "no-func-assign": "off", // disabled by typescript-eslint
     "no-global-assign": "off", // not needed: covered by typescript
     "no-implicit-coercion": "warn",
     "no-implicit-globals": "off", // not needed: covered by typescript
     "no-implied-eval": "warn",
-    "no-import-assign": "off", // not needed: covered by typescript
+    "no-import-assign": "off", // disabled by typescript-eslint
     "no-inline-comments": "off", // not needed: seems useless
     "no-inner-declarations": "warn",
     "no-invalid-regexp": "warn",
@@ -478,16 +465,16 @@
     "no-new": "warn",
     "no-new-func": "warn",
     "no-new-object": "warn",
-    "no-new-symbol": "warn",
+    "no-new-symbol": "off", // disabled by typescript-eslint
     "no-new-wrappers": "warn",
-    "no-obj-calls": "off", // not needed: covered by typescript
+    "no-obj-calls": "off", // disabled by typescript-eslint
     "no-octal": "off", // not needed: covered by typescript
     "no-octal-escape": "warn",
     "no-param-reassign": "warn",
     "no-plusplus": "off", // not needed: seems useless
     "no-proto": "off", // not needed: covered by typescript
     "no-prototype-builtins": "warn",
-    "no-redeclare": "warn",
+    "no-redeclare": "off", // disabled by typescript-eslint
     "no-regex-spaces": "warn",
     "no-restricted-exports": "off", // not needed: not any export name to exclude
     "no-restricted-globals": "off", // not needed: not any globals name to exclude
@@ -510,7 +497,7 @@
     "no-self-assign": "warn",
     "no-self-compare": "warn",
     "no-sequences": "warn",
-    "no-setter-return": "off", // not needed: covered by typescript
+    "no-setter-return": "off", // disabled by typescript-eslint
     "no-shadow": [
       "warn",
       {
@@ -522,19 +509,19 @@
     "no-tabs": "off", // not needed: opposite of project rules
     "no-template-curly-in-string": "warn",
     "no-ternary": "off", // not needed: seems useless
-    "no-this-before-super": "off", // not needed: covered by typescript
+    "no-this-before-super": "off", // disabled by typescript-eslint
     "no-throw-literal": "off", // not needed: covered by @typescript-eslint/no-throw-literal rule
     "no-trailing-spaces": "warn",
-    "no-undef": "warn",
+    "no-undef": "off", // disabled by typescript-eslint
     "no-undef-init": "warn",
     "no-undefined": "off", // not needed: seems useless
     "no-underscore-dangle": "warn",
     "no-unexpected-multiline": "warn",
     "no-unmodified-loop-condition": "warn",
     "no-unneeded-ternary": "warn",
-    "no-unreachable": "off", // not needed: covered by typescript
+    "no-unreachable": "off", // disabled by typescript-eslint
     "no-unsafe-finally": "warn",
-    "no-unsafe-negation": "off", // not needed: covered by typescript
+    "no-unsafe-negation": "off", // disabled by typescript-eslint
     "no-unused-expressions": "off", // disabled by typescript-eslint
     "no-unused-labels": "warn",
     "no-unused-vars": "off", // disabled by typescript-eslint
@@ -641,7 +628,7 @@
     "template-tag-spacing": "warn",
     "unicode-bom": "warn",
     "use-isnan": "warn",
-    "valid-typeof": "warn",
+    "valid-typeof": "off", // disabled by typescript-eslint
     "vars-on-top": "off", // not needed: seems useless
     "wrap-iife": "warn",
     "wrap-regex": "off", // not needed: seems useless

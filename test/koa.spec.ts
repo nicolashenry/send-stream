@@ -111,7 +111,7 @@ describe('send(ctx, file)', () => {
 		describe('should 200 on plain text', () => {
 			let server: http.Server;
 			before(() => {
-				const app = new Koa<object>();
+				const app = new Koa();
 
 				app.use(async ctx => {
 					await send(ctx, __dirname, '/fixtures-koa/hello.txt');
@@ -132,7 +132,7 @@ describe('send(ctx, file)', () => {
 		describe('should 200 on html', () => {
 			let server: http.Server;
 			before(() => {
-				const app = new Koa<object>();
+				const app = new Koa();
 
 				app.use(async ctx => {
 					await send(ctx, __dirname, '/fixtures-koa/world/index.html');
@@ -154,7 +154,7 @@ describe('send(ctx, file)', () => {
 		describe('should 404 when does not exist', () => {
 			let server: http.Server;
 			before(() => {
-				const app = new Koa<object>();
+				const app = new Koa();
 
 				app.use(async ctx => {
 					await send(ctx, __dirname, 'fixtures-koa/not-existing.txt');
@@ -178,7 +178,7 @@ describe('send(ctx, file)', () => {
 		describe('should 404 when existing outside root', () => {
 			let server: http.Server;
 			before(() => {
-				const app = new Koa<object>();
+				const app = new Koa();
 
 				app.use(async ctx => {
 					await send(ctx, __dirname, '/../package.json');
@@ -199,7 +199,7 @@ describe('send(ctx, file)', () => {
 		describe('should 404 when path existing inside root', () => {
 			let server: http.Server;
 			before(() => {
-				const app = new Koa<object>();
+				const app = new Koa();
 
 				app.use(async ctx => {
 					await send(ctx, join(__dirname, 'fixtures-koa'), '../../test/fixtures-koa/world/index.html');
@@ -223,7 +223,7 @@ describe('send(ctx, file)', () => {
 		describe('should 404 with /', () => {
 			let server: http.Server;
 			before(() => {
-				const app = new Koa<object>();
+				const app = new Koa();
 
 				app.use(async ctx => {
 					await send(ctx, __dirname, '/fixtures-koa/');
@@ -244,7 +244,7 @@ describe('send(ctx, file)', () => {
 		describe('should 404 without /', () => {
 			let server: http.Server;
 			before(() => {
-				const app = new Koa<object>();
+				const app = new Koa();
 
 				app.use(async ctx => {
 					await send(ctx, __dirname, '/fixtures-koa');
@@ -267,7 +267,7 @@ describe('send(ctx, file)', () => {
 	describe('when path is malformed', () => {
 		let server: http.Server;
 		before(() => {
-			const app = new Koa<object>();
+			const app = new Koa();
 
 			app.use(async ctx => {
 				await send(ctx, __dirname, '/%');
@@ -290,7 +290,7 @@ describe('send(ctx, file)', () => {
 		describe('should 404 on null bytes', () => {
 			let server: http.Server;
 			before(() => {
-				const app = new Koa<object>();
+				const app = new Koa();
 
 				app.use(async ctx => {
 					await send(ctx, __dirname, '/%00');
@@ -311,7 +311,7 @@ describe('send(ctx, file)', () => {
 		describe('should 404 on encoded slash', () => {
 			let server: http.Server;
 			before(() => {
-				const app = new Koa<object>();
+				const app = new Koa();
 
 				app.use(async ctx => {
 					await send(ctx, __dirname, '/%2F');
@@ -332,7 +332,7 @@ describe('send(ctx, file)', () => {
 		describe('should 404 on back slash', () => {
 			let server: http.Server;
 			before(() => {
-				const app = new Koa<object>();
+				const app = new Koa();
 
 				app.use(async ctx => {
 					await send(ctx, __dirname, '/\\');
@@ -356,7 +356,7 @@ describe('send(ctx, file)', () => {
 		describe('should return the path when no file is available', () => {
 			let server: http.Server;
 			before(() => {
-				const app = new Koa<object>();
+				const app = new Koa();
 
 				app.use(async ctx => {
 					const p = '/fixtures-koa/user.json';
@@ -401,7 +401,7 @@ describe('send(ctx, file)', () => {
 		describe('should 404 when not any file is available', () => {
 			let server: http.Server;
 			before(() => {
-				const app = new Koa<object>();
+				const app = new Koa();
 
 				app.use(async ctx => {
 					const p = '/fixtures-koa/notexisting.json';
@@ -441,7 +441,7 @@ describe('send(ctx, file)', () => {
 		describe('should 404 when identity is not accepted', () => {
 			let server: http.Server;
 			before(() => {
-				const app = new Koa<object>();
+				const app = new Koa();
 
 				app.use(async ctx => {
 					const p = '/fixtures-koa/hello.txt';
@@ -481,7 +481,7 @@ describe('send(ctx, file)', () => {
 		describe('should return the path when a directory have the encoding extension', () => {
 			let server: http.Server;
 			before(() => {
-				const app = new Koa<object>();
+				const app = new Koa();
 
 				app.use(async ctx => {
 					const p = '/fixtures-koa/hello.txt';
@@ -526,7 +526,7 @@ describe('send(ctx, file)', () => {
 		describe('should return the path when a directory have the encoding extension (with regexp as text)', () => {
 			let server: http.Server;
 			before(() => {
-				const app = new Koa<object>();
+				const app = new Koa();
 
 				app.use(async ctx => {
 					const p = '/fixtures-koa/hello.txt';
@@ -571,7 +571,7 @@ describe('send(ctx, file)', () => {
 		describe('should not return the path when a directory have the encoding extension but matcher not ok', () => {
 			let server: http.Server;
 			before(() => {
-				const app = new Koa<object>();
+				const app = new Koa();
 
 				app.use(async ctx => {
 					const p = '/fixtures-koa/hello.txt';
@@ -619,7 +619,7 @@ describe('send(ctx, file)', () => {
 		describe('should return path if .gz path exists and gzip not requested', () => {
 			let server: http.Server;
 			before(() => {
-				const app = new Koa<object>();
+				const app = new Koa();
 
 				app.use(async ctx => {
 					const sent = await send(ctx, __dirname, '/fixtures-koa/gzip.json', {
@@ -663,7 +663,7 @@ describe('send(ctx, file)', () => {
 		describe('should return path if .gz path exists and identity is the priority', () => {
 			let server: http.Server;
 			before(() => {
-				const app = new Koa<object>();
+				const app = new Koa();
 
 				app.use(async ctx => {
 					const sent = await send(ctx, __dirname, '/fixtures-koa/gzip.json', {
@@ -711,7 +711,7 @@ describe('send(ctx, file)', () => {
 		describe('should return path if .gz path exists and accept encoding is not valid', () => {
 			let server: http.Server;
 			before(() => {
-				const app = new Koa<object>();
+				const app = new Koa();
 
 				app.use(async ctx => {
 					const sent = await send(ctx, __dirname, '/fixtures-koa/gzip.json', {
@@ -755,7 +755,7 @@ describe('send(ctx, file)', () => {
 		describe('should return .gz path if .gz path exists and gzip requested', () => {
 			let server: http.Server;
 			before(() => {
-				const app = new Koa<object>();
+				const app = new Koa();
 
 				app.use(async ctx => {
 					const sent = await send(ctx, __dirname, '/fixtures-koa/gzip.json', {
@@ -800,7 +800,7 @@ describe('send(ctx, file)', () => {
 		describe('should return path when .br path exists and brotli not requested', () => {
 			let server: http.Server;
 			before(() => {
-				const app = new Koa<object>();
+				const app = new Koa();
 
 				app.use(async ctx => {
 					const sent = await send(ctx, __dirname, '/fixtures-koa/gzip.json', {
@@ -844,7 +844,7 @@ describe('send(ctx, file)', () => {
 		describe('should return .br path when .br path exists and brotli requested', () => {
 			let server: http.Server;
 			before(() => {
-				const app = new Koa<object>();
+				const app = new Koa();
 
 				app.use(async ctx => {
 					const sent = await send(ctx, __dirname, '/fixtures-koa/gzip.json', {
@@ -889,7 +889,7 @@ describe('send(ctx, file)', () => {
 		describe('should return .gz path when brotli not configured', () => {
 			let server: http.Server;
 			before(() => {
-				const app = new Koa<object>();
+				const app = new Koa();
 
 				app.use(async ctx => {
 					const sent = await send(ctx, __dirname, '/fixtures-koa/gzip.json', {
@@ -929,7 +929,7 @@ describe('send(ctx, file)', () => {
 		describe('should return path when identity encoding has more weight', () => {
 			let server: http.Server;
 			before(() => {
-				const app = new Koa<object>();
+				const app = new Koa();
 
 				app.use(async ctx => {
 					const sent = await send(ctx, __dirname, '/fixtures-koa/gzip.json', {
@@ -969,7 +969,7 @@ describe('send(ctx, file)', () => {
 		describe('should return path when no acceptable encoding', () => {
 			let server: http.Server;
 			before(() => {
-				const app = new Koa<object>();
+				const app = new Koa();
 
 				app.use(async ctx => {
 					const sent = await send(ctx, __dirname, '/fixtures-koa/gzip.json', {
@@ -1009,7 +1009,7 @@ describe('send(ctx, file)', () => {
 		describe('should return gz path when x-gzip is set', () => {
 			let server: http.Server;
 			before(() => {
-				const app = new Koa<object>();
+				const app = new Koa();
 
 				app.use(async ctx => {
 					const sent = await send(ctx, __dirname, '/fixtures-koa/gzip.json', {
@@ -1049,7 +1049,7 @@ describe('send(ctx, file)', () => {
 		describe('should return path when x-compress is set', () => {
 			let server: http.Server;
 			before(() => {
-				const app = new Koa<object>();
+				const app = new Koa();
 
 				app.use(async ctx => {
 					const sent = await send(ctx, __dirname, '/fixtures-koa/gzip.json', {
@@ -1089,7 +1089,7 @@ describe('send(ctx, file)', () => {
 		describe('should return gz path when asterisk encoding has more weight and gz available', () => {
 			let server: http.Server;
 			before(() => {
-				const app = new Koa<object>();
+				const app = new Koa();
 
 				app.use(async ctx => {
 					const sent = await send(ctx, __dirname, '/fixtures-koa/gzip.json', {
@@ -1133,7 +1133,7 @@ describe('send(ctx, file)', () => {
 		describe('should return path when empty content-encoding', () => {
 			let server: http.Server;
 			before(() => {
-				const app = new Koa<object>();
+				const app = new Koa();
 
 				app.use(async ctx => {
 					const sent = await send(ctx, __dirname, '/fixtures-koa/gzip.json', {
@@ -1177,7 +1177,7 @@ describe('send(ctx, file)', () => {
 		describe('should return path when no content-encoding', () => {
 			let server: http.Server;
 			before(() => {
-				const app = new Koa<object>();
+				const app = new Koa();
 
 				app.use(async ctx => {
 					// hack because superagent always add accept-encoding
@@ -1222,7 +1222,7 @@ describe('send(ctx, file)', () => {
 		describe('should 404 when is directory', () => {
 			let server: http.Server;
 			before(() => {
-				const app = new Koa<object>();
+				const app = new Koa();
 
 				app.use(async ctx => {
 					const p = '/fixtures-koa/world';
@@ -1264,7 +1264,7 @@ describe('send(ctx, file)', () => {
 		describe('should set cache-control', () => {
 			let server: http.Server;
 			before(() => {
-				const app = new Koa<object>();
+				const app = new Koa();
 
 				app.use(async ctx => {
 					const p = '/fixtures-koa/user.json';
@@ -1291,7 +1291,7 @@ describe('send(ctx, file)', () => {
 		describe('be unset through false option', () => {
 			let server: http.Server;
 			before(() => {
-				const app = new Koa<object>();
+				const app = new Koa();
 
 				app.use(async ctx => {
 					await send(ctx, __dirname, '/fixtures-koa/hello.txt', {
@@ -1321,7 +1321,7 @@ describe('send(ctx, file)', () => {
 		describe('should set the Content-Type', () => {
 			let server: http.Server;
 			before(() => {
-				const app = new Koa<object>();
+				const app = new Koa();
 
 				app.use(async ctx => {
 					await send(ctx, __dirname, '/fixtures-koa/user.json');
@@ -1342,7 +1342,7 @@ describe('send(ctx, file)', () => {
 		describe('should set the Content-Type with UTF-8 charset for html', () => {
 			let server: http.Server;
 			before(() => {
-				const app = new Koa<object>();
+				const app = new Koa();
 
 				app.use(async ctx => {
 					await send(ctx, __dirname, '/fixtures-koa/world/index.html');
@@ -1363,7 +1363,7 @@ describe('send(ctx, file)', () => {
 		describe('should set the Content-Type with no charset for html when disabled', () => {
 			let server: http.Server;
 			before(() => {
-				const app = new Koa<object>();
+				const app = new Koa();
 
 				app.use(async ctx => {
 					await send(ctx, __dirname, '/fixtures-koa/world/index.html', { defaultCharsets: false });
@@ -1384,7 +1384,7 @@ describe('send(ctx, file)', () => {
 		describe('should set the Content-Type with a charset when option used', () => {
 			let server: http.Server;
 			before(() => {
-				const app = new Koa<object>();
+				const app = new Koa();
 
 				app.use(async ctx => {
 					await send(ctx, __dirname, '/fixtures-koa/world/index.html', {
@@ -1407,7 +1407,7 @@ describe('send(ctx, file)', () => {
 		describe('should set the Content-Type with a charset when option used (with regexp as text)', () => {
 			let server: http.Server;
 			before(() => {
-				const app = new Koa<object>();
+				const app = new Koa();
 
 				app.use(async ctx => {
 					await send(ctx, __dirname, '/fixtures-koa/world/index.html', {
@@ -1430,7 +1430,7 @@ describe('send(ctx, file)', () => {
 		describe('should not set the Content-Type with a charset when content type does not match', () => {
 			let server: http.Server;
 			before(() => {
-				const app = new Koa<object>();
+				const app = new Koa();
 
 				app.use(async ctx => {
 					await send(ctx, __dirname, '/fixtures-koa/user.json', {
@@ -1453,7 +1453,7 @@ describe('send(ctx, file)', () => {
 		describe('should not set Content-Type when type is unknown, (koa force to application/octet-stream)', () => {
 			let server: http.Server;
 			before(() => {
-				const app = new Koa<object>();
+				const app = new Koa();
 
 				app.use(async ctx => {
 					await send(ctx, __dirname, '/fixtures-koa/unknown');
@@ -1477,7 +1477,7 @@ describe('send(ctx, file)', () => {
 		describe('should not set the Content-Type when type is not text', () => {
 			let server: http.Server;
 			before(() => {
-				const app = new Koa<object>();
+				const app = new Koa();
 
 				app.use(async ctx => {
 					await send(ctx, __dirname, '/fixtures-koa/test.png');
@@ -1498,7 +1498,7 @@ describe('send(ctx, file)', () => {
 		describe('be unset with false contentType option', () => {
 			let server: http.Server;
 			before(() => {
-				const app = new Koa<object>();
+				const app = new Koa();
 
 				app.use(async ctx => {
 					await send(ctx, __dirname, '/fixtures-koa/user.json', { contentType: false });
@@ -1519,7 +1519,7 @@ describe('send(ctx, file)', () => {
 		describe('should set to default the Content-Type when type is unknown', () => {
 			let server: http.Server;
 			before(() => {
-				const app = new Koa<object>();
+				const app = new Koa();
 
 				app.use(async ctx => {
 					await send(ctx, __dirname, '/fixtures-koa/unknown', { defaultContentType: 'application/x-test' });
@@ -1540,7 +1540,7 @@ describe('send(ctx, file)', () => {
 		describe('should use mime module instance when set', () => {
 			let server: http.Server;
 			before(() => {
-				const app = new Koa<object>();
+				const app = new Koa();
 
 				app.use(async ctx => {
 					await send(
@@ -1566,7 +1566,7 @@ describe('send(ctx, file)', () => {
 		describe('should 500 when mime module instance throw', () => {
 			let server: http.Server;
 			before(() => {
-				const app = new Koa<object>();
+				const app = new Koa();
 
 				app.use(async ctx => {
 					await send(
@@ -1600,7 +1600,7 @@ describe('send(ctx, file)', () => {
 		describe('should set the inline Content-Disposition by default', () => {
 			let server: http.Server;
 			before(() => {
-				const app = new Koa<object>();
+				const app = new Koa();
 
 				app.use(async ctx => {
 					await send(ctx, __dirname, '/fixtures-koa/user.json');
@@ -1621,7 +1621,7 @@ describe('send(ctx, file)', () => {
 		describe('should set the attachment with content-disposition module option', () => {
 			let server: http.Server;
 			before(() => {
-				const app = new Koa<object>();
+				const app = new Koa();
 
 				app.use(async ctx => {
 					await send(ctx, __dirname, '/fixtures-koa/user.json', {
@@ -1644,7 +1644,7 @@ describe('send(ctx, file)', () => {
 		describe('should set the attachment with content-disposition module option and filename', () => {
 			let server: http.Server;
 			before(() => {
-				const app = new Koa<object>();
+				const app = new Koa();
 
 				app.use(async ctx => {
 					await send(ctx, __dirname, '/fixtures-koa/user.json', {
@@ -1668,7 +1668,7 @@ describe('send(ctx, file)', () => {
 		describe('should set the attachment with content-disposition module option and no filename', () => {
 			let server: http.Server;
 			before(() => {
-				const app = new Koa<object>();
+				const app = new Koa();
 
 				app.use(async ctx => {
 					await send(ctx, __dirname, '/fixtures-koa/user.json', {
@@ -1692,7 +1692,7 @@ describe('send(ctx, file)', () => {
 		describe('should unset content-disposition with false option', () => {
 			let server: http.Server;
 			before(() => {
-				const app = new Koa<object>();
+				const app = new Koa();
 
 				app.use(async ctx => {
 					await send(ctx, __dirname, '/fixtures-koa/user.json', {
@@ -1720,7 +1720,7 @@ describe('send(ctx, file)', () => {
 	describe('should set the Content-Length', () => {
 		let server: http.Server;
 		before(() => {
-			const app = new Koa<object>();
+			const app = new Koa();
 
 			app.use(async ctx => {
 				await send(ctx, __dirname, '/fixtures-koa/user.json');
@@ -1742,7 +1742,7 @@ describe('send(ctx, file)', () => {
 		describe('should set Last-Modified', () => {
 			let server: http.Server;
 			before(() => {
-				const app = new Koa<object>();
+				const app = new Koa();
 
 				app.use(async ctx => {
 					await send(ctx, __dirname, '/fixtures-koa/user.json');
@@ -1763,7 +1763,7 @@ describe('send(ctx, file)', () => {
 		describe('should not set Last-Modified when false option', () => {
 			let server: http.Server;
 			before(() => {
-				const app = new Koa<object>();
+				const app = new Koa();
 
 				app.use(async ctx => {
 					await send(ctx, __dirname, '/fixtures-koa/user.json', { lastModified: false });
@@ -1789,7 +1789,7 @@ describe('send(ctx, file)', () => {
 	describe('should answer 304 when data is fresh', () => {
 		let server: http.Server;
 		before(() => {
-			const app = new Koa<object>();
+			const app = new Koa();
 
 			app.use(async ctx => {
 				await send(ctx, __dirname, '/fixtures-koa/user.json');
@@ -1813,7 +1813,7 @@ describe('send(ctx, file)', () => {
 		describe('should respond 206 to a range request', () => {
 			let server: http.Server;
 			before(() => {
-				const app = new Koa<object>();
+				const app = new Koa();
 
 				app.use(async ctx => {
 					await send(ctx, __dirname, '/fixtures-koa/hello.txt');
@@ -1837,7 +1837,7 @@ describe('send(ctx, file)', () => {
 		describe('should respond 206 to a range request if range fresh (last modified)', () => {
 			let server: http.Server;
 			before(() => {
-				const app = new Koa<object>();
+				const app = new Koa();
 
 				app.use(async ctx => {
 					await send(ctx, __dirname, '/fixtures-koa/hello.txt');
@@ -1863,7 +1863,7 @@ describe('send(ctx, file)', () => {
 		describe('should respond 200 to a range request if range not fresh (last modified)', () => {
 			let server: http.Server;
 			before(() => {
-				const app = new Koa<object>();
+				const app = new Koa();
 
 				app.use(async ctx => {
 					await send(ctx, __dirname, '/fixtures-koa/hello.txt');
@@ -1886,7 +1886,7 @@ describe('send(ctx, file)', () => {
 		describe('should respond 200 to a range request if range not fresh (etag)', () => {
 			let server: http.Server;
 			before(() => {
-				const app = new Koa<object>();
+				const app = new Koa();
 
 				app.use(async ctx => {
 					await send(ctx, __dirname, '/fixtures-koa/hello.txt');
@@ -1909,7 +1909,7 @@ describe('send(ctx, file)', () => {
 		describe('should respond 206 to a range request if range fresh (empty last modified)', () => {
 			let server: http.Server;
 			before(() => {
-				const app = new Koa<object>();
+				const app = new Koa();
 
 				app.use(async ctx => {
 					await send(ctx, __dirname, '/fixtures-koa/hello.txt', { lastModified: false });
@@ -1933,7 +1933,7 @@ describe('send(ctx, file)', () => {
 		describe('should respond 206 to a range request if range fresh (empty etag)', () => {
 			let server: http.Server;
 			before(() => {
-				const app = new Koa<object>();
+				const app = new Koa();
 
 				app.use(async ctx => {
 					await send(ctx, __dirname, '/fixtures-koa/hello.txt', { etag: false });
@@ -1956,7 +1956,7 @@ describe('send(ctx, file)', () => {
 		describe('should respond 206 to a multiple range request', () => {
 			let server: http.Server;
 			before(() => {
-				const app = new Koa<object>();
+				const app = new Koa();
 
 				app.use(async ctx => {
 					await send(ctx, __dirname, '/fixtures-koa/hello.txt');
@@ -1989,7 +1989,7 @@ describe('send(ctx, file)', () => {
 		describe('should respond to a multiple range request with unknown content type', () => {
 			let server: http.Server;
 			before(() => {
-				const app = new Koa<object>();
+				const app = new Koa();
 
 				app.use(async ctx => {
 					await send(ctx, __dirname, '/fixtures-koa/unknown');
@@ -2013,7 +2013,7 @@ describe('send(ctx, file)', () => {
 		describe('should respond 416 when cannot be satisfied', () => {
 			let server: http.Server;
 			before(() => {
-				const app = new Koa<object>();
+				const app = new Koa();
 
 				app.use(async ctx => {
 					await send(ctx, __dirname, '/fixtures-koa/hello.txt');
@@ -2036,7 +2036,7 @@ describe('send(ctx, file)', () => {
 		describe('should 416 not bytes ranges', () => {
 			let server: http.Server;
 			before(() => {
-				const app = new Koa<object>();
+				const app = new Koa();
 
 				app.use(async ctx => {
 					await send(ctx, __dirname, '/fixtures-koa/hello.txt');
@@ -2060,7 +2060,7 @@ describe('send(ctx, file)', () => {
 		describe('should set ETag', () => {
 			let server: http.Server;
 			before(() => {
-				const app = new Koa<object>();
+				const app = new Koa();
 
 				app.use(async ctx => {
 					await send(ctx, __dirname, '/fixtures-koa/user.json');
@@ -2081,7 +2081,7 @@ describe('send(ctx, file)', () => {
 		describe('be unset through etag false option', () => {
 			let server: http.Server;
 			before(() => {
-				const app = new Koa<object>();
+				const app = new Koa();
 
 				app.use(async ctx => {
 					await send(ctx, __dirname, '/fixtures-koa/hello.txt', {
@@ -2111,7 +2111,7 @@ describe('send(ctx, file)', () => {
 		describe('should handle read errors to a simple request', () => {
 			let server: http.Server;
 			before(() => {
-				const app = new Koa<object>();
+				const app = new Koa();
 
 				class ErrorStorage extends FileSystemStorage {
 					// eslint-disable-next-line class-methods-use-this
@@ -2146,7 +2146,7 @@ describe('send(ctx, file)', () => {
 		describe('should handle stream creation error', () => {
 			let server: http.Server;
 			before(() => {
-				const app = new Koa<object>();
+				const app = new Koa();
 
 				class ErrorStorage extends FileSystemStorage {
 					// eslint-disable-next-line class-methods-use-this
@@ -2175,7 +2175,7 @@ describe('send(ctx, file)', () => {
 		describe('should handle read errors to a multiple range request', () => {
 			let server: http.Server;
 			before(() => {
-				const app = new Koa<object>();
+				const app = new Koa();
 
 				class ErrorStorage extends FileSystemStorage {
 					// eslint-disable-next-line class-methods-use-this
@@ -2216,7 +2216,7 @@ describe('send(ctx, file)', () => {
 		describe('should handle read errors to a multiple range request on second stream', () => {
 			let server: http.Server;
 			before(() => {
-				const app = new Koa<object>();
+				const app = new Koa();
 
 				let first = true;
 				class ErrorStorage extends FileSystemStorage {
@@ -2265,7 +2265,7 @@ describe('send(ctx, file)', () => {
 		describe('should handle close error', () => {
 			let server: http.Server;
 			before(() => {
-				const app = new Koa<object>();
+				const app = new Koa();
 
 				class ErrorStorage extends FileSystemStorage {
 					// eslint-disable-next-line @typescript-eslint/require-await,class-methods-use-this
@@ -2296,7 +2296,7 @@ describe('send(ctx, file)', () => {
 		describe('should handle close error after read error', () => {
 			let server: http.Server;
 			before(() => {
-				const app = new Koa<object>();
+				const app = new Koa();
 
 				class ErrorStorage extends FileSystemStorage {
 					// eslint-disable-next-line class-methods-use-this
@@ -2342,7 +2342,7 @@ describe('send(ctx, file)', () => {
 		describe('should handle unknown streams', () => {
 			let server: http.Server;
 			before(() => {
-				const app = new Koa<object>();
+				const app = new Koa();
 				class UnknownStorage extends FileSystemStorage {
 					async open(path: FilePath, requestHeaders: StorageRequestHeaders): Promise<StorageInfo<FileData>> {
 						const res = await super.open(path, requestHeaders);
@@ -2385,7 +2385,7 @@ describe('send(ctx, file)', () => {
 		describe('should handle custom streams', () => {
 			let server: http.Server;
 			before(() => {
-				const app = new Koa<object>();
+				const app = new Koa();
 				class CustomStorage extends Storage<undefined, undefined> {
 					// eslint-disable-next-line @typescript-eslint/require-await,class-methods-use-this
 					async open() {
@@ -2438,7 +2438,7 @@ describe('send(ctx, file)', () => {
 		describe('should handle custom streams open errors as 404', () => {
 			let server: http.Server;
 			before(() => {
-				const app = new Koa<object>();
+				const app = new Koa();
 				class CustomStorage extends Storage<undefined, undefined> {
 					// eslint-disable-next-line @typescript-eslint/require-await,class-methods-use-this
 					async open():
@@ -2479,7 +2479,7 @@ describe('send(ctx, file)', () => {
 	describe('when fsModule option used', () => {
 		let server: http.Server;
 		before(async () => {
-			const app = new Koa<object>();
+			const app = new Koa();
 			await memfs.fs.promises.writeFile('/foo.txt', 'bar');
 
 			app.use(async ctx => {
@@ -2501,7 +2501,7 @@ describe('send(ctx, file)', () => {
 	describe('when path array is used', () => {
 		let server: http.Server;
 		before(() => {
-			const app = new Koa<object>();
+			const app = new Koa();
 
 			app.use(async ctx => {
 				await send(ctx, __dirname, ['', 'fixtures-koa', 'hello.txt']);
