@@ -371,12 +371,9 @@ export class FileSystemStorage extends Storage<FilePath, FileData> {
 		let selectedEncodingMapping;
 		// test path against encoding map
 		if (encodingsMappings) {
-			for (const encodingMapping of encodingsMappings) {
-				if (encodingMapping.matcher.test(resolvedPath)) {
-					selectedEncodingMapping = encodingMapping;
-					break;
-				}
-			}
+			selectedEncodingMapping = encodingsMappings.find(
+				encodingMapping => encodingMapping.matcher.test(resolvedPath),
+			);
 		}
 		try {
 			if (selectedEncodingMapping) {
