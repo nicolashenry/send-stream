@@ -452,6 +452,7 @@
     "no-lone-blocks": "warn",
     "no-lonely-if": "warn",
     "no-loop-func": "warn",
+    "no-loss-of-precision": "warn",
     "no-magic-numbers": "off", // disabled by typescript-eslint
     "no-misleading-character-class": "warn",
     "no-mixed-operators": "warn",
