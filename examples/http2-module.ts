@@ -35,7 +35,9 @@ app.on('stream', (stream, headers) => {
 		const message = 'Internal Server Error';
 		stream.respond({
 			':status': 500,
+			// eslint-disable-next-line @typescript-eslint/naming-convention
 			'Content-Type': 'text/plain; charset=UTF-8',
+			// eslint-disable-next-line @typescript-eslint/naming-convention
 			'Content-Length': String(Buffer.byteLength(message)),
 		});
 		stream.end(message);

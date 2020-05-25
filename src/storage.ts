@@ -486,9 +486,13 @@ export abstract class Storage<Reference, AttachedData> {
 		return new StreamResponse<AttachedData>(
 			405,
 			{
+				// eslint-disable-next-line @typescript-eslint/naming-convention
 				'Content-Length': String(statusMessageBuffer.byteLength),
+				// eslint-disable-next-line @typescript-eslint/naming-convention
 				'Content-Type': 'text/plain; charset=UTF-8',
+				// eslint-disable-next-line @typescript-eslint/naming-convention
 				'X-Content-Type-Options': 'nosniff',
+				// eslint-disable-next-line @typescript-eslint/naming-convention
 				Allow: allowedMethods.join(', '),
 			},
 			isHeadMethod ? new EmptyStream() : new BufferStream(statusMessageBuffer),
@@ -510,8 +514,11 @@ export abstract class Storage<Reference, AttachedData> {
 		return new StreamResponse<AttachedData>(
 			404,
 			{
+				// eslint-disable-next-line @typescript-eslint/naming-convention
 				'Content-Length': String(statusMessageBuffer.byteLength),
+				// eslint-disable-next-line @typescript-eslint/naming-convention
 				'Content-Type': 'text/plain; charset=UTF-8',
+				// eslint-disable-next-line @typescript-eslint/naming-convention
 				'X-Content-Type-Options': 'nosniff',
 			},
 			isHeadMethod ? new EmptyStream() : new BufferStream(statusMessageBuffer),
@@ -551,8 +558,11 @@ export abstract class Storage<Reference, AttachedData> {
 		return new StreamResponse(
 			412,
 			{
+				// eslint-disable-next-line @typescript-eslint/naming-convention
 				'Content-Type': 'text/plain; charset=UTF-8',
+				// eslint-disable-next-line @typescript-eslint/naming-convention
 				'X-Content-Type-Options': 'nosniff',
+				// eslint-disable-next-line @typescript-eslint/naming-convention
 				'Content-Length': String(statusMessageBuffer.byteLength),
 			},
 			isHeadMethod ? new EmptyStream() : new BufferStream(statusMessageBuffer),
@@ -576,9 +586,13 @@ export abstract class Storage<Reference, AttachedData> {
 		return new StreamResponse(
 			416,
 			{
+				// eslint-disable-next-line @typescript-eslint/naming-convention
 				'Content-Range': contentRange('bytes', size),
+				// eslint-disable-next-line @typescript-eslint/naming-convention
 				'Content-Type': 'text/plain; charset=UTF-8',
+				// eslint-disable-next-line @typescript-eslint/naming-convention
 				'X-Content-Type-Options': 'nosniff',
+				// eslint-disable-next-line @typescript-eslint/naming-convention
 				'Content-Length': String(statusMessageBuffer.byteLength),
 			},
 			isHeadMethod ? new EmptyStream() : new BufferStream(statusMessageBuffer),

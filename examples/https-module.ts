@@ -29,7 +29,9 @@ const app = https.createServer(options, (req, res) => {
 		}
 		const message = 'Internal Server Error';
 		res.writeHead(500, {
+			// eslint-disable-next-line @typescript-eslint/naming-convention
 			'Content-Type': 'text/plain; charset=UTF-8',
+			// eslint-disable-next-line @typescript-eslint/naming-convention
 			'Content-Length': String(Buffer.byteLength(message)),
 		});
 		res.end(message);

@@ -96,16 +96,27 @@ export interface RequestHeaders {
  */
 export interface ResponseHeaders {
 	[header: string]: string | string[] | undefined;
+	// eslint-disable-next-line @typescript-eslint/naming-convention
 	'Content-Encoding'?: string;
+	// eslint-disable-next-line @typescript-eslint/naming-convention
 	'Last-Modified'?: string;
+	// eslint-disable-next-line @typescript-eslint/naming-convention
 	'Cache-Control'?: string;
+	// eslint-disable-next-line @typescript-eslint/naming-convention
 	'Content-Type'?: string;
+	// eslint-disable-next-line @typescript-eslint/naming-convention
 	'ETag'?: string;
+	// eslint-disable-next-line @typescript-eslint/naming-convention
 	'Accept-Ranges'?: string;
+	// eslint-disable-next-line @typescript-eslint/naming-convention
 	'Content-Range'?: string;
+	// eslint-disable-next-line @typescript-eslint/naming-convention
 	'Content-Length'?: string;
+	// eslint-disable-next-line @typescript-eslint/naming-convention
 	'Vary'?: string;
+	// eslint-disable-next-line @typescript-eslint/naming-convention
 	'Content-Disposition'?: string;
+	// eslint-disable-next-line @typescript-eslint/naming-convention
 	'Allow'?: string;
 }
 

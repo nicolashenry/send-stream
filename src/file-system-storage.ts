@@ -36,6 +36,7 @@ export interface FileData {
  */
 export interface FSModule {
 	constants: {
+		// eslint-disable-next-line @typescript-eslint/naming-convention
 		O_RDONLY: number;
 	};
 	open: (
@@ -527,9 +528,13 @@ export class FileSystemStorage extends Storage<FilePath, FileData> {
 			return new StreamResponse<FileData>(
 				301,
 				{
+					// eslint-disable-next-line @typescript-eslint/naming-convention
 					'Content-Length': String(statusMessageBuffer.byteLength),
+					// eslint-disable-next-line @typescript-eslint/naming-convention
 					'Content-Type': 'text/plain; charset=UTF-8',
+					// eslint-disable-next-line @typescript-eslint/naming-convention
 					'X-Content-Type-Options': 'nosniff',
+					// eslint-disable-next-line @typescript-eslint/naming-convention
 					Location: error.redirectionPath,
 				},
 				isHeadMethod ? new EmptyStream() : new BufferStream(statusMessageBuffer),
