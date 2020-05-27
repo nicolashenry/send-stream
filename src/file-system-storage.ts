@@ -4,162 +4,26 @@ import { join } from 'path';
 import { Readable } from 'stream';
 import { promisify } from 'util';
 
-import { Storage, StorageRequestHeaders, StorageOptions } from './storage';
+import { Storage } from './storage';
+import { StorageRequestHeaders, StorageInfo, StorageError } from './storage-models';
 import { acceptEncodings, StreamRange } from './utils';
-import { StorageError, StorageInfo, StreamResponse } from './response';
-import { EmptyStream, BufferStream } from './streams';
-
-/**
- * File data used by storage
- */
-export interface FileData {
-	/**
-	 * Path parts used from root
-	 */
-	pathParts: readonly string[];
-	/**
-	 * Resolved path with path parts joined with root
-	 */
-	resolvedPath: string;
-	/**
-	 * File stats
-	 */
-	stats: fs.Stats;
-	/**
-	 * File descriptor
-	 */
-	fd: number;
-}
-
-/**
- * "fs" module like type used by this library
- */
-export interface FSModule {
-	constants: {
-		// eslint-disable-next-line @typescript-eslint/naming-convention
-		O_RDONLY: number;
-	};
-	open: (
-		path: string,
-		flags: number,
-		callback: (err: NodeJS.ErrnoException | null, fd: number) => void
-	) => void;
-	fstat: (fd: number, callback: (err: NodeJS.ErrnoException | null, stats: fs.Stats) => void) => void;
-	close: (fd: number, callback: (err: NodeJS.ErrnoException | null) => void) => void;
-	createReadStream: (
-		path: string,
-		options: {
-			fd: number;
-			start?: number;
-			end?: number;
-			autoClose: boolean;
-		}
-	) => Readable;
-}
-
-/**
- * Content encoding path
- */
-export interface ContentEncodingPath {
-	/**
-	 * Content encoding name (will be used in content-encoding header if the file is found)
-	 */
-	name: string;
-	/**
-	 * Path location (will replace $* groups from matched regexp)
-	 */
-	path: string;
-}
-
-/**
- * Content encoding mapping
- */
-export interface ContentEncodingMapping {
-	/**
-	 * Regexp used to match file path
-	 */
-	matcher: RegExp | string;
-	/**
-	 * Encodings to search once file path is matched
-	 */
-	encodings: readonly ContentEncodingPath[];
-}
-
-/**
- * FileSystemStorage options
- */
-export interface FileSystemStorageOptions extends StorageOptions {
-	/**
-	 * Content encoding mapping, e.g. [{ matcher: /^(.+\\.json)$/, encodings: [{ name: 'gzip', path: '$1.gz' }] }]
-	 */
-	contentEncodingMappings?: readonly ContentEncodingMapping[];
-	/**
-	 * Ignore pattern, defaults to /^\../ (files/folders beginning with a dot)
-	 */
-	ignorePattern?: RegExp | string | false;
-	/**
-	 * "fs" module to use
-	 */
-	fsModule?: FSModule;
-}
-
-/**
- * URL encoded path or path parts
- */
-export type FilePath = string | readonly string[];
-
-/**
- * File system storage error
- */
-export class FileSystemStorageError extends StorageError<FilePath> {
-	/**
-	 * Path parts relative to root
-	 */
-	readonly pathParts: readonly string[];
-
-	/**
-	 * Resolved path
-	 */
-	readonly resolvedPath?: string;
-
-	/**
-	 * Create file system storage error
-	 *
-	 * @param code - error code
-	 * @param message - error message
-	 * @param path - encoded path or path parts
-	 * @param pathParts - path parts
-	 * @param resolvedPath - resolved path
-	 */
-	constructor(code: string, message: string, path: FilePath, pathParts: readonly string[], resolvedPath?: string) {
-		super(code, message, path);
-		this.name = 'FileSystemStorageError';
-		this.pathParts = pathParts;
-		this.resolvedPath = resolvedPath;
-	}
-}
-
-/**
- * File system storage error which ask for redirection
- */
-export class RedirectFileSystemStorageError extends FileSystemStorageError {
-	readonly redirectionPath: string;
-
-	/**
-	 * Create file system storage error which ask for redirection
-	 *
-	 * @param code - error code
-	 * @param message - error message
-	 * @param path - encoded path or path parts
-	 * @param pathParts - path parts
-	 * @param redirectionPath - the required redirected path
-	 */
-	constructor(code: string, message: string, path: FilePath, pathParts: readonly string[], redirectionPath: string) {
-		super(code, message, path, pathParts);
-		this.name = 'RedirectFileSystemStorageError';
-		this.redirectionPath = redirectionPath;
-	}
-}
+import {
+	FilePath,
+	FileData,
+	FSModule,
+	FileSystemStorageOptions,
+	FileStats,
+	RegexpContentEncodingMapping,
+	MalformedPathError,
+	NotNormalizedError,
+	InvalidPathError,
+	ConsecutiveSlashesError,
+	ForbiddenCharacterError,
+	IgnoredFileError,
+	TrailingSlashError,
+	IsDirectoryError,
+	DoesNotExistError,
+} from './file-system-storage-models';
 
 /**
  * File system storage
@@ -167,13 +31,13 @@ export class RedirectFileSystemStorageError extends FileSystemStorageError {
 export class FileSystemStorage extends Storage<FilePath, FileData> {
 	readonly root: string;
 
-	readonly contentEncodingMappings?: readonly (ContentEncodingMapping & { matcher: RegExp })[];
+	readonly contentEncodingMappings: readonly RegexpContentEncodingMapping[] | false;
 
-	readonly ignorePattern?: RegExp | false;
+	readonly ignorePattern: RegExp | false;
 
 	readonly fsOpen: (path: string, flags: number) => Promise<number>;
 
-	readonly fsFstat: (fd: number) => Promise<fs.Stats>;
+	readonly fsFstat: (fd: number) => Promise<FileStats>;
 
 	readonly fsClose: (fd: number) => Promise<void>;
 
@@ -193,18 +57,24 @@ export class FileSystemStorage extends Storage<FilePath, FileData> {
 	) {
 		super(opts);
 		this.root = root;
-		const { contentEncodingMappings: encodingsMap } = opts;
-		if (encodingsMap) {
-			this.contentEncodingMappings = encodingsMap.map(encodingConfig => {
-				const encodings = [...encodingConfig.encodings];
-				if (!encodings.find(e => e.name === 'identity')) {
-					encodings.push({ name: 'identity', path: '$1' });
+		const { contentEncodingMappings } = opts;
+		if (contentEncodingMappings) {
+			this.contentEncodingMappings = contentEncodingMappings.map(encodingConfig => {
+				const encodingPreferences = new Map(
+					encodingConfig.encodings.map(({ name, path }, order) => [name, { path, order }]),
+				);
+				let identityEncodingPreference = encodingPreferences.get('identity');
+				if (!identityEncodingPreference) {
+					identityEncodingPreference = { path: '$1', order: encodingConfig.encodings.length };
+					encodingPreferences.set('identity', identityEncodingPreference);
 				}
 				const matcher = encodingConfig.matcher instanceof RegExp
 					? encodingConfig.matcher
 					: new RegExp(encodingConfig.matcher, 'u');
-				return { matcher, encodings };
+				return { matcher, encodingPreferences, identityEncodingPreference };
 			});
+		} else {
+			this.contentEncodingMappings = false;
 		}
 		this.ignorePattern = opts.ignorePattern === undefined
 			? /^\./u
@@ -229,23 +99,26 @@ export class FileSystemStorage extends Storage<FilePath, FileData> {
 		let pathParts;
 
 		if (typeof path === 'string') {
-			const fullPath = path.startsWith('/') ? path : `/${ path }`;
-			const { pathname, search } = new URL(`http://localhost${ fullPath }`);
+			if (!path.startsWith('/')) {
+				throw new StorageError(
+					`'${ path }' is not a valid path (should start with '/')`,
+					path,
+				);
+			}
+			const { pathname, search } = new URL(`http://localhost${ path }`);
 			pathParts = pathname.split('/');
 			try {
 				pathParts = pathParts.map(decodeURIComponent);
 			} catch (err) {
-				throw new FileSystemStorageError(
-					'malformed_path',
+				throw new MalformedPathError(
 					String(err),
 					path,
 					pathParts,
 				);
 			}
 			const normalizedPath = pathname + search;
-			if (fullPath !== normalizedPath) {
-				throw new RedirectFileSystemStorageError(
-					'not_normalized_path',
+			if (path !== normalizedPath) {
+				throw new NotNormalizedError(
 					`${ String(path) } is not normalized`,
 					path,
 					pathParts,
@@ -259,22 +132,35 @@ export class FileSystemStorage extends Storage<FilePath, FileData> {
 				|| pathParts[0] !== ''
 				|| pathParts.findIndex(part => /^\.\.?$/u.test(part)) !== -1
 			) {
-				throw new FileSystemStorageError(
-					'invalid_path',
+				throw new InvalidPathError(
 					`[${
-						String(path.join(', '))
-					}] is not a valid path (should start with '' and not contain '..' or '.')`,
+						String(path.map(v => `'${ v }'`).join(', '))
+					}] is not a valid path array (should start with '' and not contain '..' or '.')`,
 					path,
 					pathParts,
 				);
 			}
 		}
 
+		const emptyPartIndex = pathParts.indexOf('', 1);
+		let haveTrailingSlash = false;
+
+		// trailing or consecutive slashes
+		if (emptyPartIndex !== -1) {
+			if (emptyPartIndex !== pathParts.length - 1) {
+				throw new ConsecutiveSlashesError(
+					`${ String(path) } have two consecutive slashes`,
+					path,
+					pathParts,
+				);
+			}
+			haveTrailingSlash = true;
+		}
+
 		// slashes or null bytes
 		// eslint-disable-next-line no-control-regex
 		if (pathParts.find(v => /[/?<>\\:*|":\u0000-\u001F\u0080-\u009F]/u.test(v))) {
-			throw new FileSystemStorageError(
-				'forbidden_character',
+			throw new ForbiddenCharacterError(
 				`${ String(path) } has one or more forbidden characters`,
 				path,
 				pathParts,
@@ -284,31 +170,20 @@ export class FileSystemStorage extends Storage<FilePath, FileData> {
 		// ignored files
 		const { ignorePattern } = this;
 		if (ignorePattern && pathParts.find(v => ignorePattern.test(v)) !== undefined) {
-			throw new FileSystemStorageError(
-				'ignored_file',
+			throw new IgnoredFileError(
 				`${ String(path) } is ignored`,
 				path,
 				pathParts,
 			);
 		}
 
-		const emptyPartIndex = pathParts.indexOf('', 1);
-
-		// trailing or consecutive slashes
-		if (emptyPartIndex !== -1) {
-			if (emptyPartIndex !== pathParts.length - 1) {
-				throw new FileSystemStorageError(
-					'consecutive_slashes',
-					`${ String(path) } have two consecutive slashes`,
-					path,
-					pathParts,
-				);
-			}
-			throw new FileSystemStorageError(
-				'trailing_slash',
+		// trailing slash
+		if (haveTrailingSlash) {
+			throw new TrailingSlashError(
 				`${ String(path) } have a trailing slash`,
 				path,
 				pathParts,
+				pathParts.slice(0, -1),
 			);
 		}
 
@@ -378,19 +253,18 @@ export class FileSystemStorage extends Storage<FilePath, FileData> {
 		}
 		try {
 			if (selectedEncodingMapping) {
-				const { encodings: selectedEncodings } = selectedEncodingMapping;
+				const { encodingPreferences, identityEncodingPreference } = selectedEncodingMapping;
 				// if path can have encoded version
 				vary = 'Accept-Encoding';
 				const acceptableEncodings = acceptEncodings(
-					requestHeaders,
-					selectedEncodings.map(e => e.name),
-				)
-					// eslint-disable-next-line @typescript-eslint/no-non-null-assertion
-					.map(e => selectedEncodings.find(v => v.name === e)!);
-				for (const acceptableEncoding of acceptableEncodings) {
+					requestHeaders['accept-encoding'],
+					encodingPreferences,
+					identityEncodingPreference,
+				);
+				for (const [acceptableEncodingName, { path: acceptableEncodingPath }] of acceptableEncodings) {
 					const encodedPath = resolvedPath.replace(
 						selectedEncodingMapping.matcher,
-						acceptableEncoding.path,
+						acceptableEncodingPath,
 					);
 					// eslint-disable-next-line no-await-in-loop
 					fd = await this.safeOpen(encodedPath);
@@ -400,9 +274,8 @@ export class FileSystemStorage extends Storage<FilePath, FileData> {
 					// eslint-disable-next-line no-await-in-loop
 					stats = await this.stat(fd, encodedPath);
 					if (stats.isDirectory()) {
-						if (acceptableEncoding.name === 'identity') {
-							throw new FileSystemStorageError(
-								'is_directory',
+						if (acceptableEncodingName === 'identity') {
+							throw new IsDirectoryError(
 								`${ resolvedPath } is a directory`,
 								path,
 								pathParts,
@@ -416,13 +289,12 @@ export class FileSystemStorage extends Storage<FilePath, FileData> {
 						await this.earlyClose(directoryFd, encodedPath);
 						continue;
 					}
-					contentEncoding = acceptableEncoding.name;
+					contentEncoding = acceptableEncodingName;
 					resolvedPath = encodedPath;
 					break;
 				}
 				if (fd === undefined || !stats) {
-					throw new FileSystemStorageError(
-						'does_not_exist',
+					throw new DoesNotExistError(
 						`${ resolvedPath } does not exist`,
 						path,
 						pathParts,
@@ -433,8 +305,7 @@ export class FileSystemStorage extends Storage<FilePath, FileData> {
 				// if path can not have encoded version
 				fd = await this.safeOpen(resolvedPath);
 				if (fd === undefined) {
-					throw new FileSystemStorageError(
-						'does_not_exist',
+					throw new DoesNotExistError(
 						`${ resolvedPath } does not exist`,
 						path,
 						pathParts,
@@ -443,8 +314,7 @@ export class FileSystemStorage extends Storage<FilePath, FileData> {
 				}
 				stats = await this.stat(fd, resolvedPath);
 				if (stats.isDirectory()) {
-					throw new FileSystemStorageError(
-						'is_directory',
+					throw new IsDirectoryError(
 						`${ resolvedPath } is a directory`,
 						path,
 						pathParts,
@@ -512,36 +382,5 @@ export class FileSystemStorage extends Storage<FilePath, FileData> {
 	 */
 	async close(storageInfo: StorageInfo<FileData>): Promise<void> {
 		return this.fsClose(storageInfo.attachedData.fd);
-	}
-
-	/**
-	 * Create storage error response (Not Found response usually, Moved Permanently to redirect on normalized path)
-	 *
-	 * @param isHeadMethod - true if HEAD method is used
-	 * @param error - the error causing this response
-	 * @returns the error response
-	 */
-	createStorageError(isHeadMethod: boolean, error: unknown) {
-		if (error instanceof RedirectFileSystemStorageError) {
-			// Moved Permanently
-			const statusMessageBuffer = Buffer.from(`=> ${ error.redirectionPath }`);
-			return new StreamResponse<FileData>(
-				301,
-				{
-					// eslint-disable-next-line @typescript-eslint/naming-convention
-					'Content-Length': String(statusMessageBuffer.byteLength),
-					// eslint-disable-next-line @typescript-eslint/naming-convention
-					'Content-Type': 'text/plain; charset=UTF-8',
-					// eslint-disable-next-line @typescript-eslint/naming-convention
-					'X-Content-Type-Options': 'nosniff',
-					// eslint-disable-next-line @typescript-eslint/naming-convention
-					Location: error.redirectionPath,
-				},
-				isHeadMethod ? new EmptyStream() : new BufferStream(statusMessageBuffer),
-				undefined,
-				error,
-			);
-		}
-		return super.createStorageError(isHeadMethod, error);
 	}
 }

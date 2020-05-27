@@ -11,6 +11,7 @@ import {
 	FileData,
 	StorageInfo,
 	FileSystemStorageOptions,
+	FileStats,
 } from '../src/send-stream';
 
 const readdir = promisify(fs.readdir);
@@ -49,7 +50,7 @@ class EtagHashCacheStorage extends FileSystemStorage {
 		}));
 	}
 
-	async addFileInEtagCache(filePath: string, stats: fs.Stats, fd: number) {
+	async addFileInEtagCache(filePath: string, stats: FileStats, fd: number) {
 		const stream = fs.createReadStream(
 			filePath,
 			{ start: 0, end: stats.size - 1, fd },

@@ -182,7 +182,10 @@
       "warn",
       {
         "allowAliases": "in-unions-and-intersections",
-        "allowCallbacks": "always"
+        "allowCallbacks": "always",
+        "allowLiterals": "in-unions-and-intersections",
+        "allowMappedTypes": "in-unions-and-intersections",
+        "allowTupleTypes": "always"
       }
     ],
     "@typescript-eslint/no-unnecessary-boolean-literal-compare": "warn",
@@ -349,7 +352,7 @@
     "lines-between-class-members": "off", // disabled by typescript-eslint
     "max-classes-per-file": [
       "warn",
-      5
+      10
     ],
     "max-depth": [
       "warn",
@@ -638,7 +641,7 @@
     "import/default": "off", // not needed: covered by typescript
     "import/dynamic-import-chunkname": "off", // not needed: seems useless
     "import/export": "off", // not needed: covered by typescript
-    "import/exports-last": "warn",
+    "import/exports-last": "off", // not needed: seems useless
     "import/extensions": "off", // not needed: covered by typescript
     "import/first": "warn",
     "import/group-exports": "off", // not needed: seems useless

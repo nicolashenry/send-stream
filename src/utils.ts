@@ -2,82 +2,6 @@ import crypto from 'crypto';
 import { promisify } from 'util';
 
 /**
- * Test if etag is weak
- *
- * @param etag - etag
- * @returns true if weak
- */
-function isWeakEtag(etag: string) {
-	return etag.startsWith('W/"');
-}
-
-/**
- * Test if etag is strong
- *
- * @param etag - etag
- * @returns true if strong
- */
-function isStrongEtag(etag: string) {
-	return etag.startsWith('"');
-}
-
-
-/**
- * Get opaque etag (remove weak part)
- *
- * @param etag - etag
- * @returns opaque etag
- */
-function opaqueEtag(etag: string) {
-	if (isWeakEtag(etag)) {
-		return etag.slice(2);
-	}
-
-	return etag;
-}
-
-/**
- * Compare etag with weak validation
- *
- * @param a - etag a
- * @param b - etag b
- * @returns true if match
- */
-function weakEtagMatch(a: string, b: string) {
-	return opaqueEtag(a) === opaqueEtag(b);
-}
-
-/**
- * Compare etag with strong validation
- *
- * @param a - etag a
- * @param b - etag b
- * @returns true if match
- */
-function strongEtagMatch(a: string, b: string) {
-	return isStrongEtag(a) && isStrongEtag(b) && a === b;
-}
-
-/**
- * Parse multiple value header
- *
- * @param header - header to parse
- * @returns splitted headers
- */
-function parseMultiValueHeader(header: string) {
-	const splitted = header
-		.replace(/^[ \t]+/u, '')
-		.replace(/[ \t]+$/u, '')
-		.split(/[ \t]*,[ \t]*/u);
-	while (splitted.length > 0 && splitted[0] === '') {
-		splitted.shift();
-	}
-	return splitted;
-}
-
-const defaultAcceptedContentEncoding = ['identity'];
-
-/**
  * Request headers
  */
 export interface RequestHeaders {
@@ -146,11 +70,11 @@ export const randomBytes = promisify(crypto.randomBytes);
 /**
  * Charset mapping
  */
-export interface CharsetMapping {
+export interface RegexpCharsetMapping {
 	/**
 	 * Regexp pattern used to match content type
 	 */
-	matcher: RegExp | string;
+	matcher: RegExp;
 	/**
 	 * Charset to use with the matched content type
 	 */
@@ -166,7 +90,7 @@ export interface CharsetMapping {
  */
 export function getContentTypeWithCharset(
 	contentType: string,
-	charsetMappings: readonly (CharsetMapping & { matcher: RegExp })[],
+	charsetMappings: readonly RegexpCharsetMapping[],
 ) {
 	for (const { matcher, charset } of charsetMappings) {
 		if (matcher.test(contentType)) {
@@ -208,6 +132,62 @@ export function statsToEtag(size: number, mtimeMs: number, contentEncoding?: str
  */
 export function millisecondsToUTCString(timeMs: number) {
 	return new Date(timeMs).toUTCString();
+}
+
+/**
+ * Test if etag is weak
+ *
+ * @param etag - etag
+ * @returns true if weak
+ */
+function isWeakEtag(etag: string) {
+	return etag.startsWith('W/"');
+}
+
+/**
+ * Test if etag is strong
+ *
+ * @param etag - etag
+ * @returns true if strong
+ */
+function isStrongEtag(etag: string) {
+	return etag.startsWith('"');
+}
+
+/**
+ * Get opaque etag (remove weak part)
+ *
+ * @param etag - etag
+ * @returns opaque etag
+ */
+function opaqueEtag(etag: string) {
+	if (isWeakEtag(etag)) {
+		return etag.slice(2);
+	}
+
+	return etag;
+}
+
+/**
+ * Compare etag with weak validation
+ *
+ * @param a - etag a
+ * @param b - etag b
+ * @returns true if match
+ */
+function weakEtagMatch(a: string, b: string) {
+	return opaqueEtag(a) === opaqueEtag(b);
+}
+
+/**
+ * Compare etag with strong validation
+ *
+ * @param a - etag a
+ * @param b - etag b
+ * @returns true if match
+ */
+function strongEtagMatch(a: string, b: string) {
+	return isStrongEtag(a) && isStrongEtag(b) && a === b;
 }
 
 /**
@@ -256,28 +236,49 @@ export function contentRange(rangeType: string, size: number, range?: StreamRang
 }
 
 /**
+ * Parse multiple value header
+ *
+ * @param header - header to parse
+ * @returns splitted headers
+ */
+function parseMultiValueHeader(header: string) {
+	const splitted = header
+		.replace(/^[ \t]+/u, '')
+		.replace(/[ \t]+$/u, '')
+		.split(/[ \t]*,[ \t]*/u);
+	while (splitted.length > 0 && splitted[0] === '') {
+		splitted.shift();
+	}
+	return splitted;
+}
+
+/**
  * Get accepted content encodings
  *
- * @param requestHeaders - request headers
- * @param preferences - order of preference
+ * @param acceptEncoding - Accept-Encoding header value
+ * @param encodingPreferences - order of preference
+ * @param identityEncodingPreference - identity encoding preference
  * @returns accepted content encodings
  */
-export function acceptEncodings(requestHeaders: RequestHeaders, preferences: string[]) {
-	const { 'accept-encoding': acceptEncoding } = requestHeaders;
-	if (acceptEncoding === undefined) {
-		return defaultAcceptedContentEncoding;
+export function acceptEncodings<T extends { order: number }>(
+	acceptEncoding: string | undefined,
+	encodingPreferences: ReadonlyMap<string, T>,
+	identityEncodingPreference: T,
+): readonly (readonly [string, T])[] {
+	if (!acceptEncoding) {
+		return [['identity', identityEncodingPreference]];
 	}
 	const values = parseMultiValueHeader(acceptEncoding);
 	if (values.length === 0) {
-		return defaultAcceptedContentEncoding;
+		return [['identity', identityEncodingPreference]];
 	}
-	const result = new Map<string, number>();
+	const result = new Map<string, T & { weight: number }>();
 	for (const value of values) {
 		// eslint-disable-next-line max-len
 		const match = /^(?<rawEncoding>[-!#$%&'*+.^_`|~A-Za-z0-9]+)(?:[ \t]*;[ \t]*q=(?<weightOption>0(?:\.\d{1,3})?|1(?:\.0{1,3})?))?$/u
 			.exec(value);
 		if (!match || !match.groups) {
-			return defaultAcceptedContentEncoding;
+			return [['identity', identityEncodingPreference]];
 		}
 		const { groups: { rawEncoding, weightOption } } = match;
 		let encoding = rawEncoding.toLowerCase();
@@ -287,43 +288,37 @@ export function acceptEncodings(requestHeaders: RequestHeaders, preferences: str
 			encoding = 'compress';
 		}
 		const weight = weightOption ? Number(weightOption) : 1;
-		if (
-			(weight !== 0 || encoding === 'identity')
-			&& (
-				preferences.includes(encoding)
-				|| encoding === '*'
-			)
-		) {
-			result.set(encoding, weight);
+		if (encoding === '*') {
+			for (const [prefEnc, pref] of encodingPreferences) {
+				if (!result.has(prefEnc)) {
+					result.set(prefEnc, { ...pref, weight });
+				}
+			}
+		} else {
+			const pref = encodingPreferences.get(encoding);
+			if (pref) {
+				result.set(encoding, { ...pref, weight });
+			}
 		}
 	}
 	if (result.size === 0) {
-		return defaultAcceptedContentEncoding;
-	}
-	const asterisk = result.get('*');
-	if (asterisk !== undefined) {
-		result.delete('*');
-		for (const p of preferences.filter(pref => !result.has(pref))) {
-			result.set(p, asterisk);
-		}
+		return [['identity', identityEncodingPreference]];
 	}
 	const identity = result.get('identity');
 	if (identity === undefined) {
-		result.set('identity', 0);
-	} else if (identity === 0) {
-		result.delete('identity');
+		result.set('identity', { ...identityEncodingPreference, weight: -1 });
 	}
 
-	const resultEntries = [...result.entries()];
-	resultEntries.sort(([aEncoding, aWeight], [bEncoding, bWeight]) => {
+	const resultEntries = [...result.entries()].filter(([, { weight }]) => weight !== 0);
+	resultEntries.sort(([, { weight: aWeight, order: aOrder }], [, { weight: bWeight, order: bOrder }]) => {
 		let diff = bWeight - aWeight;
 		if (diff === 0) {
-			diff = preferences.indexOf(aEncoding) - preferences.indexOf(bEncoding);
+			diff = aOrder - bOrder;
 		}
 		return diff;
 	});
 
-	return resultEntries.map(([encoding]) => encoding);
+	return resultEntries;
 }
 
 /**

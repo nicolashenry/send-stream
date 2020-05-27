@@ -93,7 +93,7 @@ app.listen(3000, () => {
 
 ## API
 
-### new FileSystemStorage(root, [options])
+### `new FileSystemStorage(root, [options])`
 
 Create a new `FileSystemStorage` which is a stream storage giving access to the files inside the given root folder.
 
@@ -119,6 +119,7 @@ const myMime = new Mime({
 new FileSystemStorage(directory, { mimeModule: myMime })
 ```
 
+---
 ##### defaultContentType
 
 Configures the default content type that will be used if the content type is unknown.
@@ -131,6 +132,7 @@ Example:
 new FileSystemStorage(directory, { defaultContentType: 'application/octet-stream' })
 ```
 
+---
 ##### defaultCharsets
 
 Configures the default charset that will be appended to the content type header.
@@ -145,6 +147,7 @@ Example:
 new FileSystemStorage(directory, { defaultCharsets: [{ matcher: /^(?:text\/html$/, charset: 'UTF-8' }] })
 ```
 
+---
 ##### maxRanges
 
 Configure how many ranges can be accessed in one request.
@@ -161,6 +164,7 @@ Example:
 new FileSystemStorage(directory, { maxRanges: 10 })
 ```
 
+---
 ##### weakEtags
 
 The storage will generate strong etags by default, when set to true the storage will generate weak etags instead.
@@ -173,6 +177,7 @@ Example:
 new FileSystemStorage(directory, { weakEtags: true })
 ```
 
+---
 ##### contentEncodingMappings
 
 Configure content encoding file mappings.
@@ -198,6 +203,7 @@ new FileSystemStorage(
 )
 ```
 
+---
 ##### ignorePattern
 
 The storage will ignore files which have any parts of the path matching this pattern.
@@ -212,6 +218,7 @@ Example:
 new FileSystemStorage(directory, { ignorePattern: /^myPrivateFolder$/ })
 ```
 
+---
 ##### fsModule
 
 Let you override the `fs` module that will be used to retrieve files.
@@ -223,8 +230,9 @@ const memfs = require('memfs');
 memfs.fs.writeFileSync('/hello.txt', 'world');
 new FileSystemStorage(directory, { fsModule: memfs })
 ```
+---
 
-### storage.prepareResponse(path, req, [options])
+### `storage.prepareResponse(path, req, [options])`
 
 Create asynchronously a new `StreamResponse` for the given path relative to root ready to be sent to a server response.
 
@@ -252,6 +260,7 @@ Example:
 await storage.prepareResponse(req.url, req, { cacheControl: 'public, max-age=31536000' })
 ```
 
+---
 ##### lastModified
 
 Custom last-modified header value, overrides storage value (defaults to mtimeMs converted to UTC)
@@ -264,6 +273,7 @@ Example:
 await storage.prepareResponse(req.url, req, { lastModified: 'Wed, 21 Oct 2015 07:28:00 GMT' })
 ```
 
+---
 ##### etag
 
 Custom etag header value, overrides storage value (defaults to size + mtimeMs + content encoding)
@@ -276,6 +286,7 @@ Example:
 await storage.prepareResponse(req.url, req, { etag: '"123"' })
 ```
 
+---
 ##### contentType
 
 Custom content-type header value, overrides storage value (defaults to storage content type)
@@ -288,6 +299,7 @@ Example:
 await storage.prepareResponse(req.url, req, { contentType: 'text/plain' })
 ```
 
+---
 ##### contentDispositionType
 
 Custom content-disposition header type value, overrides storage value
@@ -300,6 +312,7 @@ Example:
 await storage.prepareResponse(req.url, req, { contentDispositionType: 'attachment' })
 ```
 
+---
 ##### contentDispositionFilename
 
 Custom content-disposition header filename value, overrides storage value
@@ -312,6 +325,7 @@ Example:
 await storage.prepareResponse(req.url, req, { contentDispositionFilename: 'file.txt' })
 ```
 
+---
 ##### statusCode
 
 Defines the statusCode that will be used in response (instead of 200/206)
@@ -325,6 +339,7 @@ Example:
 await storage.prepareResponse(req.url, req, { statusCode: 404 })
 ```
 
+---
 ##### allowedMethods
 
 By default GET and HEAD are the only allowed http methods, set this parameter to change allowed methods
@@ -337,68 +352,102 @@ Example:
 await storage.prepareResponse(req.url, req, { allowedMethods: ['POST'] })
 ```
 
-### streamResponse.statusCode
+---
+### `streamResponse.statusCode`
 
 The status code that match the required resource.
 
 For example, it can be 200 if the file is found, 206 for a range request, 404 if the file does not exists, ...
 
-### streamResponse.headers
+---
+### `streamResponse.headers`
 
 The headers that match the required resource.
 
-### streamResponse.error
+---
+### `streamResponse.error`
 
 If an error occured while reading (e.g. if the file is not found),
 a 404 status is returned and this property will contains the error
 which have been returned by the storage. See [errors](#errors)
 
-### streamResponse.send(res)
+---
+### `streamResponse.send(res)`
 
 Send the current response through the response in parameter
 
 The `res` is the related response, it can be a `http.ServerResponse` or a `http2.Http2ServerResponse` or a `http2.ServerHttp2Stream`.
 
 ## Errors
+---
+### `StorageError`
 
-### error.code = 'malformed_path'
+All errors inherits from this one.
+
+The following property is available:
+- `reference`: the storage reference linked to the error
+
+---
+### `FileSystemStorageError` (extends StorageError)
+
+All errors from FileSystemStorage inherits from this one.
+
+The following additional property is available:
+- `pathParts`: the path parts linked to the error
+
+---
+### `MalformedPathError` (extends FileSystemStorageError)
 
 The path cannot be parsed for some reason.
 
-### error.code = 'not_normalized_path'
+---
+### `NotNormalizedPathError` (extends FileSystemStorageError)
 
 Storages only accept normalized paths for security reasons.
-Note this will redirect to the normalized path instead of 404.
-For example, `'/../index.html'` will be refused and redirected to `'/index.html'`.
 
-### error.code = 'forbidden_character'
+For example, `'/../index.html'` access will be refused.
+
+The following additional property is available:
+- `normalizedPath`: the encoded normalized path (you can redirect to it if you want to)
+
+---
+### `ForbiddenCharacterError` (extends FileSystemStorageError)
 
 Storages refuse some forbidden characters like encoded slashes.
 
-### error.code = 'consecutive_slashes'
+---
+### `ConsecutiveSlashesError` (extends FileSystemStorageError)
 
 Storages refuse pathes like `'/dir//index.html'` because it should not contain two consecutive slashes.
 
-### error.code = 'trailing_slash'
+---
+### `TrailingSlashError` (extends FileSystemStorageError)
 
 Storages refuse pathes like `'/dir/'` because it is probably pointing to a directory.
 
-### error.code = 'ignored_file'
+---
+### `IgnoredFileError` (extends FileSystemStorageError)
 
 Storages can ignore some files/folders composing the path (see [ignorePattern](#ignorePattern)).
 
-### error.code = 'is_directory'
+---
+### `IsDirectoryError` (extends FileSystemStorageError)
 
 Storages refuse pathes matching directories.
 
-### error.code = 'does_not_exist'
+The following additional property is available:
+- `resolvedPath`: the resolved file system path
+
+---
+### `DoesNotExistError` (extends FileSystemStorageError)
 
 When the file can not be found.
 
-### error.code = 'unknown_error'
 
-When any other error occurs.
+The following additional property is available:
+- `resolvedPath`: the resolved file system path
 
+---
 ## Examples
 
 See `examples/` folder in this repository for full examples
@@ -409,7 +458,7 @@ See `examples/` folder in this repository for full examples
 let result = (await storage.prepareResponse(req.url, req));
 const error = result.error;
 // if the path is not found and the reason is a trailing slash then try to load matching index.html
-if (error && error instanceof FileSystemStorageError && error.code === 'trailing_slash') {
+if (error instanceof TrailingSlashError) {
   result.stream.destroy();
   result = await storage.prepareResponse([...error.pathParts.slice(0, -1), 'index.html'], req);
 }
@@ -429,7 +478,7 @@ const readdir = util.promisify(fs.readdir);
 
 const result = await storage.prepareResponse(req.url, req);
 // if the path is not found and the reason is a trailing slash then try to load files in folder
-if (result.error && result.error instanceof FileSystemStorageError && result.error.code === 'trailing_slash') {
+if (result.error instanceof TrailingSlashError) {
   const { error: { pathParts } } = result;
   let files;
   try {
@@ -478,8 +527,7 @@ let result = await storage.prepareResponse(req.url, req);
 const error = result.error;
 // serve root index.html unless path has extension
 if (
-  error
-  && error instanceof FileSystemStorageError
+  error instanceof FileSystemStorageError
   && (
     error.pathParts.length === 0
     || extname(error.pathParts[error.pathParts.length - 1]) === ''

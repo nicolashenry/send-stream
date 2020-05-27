@@ -7,7 +7,7 @@ import contentDisposition from 'content-disposition';
 import mime from 'mime';
 import parseRange from 'range-parser';
 
-import { StreamResponse, StorageInfo, StorageError } from './response';
+import { StreamResponse } from './response';
 import { EmptyStream, BufferStream, MultiStream } from './streams';
 import {
 	millisecondsToUTCString,
@@ -19,116 +19,21 @@ import {
 	randomBytes,
 	StreamRange,
 	ResponseHeaders,
-	CharsetMapping,
+	RegexpCharsetMapping,
 	BufferOrStreamRange,
 } from './utils';
+import {
+	MimeModule,
+	StorageOptions,
+	PrepareResponseOptions,
+	StorageRequestHeaders,
+	StorageInfo,
+	StorageError,
+} from './storage-models';
 
-const defaultCharset = <const> [{ matcher: /^(?:text\/.+|application\/(?:javascript|json))$/u, charset: 'UTF-8' }];
-
+const DEFAULT_CHARSETS = <const> [{ matcher: /^(?:text\/.+|application\/(?:javascript|json))$/u, charset: 'UTF-8' }];
 const DEFAULT_ALLOWED_METHODS = <const> ['GET', 'HEAD'];
 const DEFAULT_MAX_RANGES = 200;
-
-/**
- * Storage.prepareResponse options
- */
-export interface PrepareResponseOptions {
-	/**
-	 * Custom cache-control header value, overrides storage value
-	 *
-	 * false to remove header
-	 */
-	cacheControl?: string | false;
-	/**
-	 * Custom last-modified header value, overrides storage value
-	 *
-	 * `false` to remove header
-	 */
-	lastModified?: string | false;
-	/**
-	 * Custom etag header value, overrides storage value
-	 *
-	 * `false` to remove header
-	 */
-	etag?: string | false;
-	/**
-	 * Custom content-type header value, overrides storage value
-	 *
-	 * `false` to remove header
-	 */
-	contentType?: string | false;
-	/**
-	 * Custom content-disposition header type value, overrides storage value
-	 *
-	 * `false` to remove header
-	 */
-	contentDispositionType?: 'inline' | 'attachment' | false;
-	/**
-	 * Custom content-disposition header filename value, overrides storage value
-	 *
-	 * `false` to remove filename from header
-	 */
-	contentDispositionFilename?: string | false;
-	/**
-	 * Status code that will be returned in stream response
-	 * Setting this will disable conditional GET and partial responses for this request
-	 *
-	 * Defaults to `undefined`
-	 */
-	statusCode?: number;
-	/**
-	 * By default GET and HEAD are the only allowed http methods, set this parameter to change allowed methods
-	 *
-	 * Defaults to `['GET', 'HEAD']`
-	 */
-	allowedMethods?: readonly string[];
-}
-
-/**
- * Request headers
- */
-export interface StorageRequestHeaders {
-	[header: string]: string | string[] | undefined;
-}
-
-/**
- * Mime module type
- */
-export interface MimeModule {
-	getType: (path: string) => string | null;
-}
-
-/**
- * Storage options
- */
-export interface StorageOptions {
-	/**
-	 * "mime" module instance to use
-	 */
-	mimeModule?: MimeModule;
-	/**
-	 * Default content type, e.g. "application/octet-stream"
-	 */
-	defaultContentType?: string;
-	/**
-	 * Default charsets mapping, defaults to UTF-8 for text/* and application/(javascript|json) content types,
-	 * e.g. `[{ matcher: /^text\/.*\/, charset: 'windows-1252' }]`
-	 *
-	 * Can be disabled by setting it to `false`
-	 */
-	defaultCharsets?: readonly CharsetMapping[] | false;
-	/**
-	 * Maximum ranges supported for range requests (default is `200`)
-	 *
-	 * `1` to disable multipart/byteranges, `0` or less to disable range requests
-	 */
-	maxRanges?: number;
-	/**
-	 * Set weak etags by default instead strong ones
-	 *
-	 * Defaults to `false`
-	 */
-	weakEtags?: boolean;
-}
 
 /**
  * send-stream storage base class
@@ -136,9 +41,9 @@ export interface StorageOptions {
 export abstract class Storage<Reference, AttachedData> {
 	readonly mimeModule: MimeModule;
 
-	readonly defaultContentType?: string;
+	readonly defaultContentType: string | false;
 
-	readonly defaultCharsets: readonly (CharsetMapping & { matcher: RegExp })[] | false;
+	readonly defaultCharsets: readonly RegexpCharsetMapping[] | false;
 
 	readonly maxRanges: number;
 
@@ -151,9 +56,9 @@ export abstract class Storage<Reference, AttachedData> {
 	 */
 	constructor(opts: StorageOptions = { }) {
 		this.mimeModule = opts.mimeModule ? opts.mimeModule : mime;
-		this.defaultContentType = opts.defaultContentType;
+		this.defaultContentType = opts.defaultContentType ? opts.defaultContentType : false;
 		this.defaultCharsets = opts.defaultCharsets === undefined
-			? defaultCharset
+			? DEFAULT_CHARSETS
 			: opts.defaultCharsets === false
 				? opts.defaultCharsets
 				: opts.defaultCharsets.map(({ matcher, charset }) => ({
@@ -209,10 +114,10 @@ export abstract class Storage<Reference, AttachedData> {
 	 * @param storageInfo - storage information (unused unless overriden)
 	 * @returns content-type header
 	 */
-	createContentType(storageInfo: StorageInfo<AttachedData>): string | undefined {
+	createContentType(storageInfo: StorageInfo<AttachedData>): string | false {
 		const { fileName } = storageInfo;
 		if (!fileName) {
-			return undefined;
+			return false;
 		}
 		const type = this.mimeModule.getType(fileName);
 		if (!type) {
@@ -523,7 +428,7 @@ export abstract class Storage<Reference, AttachedData> {
 			},
 			isHeadMethod ? new EmptyStream() : new BufferStream(statusMessageBuffer),
 			undefined,
-			error instanceof StorageError ? error : new StorageError('unknown_error', 'Unknown error', error),
+			error instanceof StorageError ? error : new StorageError('Unknown error', error),
 		);
 	}
 

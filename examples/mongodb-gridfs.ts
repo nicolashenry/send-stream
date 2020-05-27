@@ -32,7 +32,7 @@ class GridFSStorage extends Storage<string, File> {
 		const filename = relative('/', decodeURIComponent(new URL(`http://localhost${ path }`).pathname));
 		const files = await (<mongodb.Cursor<File>> this.bucket.find({ filename }, { limit: 1 })).toArray();
 		if (files.length === 0) {
-			throw new StorageError('not_found', `filename ${ filename } not found`, path);
+			throw new StorageError(`filename ${ filename } not found`, path);
 		}
 		const [file] = files;
 		return {

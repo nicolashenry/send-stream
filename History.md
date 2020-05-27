@@ -1,3 +1,12 @@
+?.?.? (unreleased)
+==================
+
+* Each error now have a specific class instead of a code (breaking change)
+* Encoded path must start with / now (breaking change)
+* Not normalized paths are now a 404 instead of 301 like other errors (redirects was unsafe depending on use)
+* Fix some content encoding edge cases
+* Multiple refactoring
+
 0.4.0
 ==================
 

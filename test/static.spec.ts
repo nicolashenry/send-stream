@@ -10,7 +10,7 @@ import {
 	FileSystemStorageOptions,
 	FileSystemStorage,
 	PrepareResponseOptions,
-	FileSystemStorageError,
+	TrailingSlashError,
 } from '../src/send-stream';
 
 const fixtures = path.join(__dirname, '/fixtures-static');
@@ -31,10 +31,7 @@ function createServer(
 			}
 			// eslint-disable-next-line @typescript-eslint/no-non-null-assertion
 			let result = await storage.prepareResponse(req.url!, req, opts);
-			if (result.error
-				&& result.error instanceof FileSystemStorageError
-				&& result.error.code === 'trailing_slash'
-			) {
+			if (result.error instanceof TrailingSlashError) {
 				result.stream.destroy();
 				result = await storage.prepareResponse(
 					[...result.error.pathParts.slice(0, -1), 'index.html'],
@@ -43,7 +40,7 @@ function createServer(
 				);
 			}
 			if (result.error) {
-				result.headers['X-Send-Stream-Error'] = result.error.code;
+				result.headers['X-Send-Stream-Error'] = result.error.name;
 			}
 			result.send(res);
 		})().catch(err => {
@@ -116,7 +113,7 @@ describe('serveStatic()', () => {
 		it('should not choke on auth-looking URL', async () => {
 			await request(server)
 				.get('//todo@txt')
-				.expect('X-Send-Stream-Error', 'consecutive_slashes')
+				.expect('X-Send-Stream-Error', 'ConsecutiveSlashesError')
 				.expect(404);
 		});
 
@@ -168,7 +165,7 @@ describe('serveStatic()', () => {
 		it('should ignore hidden files', async () => {
 			await request(server)
 				.get('/.hidden')
-				.expect('X-Send-Stream-Error', 'ignored_file')
+				.expect('X-Send-Stream-Error', 'IgnoredFileError')
 				.expect(404);
 		});
 	});
@@ -264,15 +261,15 @@ describe('serveStatic()', () => {
 			it('should 404 when URL malformed', async () => {
 				await request(server)
 					.get('/%')
-					.expect('X-Send-Stream-Error', 'malformed_path')
+					.expect('X-Send-Stream-Error', 'MalformedPathError')
 					.expect(404);
 			});
 
-			it('should 301 when traversing past root', async () => {
+			it('should 404 when traversing past root', async () => {
 				await request(server)
 					.get('/users/../../todo.txt')
-					.expect('Location', '/todo.txt')
-					.expect(301);
+					.expect('X-Send-Stream-Error', 'NotNormalizedError')
+					.expect(404);
 			});
 		});
 	});
@@ -327,29 +324,29 @@ describe('serveStatic()', () => {
 		it('should catch urlencoded ../', async () => {
 			await request(server)
 				.get('/users/%2e%2e/%2e%2e/todo.txt')
-				.expect('Location', '/todo.txt')
-				.expect(301);
+				.expect('X-Send-Stream-Error', 'NotNormalizedError')
+				.expect(404);
 		});
 
 		it('should not allow root path disclosure', async () => {
 			await request(server)
 				.get('/users/../../fixtures/todo.txt')
-				.expect('Location', '/fixtures/todo.txt')
-				.expect(301);
+				.expect('X-Send-Stream-Error', 'NotNormalizedError')
+				.expect(404);
 		});
 
 		it('should catch urlencoded ../ bis', async () => {
 			await request(server)
 				.get('/users/%2e%2e/%2e%2e/static.spec.ts')
-				.expect('Location', '/static.spec.ts')
-				.expect(301);
+				.expect('X-Send-Stream-Error', 'NotNormalizedError')
+				.expect(404);
 		});
 
 		it('should not allow root path disclosure bis', async () => {
 			await request(server)
 				.get('/users/../../fixtures/static.spec.ts')
-				.expect('Location', '/fixtures/static.spec.ts')
-				.expect(301);
+				.expect('X-Send-Stream-Error', 'NotNormalizedError')
+				.expect(404);
 		});
 	});
 

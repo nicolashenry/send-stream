@@ -5,7 +5,7 @@ import * as util from 'util';
 
 import express from 'express';
 
-import { FileSystemStorage, FileSystemStorageError } from '../src/send-stream';
+import { FileSystemStorage, TrailingSlashError } from '../src/send-stream';
 
 const readdir = util.promisify(fs.readdir);
 
@@ -17,7 +17,7 @@ app.get('*', async (req, res, next) => {
 	try {
 		const result = await storage.prepareResponse(req.url, req);
 		// if the path is not found and the reason is a trailing slash then try to load files in folder
-		if (result.error && result.error instanceof FileSystemStorageError && result.error.code === 'trailing_slash') {
+		if (result.error instanceof TrailingSlashError) {
 			const { error: { pathParts } } = result;
 			let files;
 			try {

@@ -1,4 +1,4 @@
-/* eslint-disable max-classes-per-file, max-lines, max-lines-per-function, sonarjs/no-identical-functions */
+/* eslint-disable max-lines, max-lines-per-function, sonarjs/no-identical-functions */
 /* eslint-env node, mocha */
 
 import * as assert from 'assert';
@@ -33,7 +33,7 @@ function createServer(opts: PrepareResponseOptions & FileSystemStorageOptions & 
 			// eslint-disable-next-line @typescript-eslint/no-non-null-assertion
 			const response = await storage.prepareResponse(req.url!, req, opts);
 			if (response.error) {
-				response.headers['X-Send-Stream-Error'] = response.error.code;
+				response.headers['X-Send-Stream-Error'] = response.error.name;
 			}
 			response.send(res);
 		})().catch(err => {
@@ -96,7 +96,7 @@ describe('send(file).pipe(res)', () => {
 				// eslint-disable-next-line @typescript-eslint/no-non-null-assertion
 				const response = await mainStorage.prepareResponse(req.url!, req);
 				if (response.error) {
-					response.headers['X-Send-Stream-Error'] = response.error.code;
+					response.headers['X-Send-Stream-Error'] = response.error.name;
 				}
 				response.send(res);
 			})().catch(err => {
@@ -155,14 +155,14 @@ describe('send(file).pipe(res)', () => {
 	it('should treat a malformed URI as a bad request', async () => {
 		await request(mainApp)
 			.get('/some%99thing.txt')
-			.expect('X-Send-Stream-Error', 'malformed_path')
+			.expect('X-Send-Stream-Error', 'MalformedPathError')
 			.expect(404);
 	});
 
 	it('should 404 on NULL bytes', async () => {
 		await request(mainApp)
 			.get('/some%00thing.txt')
-			.expect('X-Send-Stream-Error', 'forbidden_character')
+			.expect('X-Send-Stream-Error', 'ForbiddenCharacterError')
 			.expect(404);
 	});
 
@@ -170,7 +170,7 @@ describe('send(file).pipe(res)', () => {
 		const path = new Array(1000).join('foobar');
 		await request(mainApp)
 			.get(`/${ path }`)
-			.expect('X-Send-Stream-Error', 'does_not_exist')
+			.expect('X-Send-Stream-Error', 'DoesNotExistError')
 			.expect(404);
 	});
 
@@ -254,14 +254,14 @@ describe('send(file).pipe(res)', () => {
 	it('should 404 if the file does not exist', async () => {
 		await request(mainApp)
 			.get('/meow')
-			.expect('X-Send-Stream-Error', 'does_not_exist')
+			.expect('X-Send-Stream-Error', 'DoesNotExistError')
 			.expect(404);
 	});
 
 	it('should 404 if the file does not exist (HEAD)', async () => {
 		await request(mainApp)
 			.head('/meow')
-			.expect('X-Send-Stream-Error', 'does_not_exist')
+			.expect('X-Send-Stream-Error', 'DoesNotExistError')
 			.expect(404);
 	});
 
@@ -364,12 +364,7 @@ describe('send(file).pipe(res)', () => {
 					(async () => {
 						// eslint-disable-next-line @typescript-eslint/no-non-null-assertion
 						const result = await mainStorage.prepareResponse(req.url!, req);
-						assert.ok(result.storageInfo);
-						assert.ok(result.storageInfo.attachedData.resolvedPath);
-						assert.strictEqual(
-							result.storageInfo.attachedData.resolvedPath,
-							normalize(join(fixtures, 'name.txt')),
-						);
+						result.headers['X-Send-Stream-Resolved-Path'] = result.storageInfo?.attachedData.resolvedPath;
 						result.send(res);
 					})().catch(err => {
 						res.statusCode = 500;
@@ -380,6 +375,7 @@ describe('send(file).pipe(res)', () => {
 			it('should provide path', async () => {
 				await request(app)
 					.get('/name.txt')
+					.expect('X-Send-Stream-Resolved-Path', normalize(join(fixtures, 'name.txt')))
 					.expect(200, 'tobi');
 			});
 		});
@@ -391,12 +387,13 @@ describe('send(file).pipe(res)', () => {
 					(async () => {
 						// eslint-disable-next-line @typescript-eslint/no-non-null-assertion
 						const result = await mainStorage.prepareResponse(req.url!, req);
-						assert.ok(result.storageInfo);
-						assert.ok('mtimeMs' in result.storageInfo);
-						assert.ok('size' in result.storageInfo);
-						assert.ok(result.storageInfo.attachedData.stats);
-						assert.ok('ctime' in result.storageInfo.attachedData.stats);
-						assert.ok('mtime' in result.storageInfo.attachedData.stats);
+						const { storageInfo } = result;
+						if (storageInfo) {
+							result.headers['X-Send-Stream-mtimeMs'] = String('mtimeMs' in storageInfo);
+							result.headers['X-Send-Stream-size'] = String('size' in storageInfo);
+							result.headers['X-Send-Stream-ctime'] = String('ctime' in storageInfo.attachedData.stats);
+							result.headers['X-Send-Stream-mtime'] = String('mtime' in storageInfo.attachedData.stats);
+						}
 						result.send(res);
 					})().catch(err => {
 						res.statusCode = 500;
@@ -407,6 +404,10 @@ describe('send(file).pipe(res)', () => {
 			it('should provide stat', async () => {
 				await request(app)
 					.get('/name.txt')
+					.expect('X-Send-Stream-mtimeMs', 'true')
+					.expect('X-Send-Stream-size', 'true')
+					.expect('X-Send-Stream-ctime', 'true')
+					.expect('X-Send-Stream-mtime', 'true')
 					.expect(200, 'tobi');
 			});
 		});
@@ -931,53 +932,53 @@ describe('send(file).pipe(res)', () => {
 	});
 
 	describe('relative paths', () => {
-		it('should redirect on relative path', async () => {
+		it('should 404 on relative path', async () => {
 			await request(mainApp)
 				.get('/pets/../name.txt')
-				.expect('Location', '/name.txt')
-				.expect(301);
+				.expect('X-Send-Stream-Error', 'NotNormalizedError')
+				.expect(404);
 		});
 
-		it('should redirect on relative path on head', async () => {
+		it('should 404 on relative path on head', async () => {
 			await request(mainApp)
 				.head('/pets/../name.txt')
-				.expect('Location', '/name.txt')
-				.expect(301);
+				.expect('X-Send-Stream-Error', 'NotNormalizedError')
+				.expect(404);
 		});
 
-		it('should redirect on relative path with query params', async () => {
+		it('should 404 on relative path with query params', async () => {
 			await request(mainApp)
 				.get('/pets/../name.txt?foo=bar')
-				.expect('Location', '/name.txt?foo=bar')
-				.expect(301);
+				.expect('X-Send-Stream-Error', 'NotNormalizedError')
+				.expect(404);
 		});
 
-		it('should redirect on relative path with dot', async () => {
+		it('should 404 on relative path with dot', async () => {
 			await request(mainApp)
 				.get('/name.txt/.')
-				.expect('Location', '/name.txt/')
-				.expect(301);
+				.expect('X-Send-Stream-Error', 'NotNormalizedError')
+				.expect(404);
 		});
 
-		it('should redirect on relative path with dot and query params', async () => {
+		it('should 404 on relative path with dot and query params', async () => {
 			await request(mainApp)
 				.get('/name.txt/.?foo=bar')
-				.expect('Location', '/name.txt/?foo=bar')
-				.expect(301);
+				.expect('X-Send-Stream-Error', 'NotNormalizedError')
+				.expect(404);
 		});
 
-		it('should redirect on relative path with dot bis', async () => {
+		it('should 404 on relative path with dot bis', async () => {
 			await request(mainApp)
 				.get('/./name.txt')
-				.expect('Location', '/name.txt')
-				.expect(301);
+				.expect('X-Send-Stream-Error', 'NotNormalizedError')
+				.expect(404);
 		});
 
-		it('should redirect on relative path with dot and query params bis', async () => {
+		it('should 404 on relative path with dot and query params bis', async () => {
 			await request(mainApp)
 				.get('/./name.txt?foo=bar')
-				.expect('Location', '/name.txt?foo=bar')
-				.expect(301);
+				.expect('X-Send-Stream-Error', 'NotNormalizedError')
+				.expect(404);
 		});
 	});
 });
@@ -1092,7 +1093,7 @@ describe('send(file, options)', () => {
 			it('should default to "ignore"', async () => {
 				await request(server)
 					.get('/.hidden.txt')
-					.expect('X-Send-Stream-Error', 'ignored_file')
+					.expect('X-Send-Stream-Error', 'IgnoredFileError')
 					.expect(404);
 			});
 		});
@@ -1105,7 +1106,7 @@ describe('send(file, options)', () => {
 			it('should ignore folder too', async () => {
 				await request(server)
 					.get('/.mine/name.txt')
-					.expect('X-Send-Stream-Error', 'ignored_file')
+					.expect('X-Send-Stream-Error', 'IgnoredFileError')
 					.expect(404);
 			});
 		});
@@ -1130,7 +1131,7 @@ describe('send(file, options)', () => {
 			it('should 404 for non-existent dotfile', async () => {
 				await request(server)
 					.get('/.nothere')
-					.expect('X-Send-Stream-Error', 'does_not_exist')
+					.expect('X-Send-Stream-Error', 'DoesNotExistError')
 					.expect(404);
 			});
 		});
@@ -1144,42 +1145,42 @@ describe('send(file, options)', () => {
 				it('should 404 for dotfile', async () => {
 					await request(server)
 						.get('/.hidden.txt')
-						.expect('X-Send-Stream-Error', 'ignored_file')
+						.expect('X-Send-Stream-Error', 'IgnoredFileError')
 						.expect(404);
 				});
 
 				it('should 404 for dotfile directory', async () => {
 					await request(server)
 						.get('/.mine')
-						.expect('X-Send-Stream-Error', 'ignored_file')
+						.expect('X-Send-Stream-Error', 'IgnoredFileError')
 						.expect(404);
 				});
 
 				it('should 404 for dotfile directory with trailing slash', async () => {
 					await request(server)
 						.get('/.mine/')
-						.expect('X-Send-Stream-Error', 'ignored_file')
+						.expect('X-Send-Stream-Error', 'IgnoredFileError')
 						.expect(404);
 				});
 
 				it('should 404 for file within dotfile directory', async () => {
 					await request(server)
 						.get('/.mine/name.txt')
-						.expect('X-Send-Stream-Error', 'ignored_file')
+						.expect('X-Send-Stream-Error', 'IgnoredFileError')
 						.expect(404);
 				});
 
 				it('should 404 for non-existent dotfile', async () => {
 					await request(server)
 						.get('/.nothere')
-						.expect('X-Send-Stream-Error', 'ignored_file')
+						.expect('X-Send-Stream-Error', 'IgnoredFileError')
 						.expect(404);
 				});
 
 				it('should 404 for non-existent dotfile directory', async () => {
 					await request(server)
 						.get('/.what/name.txt')
-						.expect('X-Send-Stream-Error', 'ignored_file')
+						.expect('X-Send-Stream-Error', 'IgnoredFileError')
 						.expect(404);
 				});
 			});
@@ -1192,42 +1193,42 @@ describe('send(file, options)', () => {
 				it('should 404 for dotfile', async () => {
 					await request(server)
 						.get('/.hidden.txt')
-						.expect('X-Send-Stream-Error', 'ignored_file')
+						.expect('X-Send-Stream-Error', 'IgnoredFileError')
 						.expect(404);
 				});
 
 				it('should 404 for dotfile directory', async () => {
 					await request(server)
 						.get('/.mine')
-						.expect('X-Send-Stream-Error', 'ignored_file')
+						.expect('X-Send-Stream-Error', 'IgnoredFileError')
 						.expect(404);
 				});
 
 				it('should 404 for dotfile directory with trailing slash', async () => {
 					await request(server)
 						.get('/.mine/')
-						.expect('X-Send-Stream-Error', 'ignored_file')
+						.expect('X-Send-Stream-Error', 'IgnoredFileError')
 						.expect(404);
 				});
 
 				it('should 404 for file within dotfile directory', async () => {
 					await request(server)
 						.get('/.mine/name.txt')
-						.expect('X-Send-Stream-Error', 'ignored_file')
+						.expect('X-Send-Stream-Error', 'IgnoredFileError')
 						.expect(404);
 				});
 
 				it('should 404 for non-existent dotfile', async () => {
 					await request(server)
 						.get('/.nothere')
-						.expect('X-Send-Stream-Error', 'ignored_file')
+						.expect('X-Send-Stream-Error', 'IgnoredFileError')
 						.expect(404);
 				});
 
 				it('should 404 for non-existent dotfile directory', async () => {
 					await request(server)
 						.get('/.what/name.txt')
-						.expect('X-Send-Stream-Error', 'ignored_file')
+						.expect('X-Send-Stream-Error', 'IgnoredFileError')
 						.expect(404);
 				});
 			});
@@ -1256,8 +1257,8 @@ describe('send(file, options)', () => {
 				it('should not join root', async () => {
 					await request(server)
 						.get('/pets/../name.txt')
-						.expect('Location', '/name.txt')
-						.expect(301);
+						.expect('X-Send-Stream-Error', 'NotNormalizedError')
+						.expect(404);
 				});
 			});
 
@@ -1269,7 +1270,7 @@ describe('send(file, options)', () => {
 				it('double slash should be ignored', async () => {
 					await request(server)
 						.get('//name.txt')
-						.expect('X-Send-Stream-Error', 'consecutive_slashes')
+						.expect('X-Send-Stream-Error', 'ConsecutiveSlashesError')
 						.expect(404);
 				});
 			});
@@ -1282,7 +1283,7 @@ describe('send(file, options)', () => {
 				it('double slash in sub path should be ignored', async () => {
 					await request(server)
 						.get('/pets//index.html')
-						.expect('X-Send-Stream-Error', 'consecutive_slashes')
+						.expect('X-Send-Stream-Error', 'ConsecutiveSlashesError')
 						.expect(404);
 				});
 			});
@@ -1307,7 +1308,7 @@ describe('send(file, options)', () => {
 				it('should 404 on empty path', async () => {
 					await request(server)
 						.get('')
-						.expect('X-Send-Stream-Error', 'trailing_slash')
+						.expect('X-Send-Stream-Error', 'TrailingSlashError')
 						.expect(404);
 				});
 			});
@@ -1320,8 +1321,8 @@ describe('send(file, options)', () => {
 				it('should restrict paths to within root', async () => {
 					await request(server)
 						.get('/pets/../../http.spec.ts')
-						.expect('Location', '/http.spec.ts')
-						.expect(301);
+						.expect('X-Send-Stream-Error', 'NotNormalizedError')
+						.expect(404);
 				});
 			});
 
@@ -1334,7 +1335,7 @@ describe('send(file, options)', () => {
 							// eslint-disable-next-line @typescript-eslint/no-non-null-assertion
 							const response = await storage.prepareResponse(req.url!.split('/'), req);
 							if (response.error) {
-								response.headers['X-Send-Stream-Error'] = response.error.code;
+								response.headers['X-Send-Stream-Error'] = response.error.name;
 							}
 							response.send(res);
 						})().catch(err => {
@@ -1346,7 +1347,7 @@ describe('send(file, options)', () => {
 				it('should restrict paths to within root with path parts', async () => {
 					await request(app)
 						.get('/pets/../../http.spec.ts')
-						.expect('X-Send-Stream-Error', 'invalid_path')
+						.expect('X-Send-Stream-Error', 'InvalidPathError')
 						.expect(404);
 				});
 			});
@@ -1359,8 +1360,8 @@ describe('send(file, options)', () => {
 				it('should allow .. in root', async () => {
 					await request(server)
 						.get('/pets/../../http.spec.ts')
-						.expect('Location', '/http.spec.ts')
-						.expect(301);
+						.expect('X-Send-Stream-Error', 'NotNormalizedError')
+						.expect(404);
 				});
 			});
 
@@ -1372,8 +1373,8 @@ describe('send(file, options)', () => {
 				it('should not allow root transversal', async () => {
 					await request(server)
 						.get('/../name.dir/name.txt')
-						.expect('Location', '/name.dir/name.txt')
-						.expect(301);
+						.expect('X-Send-Stream-Error', 'NotNormalizedError')
+						.expect(404);
 				});
 			});
 
@@ -1385,8 +1386,8 @@ describe('send(file, options)', () => {
 				it('should not allow root path disclosure', async () => {
 					await request(server)
 						.get('/pets/../../fixtures-http/name.txt')
-						.expect('Location', '/fixtures-http/name.txt')
-						.expect(301);
+						.expect('X-Send-Stream-Error', 'NotNormalizedError')
+						.expect(404);
 				});
 			});
 		});
@@ -1397,7 +1398,11 @@ describe('send(file, options)', () => {
 				mainApp = http.createServer((req, res) => {
 					(async () => {
 						// eslint-disable-next-line @typescript-eslint/no-non-null-assertion
-						(await mainStorage.prepareResponse(req.url!, req)).send(res);
+						const response = await mainStorage.prepareResponse(req.url!, req);
+						if (response.error) {
+							response.headers['X-Send-Stream-Error'] = response.error.name;
+						}
+						response.send(res);
 					})().catch(err => {
 						res.statusCode = 500;
 						res.end(String(err));
@@ -1408,8 +1413,8 @@ describe('send(file, options)', () => {
 			it('should consider .. malicious', async () => {
 				await request(mainApp)
 					.get('/../http.spec.ts')
-					.expect('Location', '/http.spec.ts')
-					.expect(301);
+					.expect('X-Send-Stream-Error', 'NotNormalizedError')
+					.expect(404);
 			});
 
 			it('should still serve files with dots in name', async () => {

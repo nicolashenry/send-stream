@@ -5,65 +5,7 @@ import * as http2 from 'http2';
 import { Readable } from 'stream';
 
 import { ResponseHeaders } from './utils';
-
-/**
- * Storage error
- */
-export class StorageError <T> extends Error {
-	/**
-	 * Error code
-	 */
-	readonly code: string;
-
-	/**
-	 * Storage reference
-	 */
-	readonly reference: T;
-
-	/**
-	 * Create a storage error
-	 *
-	 * @param code - error code
-	 * @param message - error message
-	 * @param reference - error storage reference
-	 */
-	constructor(code: string, message: string, reference: T) {
-		super(message);
-		this.name = 'StorageError';
-		this.code = code;
-		this.reference = reference;
-	}
-}
-
-/**
- * Storage information
- */
-export interface StorageInfo<AttachedData> {
-	/**
-	 * Attached data (depends on storage)
-	 */
-	attachedData: AttachedData;
-	/**
-	 * File name
-	 */
-	fileName?: string;
-	/**
-	 * File last modification time in milliseconds
-	 */
-	mtimeMs?: number;
-	/**
-	 * File size
-	 */
-	size?: number;
-	/**
-	 * Vary header
-	 */
-	vary?: string;
-	/**
-	 * Content encoding
-	 */
-	contentEncoding?: string;
-}
+import { StorageInfo, StorageError } from './storage-models';
 
 /**
  * Stream response
