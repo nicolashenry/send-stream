@@ -65,7 +65,7 @@ export class FileSystemStorage extends Storage<FilePath, FileData> {
 				);
 				let identityEncodingPreference = encodingPreferences.get('identity');
 				if (!identityEncodingPreference) {
-					identityEncodingPreference = { path: '$1', order: encodingConfig.encodings.length };
+					identityEncodingPreference = { path: '$&', order: encodingConfig.encodings.length };
 					encodingPreferences.set('identity', identityEncodingPreference);
 				}
 				const matcher = encodingConfig.matcher instanceof RegExp
