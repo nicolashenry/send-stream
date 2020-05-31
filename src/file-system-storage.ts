@@ -12,7 +12,6 @@ import {
 	FileData,
 	FSModule,
 	FileSystemStorageOptions,
-	FileStats,
 	RegexpContentEncodingMapping,
 	MalformedPathError,
 	NotNormalizedError,
@@ -37,13 +36,19 @@ export class FileSystemStorage extends Storage<FilePath, FileData> {
 
 	readonly fsOpen: (path: string, flags: number) => Promise<number>;
 
-	readonly fsFstat: (fd: number) => Promise<FileStats>;
+	readonly fsFstat: (fd: number) => Promise<fs.Stats>;
 
 	readonly fsClose: (fd: number) => Promise<void>;
 
 	readonly fsCreateReadStream: FSModule['createReadStream'];
 
+	readonly fsOpendir?: (path: string) => Promise<fs.Dir>;
+
+	readonly fsReaddir: (path: string, options: { withFileTypes: true }) => Promise<fs.Dirent[]>;
+
 	readonly fsConstants: FSModule['constants'];
+
+	readonly directoryListing: boolean;
 
 	/**
 	 * Create file system storage
@@ -81,11 +86,14 @@ export class FileSystemStorage extends Storage<FilePath, FileData> {
 			: opts.ignorePattern === false || opts.ignorePattern instanceof RegExp
 				? opts.ignorePattern
 				: new RegExp(opts.ignorePattern, 'u');
+		this.directoryListing = opts.directoryListing ?? false;
 		const fsModule = opts.fsModule === undefined ? fs : opts.fsModule;
 		this.fsOpen = promisify(fsModule.open);
 		this.fsFstat = promisify(fsModule.fstat);
 		this.fsClose = promisify(fsModule.close);
 		this.fsCreateReadStream = fsModule.createReadStream;
+		this.fsOpendir = fsModule.opendir ? promisify(fsModule.opendir) : undefined;
+		this.fsReaddir = promisify(fsModule.readdir);
 		this.fsConstants = fsModule.constants;
 	}
 
@@ -179,15 +187,19 @@ export class FileSystemStorage extends Storage<FilePath, FileData> {
 
 		// trailing slash
 		if (haveTrailingSlash) {
-			throw new TrailingSlashError(
-				`${ String(path) } have a trailing slash`,
-				path,
-				pathParts,
-				pathParts.slice(0, -1),
-			);
+			const untrailedPathParts = pathParts.slice(0, -1);
+			if (!this.directoryListing) {
+				throw new TrailingSlashError(
+					`${ String(path) } have a trailing slash`,
+					path,
+					pathParts,
+					untrailedPathParts,
+				);
+			}
+			pathParts = untrailedPathParts;
 		}
 
-		return pathParts;
+		return { pathParts, haveTrailingSlash };
 	}
 
 	/**
@@ -237,21 +249,20 @@ export class FileSystemStorage extends Storage<FilePath, FileData> {
 	 */
 	async open(path: FilePath, requestHeaders: StorageRequestHeaders): Promise<StorageInfo<FileData>> {
 		let fd: number | undefined;
-		const pathParts = this.parsePath(path);
+		const { pathParts, haveTrailingSlash } = this.parsePath(path);
 		let resolvedPath = join(this.root, ...pathParts);
 		let stats;
 		let vary;
 		let contentEncoding = 'identity';
-		const { [pathParts.length - 1]: fileName } = pathParts;
-		const { contentEncodingMappings: encodingsMappings } = this;
-		let selectedEncodingMapping;
-		// test path against encoding map
-		if (encodingsMappings) {
-			selectedEncodingMapping = encodingsMappings.find(
-				encodingMapping => encodingMapping.matcher.test(resolvedPath),
-			);
-		}
 		try {
+			const { contentEncodingMappings: encodingsMappings } = this;
+			let selectedEncodingMapping;
+			// test path against encoding map
+			if (!haveTrailingSlash && encodingsMappings) {
+				selectedEncodingMapping = encodingsMappings.find(
+					encodingMapping => encodingMapping.matcher.test(resolvedPath),
+				);
+			}
 			if (selectedEncodingMapping) {
 				const { encodingPreferences, identityEncodingPreference } = selectedEncodingMapping;
 				// if path can have encoded version
@@ -314,11 +325,31 @@ export class FileSystemStorage extends Storage<FilePath, FileData> {
 				}
 				stats = await this.stat(fd, resolvedPath);
 				if (stats.isDirectory()) {
-					throw new IsDirectoryError(
-						`${ resolvedPath } is a directory`,
+					if (!haveTrailingSlash) {
+						throw new IsDirectoryError(
+							`${ resolvedPath } is a directory`,
+							path,
+							pathParts,
+							resolvedPath,
+						);
+					}
+					// fd cannot be used yet with opendir/readdir
+					await this.earlyClose(fd, resolvedPath);
+					return {
+						attachedData: {
+							pathParts,
+							resolvedPath,
+							fd,
+							stats,
+						},
+						fileName: `${ pathParts.length > 1 ? pathParts[pathParts.length - 1] : '_' }.html`,
+					};
+				} else if (haveTrailingSlash) {
+					throw new TrailingSlashError(
+						`${ String(path) } have a trailing slash but is not a directory`,
 						path,
+						[...pathParts, ''],
 						pathParts,
-						resolvedPath,
 					);
 				}
 			}
@@ -336,12 +367,53 @@ export class FileSystemStorage extends Storage<FilePath, FileData> {
 				fd,
 				stats,
 			},
-			fileName,
+			fileName: pathParts[pathParts.length - 1],
 			mtimeMs: stats.mtimeMs,
 			size: stats.size,
 			vary,
 			contentEncoding,
 		};
+	}
+
+	createContentType(storageInfo: StorageInfo<FileData>) {
+		if (storageInfo.attachedData.stats.isDirectory()) {
+			return 'text/html; charset=UTF-8';
+		}
+		return super.createContentType(storageInfo);
+	}
+
+	async *getDirectoryListing(storageInfo: StorageInfo<FileData>) {
+		const { attachedData: { pathParts } } = storageInfo;
+
+		const isNotRoot = pathParts.length > 1;
+		const display = isNotRoot ? pathParts[pathParts.length - 1] : '/';
+
+		yield `<!DOCTYPE html><html><head><meta charset="utf-8"><title>${ display }</title>`;
+		yield '<meta name="viewport" content="width=device-width"></head>';
+		yield `<body><h1>Directory: ${ isNotRoot ? pathParts.join('/') : '' }/</h1><ul>`;
+
+		if (isNotRoot) {
+			yield '<li><a href="..">..</a></li>';
+		}
+
+		const { ignorePattern } = this;
+		const files = await this.opendir(storageInfo);
+
+		for await (const file of files) {
+			if (ignorePattern && ignorePattern.test(file.name)) {
+				continue;
+			}
+			const filename = file.name + (file.isDirectory() ? '/' : '');
+			yield `<li><a href="./${ filename }">${ filename }</a></li>`;
+		}
+
+		yield '</ul></body></html>';
+	}
+
+	async opendir(storageInfo: StorageInfo<FileData>) {
+		return this.fsOpendir
+			? await this.fsOpendir(storageInfo.attachedData.resolvedPath)
+			: await this.fsReaddir(storageInfo.attachedData.resolvedPath, { withFileTypes: true });
 	}
 
 	/**
@@ -358,6 +430,12 @@ export class FileSystemStorage extends Storage<FilePath, FileData> {
 		autoClose: boolean,
 	): Readable {
 		const { attachedData } = storageInfo;
+		if (attachedData.stats.isDirectory()) {
+			return Readable.from(
+				this.getDirectoryListing(storageInfo),
+				{ objectMode: false, encoding: 'utf-8', highWaterMark: 16384 },
+			);
+		}
 		return this.fsCreateReadStream(
 			attachedData.resolvedPath,
 			range === undefined

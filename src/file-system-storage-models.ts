@@ -1,34 +1,7 @@
 import { Readable } from 'stream';
+import { Dir, Stats, Dirent } from 'fs';
 
 import { StorageOptions, StorageError } from './storage-models';
-
-export interface FileStats<T = number> {
-	dev: T;
-	ino: T;
-	mode: T;
-	nlink: T;
-	uid: T;
-	gid: T;
-	rdev: T;
-	size: T;
-	blksize: T;
-	blocks: T;
-	atimeMs: T;
-	mtimeMs: T;
-	ctimeMs: T;
-	birthtimeMs: T;
-	atime: Date;
-	mtime: Date;
-	ctime: Date;
-	birthtime: Date;
-	isFile(): boolean;
-	isDirectory(): boolean;
-	isBlockDevice(): boolean;
-	isCharacterDevice(): boolean;
-	isSymbolicLink(): boolean;
-	isFIFO(): boolean;
-	isSocket(): boolean;
-}
 
 /**
  * File data used by storage
@@ -45,7 +18,7 @@ export interface FileData {
 	/**
 	 * File stats
 	 */
-	stats: FileStats;
+	stats: Stats;
 	/**
 	 * File descriptor
 	 */
@@ -65,7 +38,7 @@ export interface FSModule {
 		flags: number,
 		callback: (err: NodeJS.ErrnoException | null, fd: number) => void
 	) => void;
-	fstat: (fd: number, callback: (err: NodeJS.ErrnoException | null, stats: FileStats) => void) => void;
+	fstat: (fd: number, callback: (err: NodeJS.ErrnoException | null, stats: Stats) => void) => void;
 	close: (fd: number, callback: (err: NodeJS.ErrnoException | null) => void) => void;
 	createReadStream: (
 		path: string,
@@ -76,6 +49,15 @@ export interface FSModule {
 			autoClose: boolean;
 		}
 	) => Readable;
+	opendir?: (
+		path: string,
+		callback: (err: NodeJS.ErrnoException | null, dir: Dir) => void
+	) => void;
+	readdir: (
+		path: string,
+		options: { withFileTypes: true },
+		callback: (err: NodeJS.ErrnoException | null, files: Dirent[]) => void
+	) => void;
 }
 
 /**
@@ -154,6 +136,10 @@ export interface FileSystemStorageOptions extends StorageOptions {
 	 * "fs" module to use
 	 */
 	fsModule?: FSModule;
+	/**
+	 * "fs" module to use
+	 */
+	directoryListing?: boolean;
 }
 
 /**

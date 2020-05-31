@@ -231,6 +231,21 @@ memfs.fs.writeFileSync('/hello.txt', 'world');
 new FileSystemStorage(directory, { fsModule: memfs })
 ```
 ---
+##### directoryListing
+
+When when set to `true` and the requested url ends with /,
+it will attempt to list the directory content as html if it exists
+
+Defaults to `false`
+
+Note that you can customize the html template by overiding `getDirectoryListing` method.
+
+Example:
+
+```js
+new FileSystemStorage(directory, { directoryListing: true })
+```
+---
 
 ### `storage.prepareResponse(path, req, [options])`
 
@@ -461,57 +476,6 @@ const error = result.error;
 if (error instanceof TrailingSlashError) {
   result.stream.destroy();
   result = await storage.prepareResponse([...error.pathParts.slice(0, -1), 'index.html'], req);
-}
-result.send(res);
-```
-
-### Serve directory with file listing
-
-```js
-const path = require('path');
-const fs = require('fs');
-const util = require('util');
-
-const readdir = util.promisify(fs.readdir);
-
-...
-
-const result = await storage.prepareResponse(req.url, req);
-// if the path is not found and the reason is a trailing slash then try to load files in folder
-if (result.error instanceof TrailingSlashError) {
-  const { error: { pathParts } } = result;
-  let files;
-  try {
-    files = await readdir(path.join(storage.root, ...pathParts), { withFileTypes: true });
-  }
-  catch (err) {
-    if (err.code !== 'ENOENT') {
-      console.error(err);
-    }
-    // return the original error
-    result.send(res);
-    return;
-  }
-  result.stream.destroy();
-  const display = pathParts.length > 2 ? pathParts[pathParts.length - 2] : '/';
-  let html = `<!DOCTYPE html><html><head><meta charset="utf-8"><title>${display}</title>`;
-  html += '<meta name="viewport" content="width=device-width"></head>';
-  html += `<body><h1>Directory: ${ pathParts.join('/') }</h1><ul>`;
-  if (pathParts.length > 2) {
-    html += '<li><a href="..">..</a></li>';
-  }
-  for (const file of files) {
-    const { ignorePattern } = storage;
-    if (ignorePattern && ignorePattern.test(file.name)) {
-      continue;
-    }
-    const filename = file.name + (file.isDirectory() ? '/' : '');
-    html += `<li><a href="./${ filename }">${ filename }</a></li>`;
-  }
-  html += '</ul></body></html>';
-  res.setHeader('Cache-Control', 'max-age=0');
-  res.send(html);
-  return;
 }
 result.send(res);
 ```
