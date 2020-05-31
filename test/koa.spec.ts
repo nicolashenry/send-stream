@@ -312,6 +312,7 @@ describe('send(ctx, file)', () => {
 			it('should 200 with /', async () => {
 				await request(server)
 					.get('/fixtures-koa/')
+					.expect('Content-Type', 'text/html; charset=UTF-8')
 					.expect(200);
 			});
 			it('should 404 without /', async () => {
