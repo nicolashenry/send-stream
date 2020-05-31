@@ -18,9 +18,13 @@ const app = fastify({
 
 const storage = new FileSystemStorage(join(__dirname, 'assets'));
 
-app.get('*', async ({ req }, { res }) => {
-	const result = await storage.prepareResponse(req.url, req);
-	result.send(res);
+app.route({
+	method: ['HEAD', 'GET'],
+	url: '*',
+	handler: async ({ req }, { res }) => {
+		const result = await storage.prepareResponse(req.url, req);
+		result.send(res);
+	},
 });
 
 app.listen(3001)

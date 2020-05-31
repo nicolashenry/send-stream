@@ -37,15 +37,19 @@ const { FileSystemStorage } = require('send-stream');
 const app = fastify();
 const storage = new FileSystemStorage(path.join(__dirname, 'assets'));
 
-app.get('*', async ({ req }, { res }) => {
-	let result = await storage.prepareResponse(req.url, req);
-	result.send(res);
+app.route({
+  method: ['HEAD', 'GET'],
+  url: '*',
+  handler: async ({ req }, { res }) => {
+    const result = await storage.prepareResponse(req.url, req);
+    result.send(res);
+  }
 });
 
 app.listen(3000)
-	.then(() => {
-		console.info('listening on http://localhost:3000');
-	});
+  .then(() => {
+    console.info('listening on http://localhost:3000');
+  });
 ```
 
 Using Koa:
@@ -58,14 +62,14 @@ const app = new Koa<object>();
 const storage = new FileSystemStorage(path.join(__dirname, 'assets'));
 
 app.use(async ctx => {
-	let result = await storage.prepareResponse(ctx.request.path, ctx.req);
-	ctx.response.status = result.statusCode;
-	ctx.response.set(result.headers);
-	ctx.body = result.stream;
+  let result = await storage.prepareResponse(ctx.request.path, ctx.req);
+  ctx.response.status = result.statusCode;
+  ctx.response.set(result.headers);
+  ctx.body = result.stream;
 });
 
 app.listen(3000, () => {
-	console.info('listening on http://localhost:3000');
+  console.info('listening on http://localhost:3000');
 });
 ```
 
@@ -79,15 +83,15 @@ const app = express();
 const storage = new FileSystemStorage(path.join(__dirname, 'assets'));
 
 app.get('*', async (req, res, next) => {
-	try {
-		let result = await storage.prepareResponse(req.url, req);
-		result.send(res);
-	} catch (err) {
-		next(err);
-	}
+  try {
+    let result = await storage.prepareResponse(req.url, req);
+    result.send(res);
+  } catch (err) {
+    next(err);
+  }
 });
 app.listen(3000, () => {
-	console.info('listening on http://localhost:3000');
+  console.info('listening on http://localhost:3000');
 });
 ```
 
