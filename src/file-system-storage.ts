@@ -375,6 +375,13 @@ export class FileSystemStorage extends Storage<FilePath, FileData> {
 		};
 	}
 
+	/**
+	 * Create content-type header value from storage information
+	 * (from filename using mime module and adding default charset for some types)
+	 *
+	 * @param storageInfo - storage information (unused unless overriden)
+	 * @returns content-type header
+	 */
 	createContentType(storageInfo: StorageInfo<FileData>) {
 		if (storageInfo.attachedData.stats.isDirectory()) {
 			return 'text/html; charset=UTF-8';
@@ -382,6 +389,11 @@ export class FileSystemStorage extends Storage<FilePath, FileData> {
 		return super.createContentType(storageInfo);
 	}
 
+	/**
+	 * Async generator method to return the directory listing as HTML
+	 *
+	 * @param storageInfo - storage information
+	 */
 	async *getDirectoryListing(storageInfo: StorageInfo<FileData>) {
 		const { attachedData: { pathParts } } = storageInfo;
 
@@ -410,6 +422,12 @@ export class FileSystemStorage extends Storage<FilePath, FileData> {
 		yield '</ul></body></html>';
 	}
 
+	/**
+	 * Returns the list of files from a directory
+	 *
+	 * @param storageInfo - storage information
+	 * @returns the list of files
+	 */
 	async opendir(storageInfo: StorageInfo<FileData>) {
 		return this.fsOpendir
 			? await this.fsOpendir(storageInfo.attachedData.resolvedPath)
