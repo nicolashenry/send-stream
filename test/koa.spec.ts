@@ -295,13 +295,13 @@ describe('send(ctx, file)', () => {
 					.expect(404);
 			});
 		});
-		describe('when directoryListing is used', () => {
+		describe('when onDirectory = list-files is used', () => {
 			let server: http.Server;
 			before(() => {
 				const app = new Koa();
 
 				app.use(async ctx => {
-					await send(ctx, __dirname, ctx.path, { directoryListing: true });
+					await send(ctx, __dirname, ctx.path, { onDirectory: 'list-files' });
 				});
 
 				server = app.listen();
@@ -313,6 +313,7 @@ describe('send(ctx, file)', () => {
 				await request(server)
 					.get('/fixtures-koa/')
 					.expect('Content-Type', 'text/html; charset=UTF-8')
+					.expect('X-Send-Stream-Resolved-Path', join(__dirname, 'fixtures-koa', ''))
 					.expect(200);
 			});
 			it('should 404 without /', async () => {
@@ -325,6 +326,47 @@ describe('send(ctx, file)', () => {
 				await request(server)
 					.get('/fixtures-koa/gzip.json/')
 					.expect('X-Send-Stream-Error', 'TrailingSlashError')
+					.expect(404);
+			});
+		});
+
+		describe('when onDirectory = serve-index is used', () => {
+			let server: http.Server;
+			before(() => {
+				const app = new Koa();
+
+				app.use(async ctx => {
+					await send(ctx, __dirname, ctx.path, { onDirectory: 'serve-index' });
+				});
+
+				server = app.listen();
+			});
+			after(done => {
+				server.close(done);
+			});
+			it('should 200 with /', async () => {
+				await request(server)
+					.get('/fixtures-koa/world/')
+					.expect('Content-Type', 'text/html; charset=UTF-8')
+					.expect('X-Send-Stream-Resolved-Path', join(__dirname, 'fixtures-koa', 'world', 'index.html'))
+					.expect(200, 'html index');
+			});
+			it('should 404 without /', async () => {
+				await request(server)
+					.get('/fixtures-koa/world')
+					.expect('X-Send-Stream-Error', 'IsDirectoryError')
+					.expect(404);
+			});
+			it('should 404 if file with /', async () => {
+				await request(server)
+					.get('/fixtures-koa/gzip.json/')
+					.expect('X-Send-Stream-Error', 'DoesNotExistError')
+					.expect(404);
+			});
+			it('should 404 if not existing index with /', async () => {
+				await request(server)
+					.get('/fixtures-koa/')
+					.expect('X-Send-Stream-Error', 'DoesNotExistError')
 					.expect(404);
 			});
 		});
@@ -2595,14 +2637,14 @@ describe('send(ctx, file)', () => {
 		});
 	});
 
-	describe('when fsModule option used with directory listing', () => {
+	describe('when fsModule option used with onDirectory = list-files', () => {
 		let server: http.Server;
 		before(async () => {
 			const app = new Koa();
 			await memfs.fs.promises.writeFile('/foo.txt', 'bar');
 
 			app.use(async ctx => {
-				await send(ctx, '/', '/', { fsModule: <typeof fs> <unknown> memfs.fs, directoryListing: true });
+				await send(ctx, '/', '/', { fsModule: <typeof fs> <unknown> memfs.fs, onDirectory: 'list-files' });
 			});
 
 			server = app.listen();
@@ -2610,12 +2652,12 @@ describe('send(ctx, file)', () => {
 		after(done => {
 			server.close(done);
 		});
-		it('should handle memfs as fsModule option with directoryListing', async () => {
+		it('should handle memfs as fsModule option with directory = listing', async () => {
 			await request(server)
 				.get('/')
 				.expect('Content-Type', 'text/html; charset=UTF-8')
 				// eslint-disable-next-line max-len
-				.expect(200, '<!DOCTYPE html><html><head><meta charset="utf-8"><title>/</title><meta name="viewport" content="width=device-width"></head><body><h1>Directory: /</h1><ul><li><a href="./foo.txt">foo.txt</a></li></ul></body></html>');
+				.expect(200, '<!DOCTYPE html><html lang="en"><head><meta charset="utf-8"><title>/</title><meta name="viewport" content="width=device-width"><meta name="description" content="Content of / directory"></head><body><h1>Directory: /</h1><ul><li><a href="./foo.txt">foo.txt</a></li></ul></body></html>');
 		});
 	});
 

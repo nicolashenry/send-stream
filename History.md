@@ -6,7 +6,7 @@
 * Not normalized paths are now a 404 instead of 301 like other errors (redirects was unsafe depending on use)
 * Fix some content encoding edge cases
 * Multiple refactoring
-* Feature: add directoryListing option
+* Feature: add onDirectory option
 
 0.4.0
 ==================

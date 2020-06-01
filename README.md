@@ -25,7 +25,7 @@ $ npm install send-stream
 
 ## Getting start
 
-Serve all files from a directory with Fastify, Koa or Express
+Serve all files from a directory (also serve index.html from directories on trailing slash) with Fastify, Koa or Express
 (see [examples](#examples) folder for more advanced usages)
 
 Using Fastify:
@@ -35,7 +35,7 @@ const fastify = require('fastify');
 const { FileSystemStorage } = require('send-stream');
 
 const app = fastify();
-const storage = new FileSystemStorage(path.join(__dirname, 'assets'));
+const storage = new FileSystemStorage(path.join(__dirname, 'assets'), { onDirectory: 'serve-index' });
 
 app.route({
   method: ['HEAD', 'GET'],
@@ -59,7 +59,7 @@ const Koa = require('koa');
 const { FileSystemStorage } = require('send-stream');
 
 const app = new Koa<object>();
-const storage = new FileSystemStorage(path.join(__dirname, 'assets'));
+const storage = new FileSystemStorage(path.join(__dirname, 'assets'), { onDirectory: 'serve-index' });
 
 app.use(async ctx => {
   let result = await storage.prepareResponse(ctx.request.path, ctx.req);
@@ -80,7 +80,7 @@ const express = require("express");
 const { FileSystemStorage } = require('send-stream');
 
 const app = express();
-const storage = new FileSystemStorage(path.join(__dirname, 'assets'));
+const storage = new FileSystemStorage(path.join(__dirname, 'assets'), { onDirectory: 'serve-index' });
 
 app.get('*', async (req, res, next) => {
   try {
@@ -235,19 +235,21 @@ memfs.fs.writeFileSync('/hello.txt', 'world');
 new FileSystemStorage(directory, { fsModule: memfs })
 ```
 ---
-##### directoryListing
+##### directory
 
-When when set to `true` and the requested url ends with /,
-it will attempt to list the directory content as html if it exists
+Determine what should happen on directory requests (trailing slash)
+ - `false` to return an error
+ - `'list-files'` to list the files of directories
+ - `'serve-index'` to serve the index.html file of directories
 
-Defaults to `false`
+Default to false
 
-Note that you can customize the html template by overiding `getDirectoryListing` method.
+Note that you can customize the html template used for `'list-files'` by overiding `getDirectoryListing` method.
 
 Example:
 
 ```js
-new FileSystemStorage(directory, { directoryListing: true })
+new FileSystemStorage(directory, { directory: 'list-files' })
 ```
 ---
 
@@ -470,19 +472,6 @@ The following additional property is available:
 ## Examples
 
 See `examples/` folder in this repository for full examples
-
-### Serve directory with folder index.html files
-
-```js
-let result = (await storage.prepareResponse(req.url, req));
-const error = result.error;
-// if the path is not found and the reason is a trailing slash then try to load matching index.html
-if (error instanceof TrailingSlashError) {
-  result.stream.destroy();
-  result = await storage.prepareResponse([...error.pathParts.slice(0, -1), 'index.html'], req);
-}
-result.send(res);
-```
 
 ### Serve index.html for history.pushState application
 

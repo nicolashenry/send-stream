@@ -137,9 +137,14 @@ export interface FileSystemStorageOptions extends StorageOptions {
 	 */
 	fsModule?: FSModule;
 	/**
-	 * "fs" module to use
+	 * Determine what should happen on directory requests (trailing slash)
+	 * - `false` to return an error
+	 * - `'list-files'` to list the files of directories
+	 * - `'serve-index'` to serve the index.html file of directories
+	 *
+	 * Default to false
 	 */
-	directoryListing?: boolean;
+	onDirectory?: 'serve-index' | 'list-files' | false;
 }
 
 /**

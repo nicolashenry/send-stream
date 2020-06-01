@@ -7,7 +7,7 @@ import { FileSystemStorage } from '../src/send-stream';
 
 const app = express();
 
-const storage = new FileSystemStorage(join(__dirname, 'assets'), { directoryListing: true });
+const storage = new FileSystemStorage(join(__dirname, 'assets'), { onDirectory: 'list-files' });
 
 app.get('*', async (req, res, next) => {
 	try {

@@ -25,6 +25,20 @@ import {
 } from './file-system-storage-models';
 
 /**
+ * Escape HTML in path for this library (only replace & character since ", < and > are already excluded)
+ *
+ * @param path - the path to escape
+ * @returns the escaped path
+ */
+export function escapeHTMLInPath(path: string) {
+	// & is the only character to escape. '<', '>' and '"' are already excluded from listing
+	return path.replace(/&/ug, '&amp;');
+}
+
+// eslint-disable-next-line no-control-regex
+export const FORBIDDEN_CHARACTERS = /[/?<>\\:*|":\u0000-\u001F\u0080-\u009F]/u;
+
+/**
  * File system storage
  */
 export class FileSystemStorage extends Storage<FilePath, FileData> {
@@ -48,7 +62,7 @@ export class FileSystemStorage extends Storage<FilePath, FileData> {
 
 	readonly fsConstants: FSModule['constants'];
 
-	readonly directoryListing: boolean;
+	readonly onDirectory: 'serve-index' | 'list-files' | false;
 
 	/**
 	 * Create file system storage
@@ -86,7 +100,7 @@ export class FileSystemStorage extends Storage<FilePath, FileData> {
 			: opts.ignorePattern === false || opts.ignorePattern instanceof RegExp
 				? opts.ignorePattern
 				: new RegExp(opts.ignorePattern, 'u');
-		this.directoryListing = opts.directoryListing ?? false;
+		this.onDirectory = opts.onDirectory ?? false;
 		const fsModule = opts.fsModule === undefined ? fs : opts.fsModule;
 		this.fsOpen = promisify(fsModule.open);
 		this.fsFstat = promisify(fsModule.fstat);
@@ -166,8 +180,7 @@ export class FileSystemStorage extends Storage<FilePath, FileData> {
 		}
 
 		// slashes or null bytes
-		// eslint-disable-next-line no-control-regex
-		if (pathParts.find(v => /[/?<>\\:*|":\u0000-\u001F\u0080-\u009F]/u.test(v))) {
+		if (pathParts.find(v => FORBIDDEN_CHARACTERS.test(v))) {
 			throw new ForbiddenCharacterError(
 				`${ String(path) } has one or more forbidden characters`,
 				path,
@@ -188,7 +201,12 @@ export class FileSystemStorage extends Storage<FilePath, FileData> {
 		// trailing slash
 		if (haveTrailingSlash) {
 			const untrailedPathParts = pathParts.slice(0, -1);
-			if (!this.directoryListing) {
+			if (this.onDirectory === 'list-files') {
+				pathParts = untrailedPathParts;
+			} else if (this.onDirectory === 'serve-index') {
+				pathParts = [...untrailedPathParts, 'index.html'];
+				haveTrailingSlash = false;
+			} else {
 				throw new TrailingSlashError(
 					`${ String(path) } have a trailing slash`,
 					path,
@@ -196,7 +214,6 @@ export class FileSystemStorage extends Storage<FilePath, FileData> {
 					untrailedPathParts,
 				);
 			}
-			pathParts = untrailedPathParts;
 		}
 
 		return { pathParts, haveTrailingSlash };
@@ -398,25 +415,30 @@ export class FileSystemStorage extends Storage<FilePath, FileData> {
 		const { attachedData: { pathParts } } = storageInfo;
 
 		const isNotRoot = pathParts.length > 1;
-		const display = isNotRoot ? pathParts[pathParts.length - 1] : '/';
+		const displayName = isNotRoot ? escapeHTMLInPath(pathParts[pathParts.length - 1]) : '/';
+		const display = `${ isNotRoot ? escapeHTMLInPath(pathParts.join('/')) : '' }/`;
 
-		yield `<!DOCTYPE html><html><head><meta charset="utf-8"><title>${ display }</title>`;
-		yield '<meta name="viewport" content="width=device-width"></head>';
-		yield `<body><h1>Directory: ${ isNotRoot ? pathParts.join('/') : '' }/</h1><ul>`;
-
-		if (isNotRoot) {
-			yield '<li><a href="..">..</a></li>';
-		}
+		yield `<!DOCTYPE html><html lang="en"><head><meta charset="utf-8"><title>${
+			displayName
+		}</title><meta name="viewport" content="width=device-width"><meta name="description" content="Content of ${
+			display
+		} directory"></head><body><h1>Directory: ${ display }</h1><ul>${
+			isNotRoot ? '<li><a href="..">..</a></li>' : ''
+		}`;
 
 		const { ignorePattern } = this;
 		const files = await this.opendir(storageInfo);
 
 		for await (const file of files) {
-			if (ignorePattern && ignorePattern.test(file.name)) {
+			const { name: filename } = file;
+			if (
+				FORBIDDEN_CHARACTERS.test(filename)
+				|| (ignorePattern && ignorePattern.test(filename))
+			) {
 				continue;
 			}
-			const filename = file.name + (file.isDirectory() ? '/' : '');
-			yield `<li><a href="./${ filename }">${ filename }</a></li>`;
+			const escapedFilename = `${ escapeHTMLInPath(filename) }${ file.isDirectory() ? '/' : '' }`;
+			yield `<li><a href="./${ escapedFilename }">${ escapedFilename }</a></li>`;
 		}
 
 		yield '</ul></body></html>';
