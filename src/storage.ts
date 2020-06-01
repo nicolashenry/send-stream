@@ -117,7 +117,7 @@ export abstract class Storage<Reference, AttachedData> {
 	createContentType(storageInfo: StorageInfo<AttachedData>): string | false {
 		const { fileName } = storageInfo;
 		if (!fileName) {
-			return false;
+			return this.defaultContentType;
 		}
 		const type = this.mimeModule.getType(fileName);
 		if (!type) {
