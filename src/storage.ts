@@ -11,7 +11,6 @@ import { StreamResponse } from './response';
 import { EmptyStream, BufferStream, MultiStream } from './streams';
 import {
 	millisecondsToUTCString,
-	getContentTypeWithCharset,
 	statsToEtag,
 	getFreshStatus,
 	isRangeFresh,
@@ -109,10 +108,9 @@ export abstract class Storage<Reference, AttachedData> {
 
 	/**
 	 * Create content-type header value from storage information
-	 * (from filename using mime module and adding default charset for some types)
 	 *
 	 * @param storageInfo - storage information (unused unless overriden)
-	 * @returns content-type header
+	 * @returns content-type header (without charset)
 	 */
 	createContentType(storageInfo: StorageInfo<AttachedData>): string | false {
 		const { fileName } = storageInfo;
@@ -123,10 +121,27 @@ export abstract class Storage<Reference, AttachedData> {
 		if (!type) {
 			return this.defaultContentType;
 		}
-		if (this.defaultCharsets) {
-			return getContentTypeWithCharset(type, this.defaultCharsets);
-		}
 		return type;
+	}
+
+	/**
+	 * Create charset that will be appended
+	 * (from filename using mime module and adding default charset for some types)
+	 *
+	 * @param storageInfo - storage information (unused unless overriden)
+	 * @returns content-type header
+	 */
+	createContentTypeCharset(storageInfo: StorageInfo<AttachedData>): string | false {
+		const { contentType } = storageInfo;
+		const { defaultCharsets } = this;
+		if (defaultCharsets && contentType) {
+			for (const { matcher, charset } of defaultCharsets) {
+				if (matcher.test(contentType)) {
+					return charset;
+				}
+			}
+		}
+		return false;
 	}
 
 	/**
@@ -242,11 +257,22 @@ export abstract class Storage<Reference, AttachedData> {
 				responseHeaders['Content-Encoding'] = storageInfo.contentEncoding;
 			}
 
+			let contentTypeHeader;
 			const contentType = opts.contentType === undefined
-				? this.createContentType(storageInfo)
+				? storageInfo.contentType ?? this.createContentType(storageInfo)
 				: opts.contentType;
 			if (contentType) {
-				responseHeaders['Content-Type'] = contentType;
+				storageInfo.contentType = contentType;
+				const contentTypeCharset = opts.contentTypeCharset === undefined
+					? storageInfo.contentTypeCharset ?? this.createContentTypeCharset(storageInfo)
+					: opts.contentTypeCharset;
+				if (contentTypeCharset) {
+					storageInfo.contentTypeCharset = contentTypeCharset;
+					contentTypeHeader = `${ contentType }; charset=${ contentTypeCharset }`;
+				} else {
+					contentTypeHeader = contentType;
+				}
+				responseHeaders['Content-Type'] = contentTypeHeader;
 				responseHeaders['X-Content-Type-Options'] = 'nosniff';
 			}
 
@@ -315,8 +341,8 @@ export abstract class Storage<Reference, AttachedData> {
 								for (const range of parsedRanges) {
 									let header = `${ first ? '' : '\r\n' }--${ boundary }\r\n`;
 									first = false;
-									if (contentType) {
-										header += `content-type: ${ contentType }\r\n`;
+									if (contentTypeHeader) {
+										header += `content-type: ${ contentTypeHeader }\r\n`;
 									}
 									header += `content-range: ${ contentRange('bytes', size, range) }\r\n\r\n`;
 									const headerBuffer = Buffer.from(header);

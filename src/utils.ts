@@ -82,25 +82,6 @@ export interface RegexpCharsetMapping {
 }
 
 /**
- * Retrieve content-type with mapped charset added
- *
- * @param contentType - content type
- * @param charsetMappings - charset mapping
- * @returns content type with charset
- */
-export function getContentTypeWithCharset(
-	contentType: string,
-	charsetMappings: readonly RegexpCharsetMapping[],
-) {
-	for (const { matcher, charset } of charsetMappings) {
-		if (matcher.test(contentType)) {
-			return `${ contentType }; charset=${ charset }`;
-		}
-	}
-	return contentType;
-}
-
-/**
  * Transform stats to etag
  *
  * @param size - file size

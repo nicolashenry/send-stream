@@ -1655,6 +1655,27 @@ describe('send(ctx, file)', () => {
 			});
 		});
 
+		describe('be charset unset with false contentType option', () => {
+			let server: http.Server;
+			before(() => {
+				const app = new Koa();
+
+				app.use(async ctx => {
+					await send(ctx, __dirname, '/fixtures-koa/world/index.html', { contentTypeCharset: false });
+				});
+
+				server = app.listen();
+			});
+			after(done => {
+				server.close(done);
+			});
+			it('be unset with false contentType option', async () => {
+				await request(server)
+					.get('/')
+					.expect('Content-Type', 'text/html');
+			});
+		});
+
 		describe('should set to default the Content-Type when type is unknown', () => {
 			let server: http.Server;
 			before(() => {

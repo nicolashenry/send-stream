@@ -360,6 +360,8 @@ export class FileSystemStorage extends Storage<FilePath, FileData> {
 							stats,
 						},
 						fileName: `${ pathParts.length > 1 ? pathParts[pathParts.length - 1] : '_' }.html`,
+						contentType: 'text/html',
+						contentTypeCharset: 'UTF-8',
 					};
 				} else if (haveTrailingSlash) {
 					throw new TrailingSlashError(
@@ -390,20 +392,6 @@ export class FileSystemStorage extends Storage<FilePath, FileData> {
 			vary,
 			contentEncoding,
 		};
-	}
-
-	/**
-	 * Create content-type header value from storage information
-	 * (from filename using mime module and adding default charset for some types)
-	 *
-	 * @param storageInfo - storage information (unused unless overriden)
-	 * @returns content-type header
-	 */
-	createContentType(storageInfo: StorageInfo<FileData>) {
-		if (storageInfo.attachedData.stats.isDirectory()) {
-			return 'text/html; charset=UTF-8';
-		}
-		return super.createContentType(storageInfo);
 	}
 
 	/**

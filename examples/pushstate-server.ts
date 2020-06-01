@@ -1,5 +1,5 @@
 
-import { join, extname } from 'path';
+import { join } from 'path';
 
 import express from 'express';
 
@@ -12,13 +12,18 @@ const storage = new FileSystemStorage(join(__dirname, 'assets'));
 app.use(async (req, res, next) => {
 	try {
 		let result = await storage.prepareResponse(req.url, req);
-		// if a path is not found and does not have extension then return root index.html
-		if (
-			result.error instanceof FileSystemStorageError
-			&& extname(result.error.pathParts[result.error.pathParts.length - 1]) === ''
-		) {
+		// if path is not found then rewrite to root index.html
+		if (result.error instanceof FileSystemStorageError) {
 			result.stream.destroy();
-			result = await storage.prepareResponse(['', 'index.html'], req);
+			const { error: { pathParts } } = result;
+			result = await storage.prepareResponse(
+				['', 'index.html'],
+				req,
+				// if the mime type can be determined from path then this is probably an error so add 404 status
+				storage.mimeModule.getType(pathParts[pathParts.length - 1])
+					? { statusCode: 404 }
+					: {},
+			);
 		}
 		result.send(res);
 	} catch (err) {

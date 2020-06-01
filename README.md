@@ -27,7 +27,7 @@ $ npm install send-stream
 
 Serve all files from a directory (also serve index.html from directories on trailing slash) with Fastify, Koa or Express
 
-See [examples](#examples) folder for more advanced usages.
+See [examples](#examples) for more advanced usages.
 
 Using Fastify:
 ```js
@@ -127,7 +127,7 @@ new FileSystemStorage(directory, { mimeModule: myMime })
 ---
 ##### defaultContentType
 
-Configures the default content type that will be used if the content type is unknown.
+Configures the default content type (without charset) that will be used if the content type is unknown.
 
 `undefined` by default
 
@@ -311,7 +311,7 @@ await storage.prepareResponse(req.url, req, { etag: '"123"' })
 ---
 ##### contentType
 
-Custom content-type header value, overrides storage value (defaults to storage content type)
+Custom content-type header value (without charset), overrides storage value (defaults to storage content type)
 
 `false` to remove header
 
@@ -319,6 +319,19 @@ Example:
 
 ```js
 await storage.prepareResponse(req.url, req, { contentType: 'text/plain' })
+```
+
+---
+##### contentTypeCharset
+
+Custom content-type charset value, overrides storage value (defaults to storage content type charset mapping)
+
+`false` to remove charset
+
+Example:
+
+```js
+await storage.prepareResponse(req.url, req, { contentTypeCharset: 'UTF-8' })
 ```
 
 ---
@@ -472,30 +485,98 @@ The following additional property is available:
 ---
 ## Examples
 
-See `examples/` folder in this repository for full examples
+See [examples](./examples) folder in this repository for full examples
 
-### Serve index.html for history.pushState application
+### Serve files
 
 ```js
-const { extname } = require('path');
+const storage = new FileSystemStorage(directory);
 
 ...
 
 let result = await storage.prepareResponse(req.url, req);
-const error = result.error;
-// serve root index.html unless path has extension
-if (
-  error instanceof FileSystemStorageError
-  && (
-    error.pathParts.length === 0
-    || extname(error.pathParts[error.pathParts.length - 1]) === ''
-  )
-) {
-  result.stream.destroy();
-  result = await storage.prepareResponse(['', 'index.html'], req);
+result.send(res);
+```
+
+### Serve files with directory index.html
+
+```js
+const storage = new FileSystemStorage(directory, { onDirectory: 'serve-index' });
+
+...
+
+let result = await storage.prepareResponse(req.url, req);
+result.send(res);
+```
+
+### Serve files with directory listing
+
+```js
+const storage = new FileSystemStorage(directory, { onDirectory: 'list-files' });
+
+...
+
+let result = await storage.prepareResponse(req.url, req);
+result.send(res);
+```
+
+### Serve files and add CORS headers 
+
+```js
+const storage = new FileSystemStorage(directory);
+
+...
+
+let result = await storage.prepareResponse(req.url, req);
+result.headers['Access-Control-Allow-Origin'] = '*';
+result.headers['Access-Control-Allow-Headers'] = 'Origin, X-Requested-With, Content-Type, Accept, Range';
+result.send(res);
+```
+
+### Serve one file specifically
+
+```js
+const storage = new FileSystemStorage(directory);
+
+...
+
+let result = await storage.prepareResponse('/index.html', req);
+result.send(res);
+```
+
+### Serve index.html instead of 404 for history.pushState applications
+
+```js
+const storage = new FileSystemStorage(directory);
+
+...
+
+let result = await storage.prepareResponse(req.url, req);
+// if path is not found then rewrite to root index.html
+if (result.error instanceof FileSystemStorageError) {
+  result = await storage.prepareResponse('/index.html', req);
 }
 result.send(res);
 ```
+
+### Serve files and add CSP (Content-Security-Policy) header when content is html
+
+```js
+const storage = new FileSystemStorage(directory);
+
+...
+
+let result = await storage.prepareResponse(req.url, req);
+if (result.storageInfo?.contentType === 'text/html') {
+  result.headers['Content-Security-Policy'] = "script-src 'self'";
+  // you can also add some other security headers:
+  // result.headers['X-Frame-Options'] = "SAMEORIGIN";
+  // result.headers['Referrer-Policy'] = "no-referrer";
+  // result.headers['Feature-Policy'] = "...";
+}
+result.send(res);
+```
+
 ## License
 
 [MIT](LICENSE)

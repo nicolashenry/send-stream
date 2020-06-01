@@ -39,11 +39,17 @@ export interface PrepareResponseOptions {
 	 */
 	etag?: string | false;
 	/**
-	 * Custom content-type header value, overrides storage value
+	 * Custom content-type header value (without charset), overrides storage value
 	 *
 	 * `false` to remove header
 	 */
 	contentType?: string | false;
+	/**
+	 * Custom content-type charset value, overrides storage value
+	 *
+	 * `false` to remove charset
+	 */
+	contentTypeCharset?: string | false;
 	/**
 	 * Custom content-disposition header type value, overrides storage value
 	 *
@@ -149,6 +155,14 @@ export interface StorageInfo<AttachedData> {
 	 * Content encoding
 	 */
 	contentEncoding?: string;
+	/**
+	 * Content type (without charset)
+	 */
+	contentType?: string;
+	/**
+	 * Content type charset
+	 */
+	contentTypeCharset?: string;
 }
 
 /**

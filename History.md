@@ -1,12 +1,14 @@
 ?.?.? (unreleased)
 ==================
 
-* Each error now have a specific class instead of a code (breaking change)
-* Encoded path must start with / now (breaking change)
+* Breaking change: Each error now have a specific class instead of a code
+* Breaking change: Encoded path must start with / now
+* Breaking change: contentType values are now splitted into contentType (without charset) and contentTypeCharset
 * Not normalized paths are now a 404 instead of 301 like other errors (redirects was unsafe depending on use)
 * Fix some content encoding edge cases
 * Multiple refactoring
 * Feature: add onDirectory option
+* Feature: storages can now emit contentType/contentTypeCharset values directly
 
 0.4.0
 ==================
