@@ -26,7 +26,8 @@ $ npm install send-stream
 ## Getting start
 
 Serve all files from a directory (also serve index.html from directories on trailing slash) with Fastify, Koa or Express
-(see [examples](#examples) folder for more advanced usages)
+
+See [examples](#examples) folder for more advanced usages.
 
 Using Fastify:
 ```js
