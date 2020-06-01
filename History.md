@@ -1,4 +1,4 @@
-?.?.? (unreleased)
+1.0.0
 ==================
 
 * Breaking change: Each error now have a specific class instead of a code
