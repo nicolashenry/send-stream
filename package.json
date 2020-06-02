@@ -1,6 +1,6 @@
 {
   "name": "send-stream",
-  "description": "Streaming file server with Range and conditional-GET support from file system or any streaming sources.",
+  "description": "Streaming file serving library with Range and conditional-GET support from file system or any streaming sources.",
   "repository": "github:nicolashenry/send-stream",
   "version": "1.0.0",
   "keywords": [
@@ -8,7 +8,13 @@
     "file",
     "server",
     "send",
-    "stream"
+    "stream",
+    "partial",
+    "content",
+    "206",
+    "seek",
+    "buffer",
+    "range"
   ],
   "devDependencies": {
     "@istanbuljs/nyc-config-typescript": "~1.0.1",
