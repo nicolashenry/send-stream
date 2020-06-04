@@ -223,12 +223,20 @@ export abstract class Storage<Reference, AttachedData> {
 			}
 
 			const lastModified = opts.lastModified === undefined
-				? this.createLastModified(storageInfo)
+				? storageInfo.lastModified ?? this.createLastModified(storageInfo)
 				: opts.lastModified;
 
+			if (lastModified) {
+				storageInfo.lastModified = lastModified;
+			}
+
 			const etag = opts.etag === undefined
-				? this.createEtag(storageInfo)
+				? storageInfo.etag ?? this.createEtag(storageInfo)
 				: opts.etag;
+
+			if (etag) {
+				storageInfo.etag = etag;
+			}
 
 			const fullResponse = opts.statusCode !== undefined;
 			if (!fullResponse) {

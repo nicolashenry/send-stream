@@ -379,7 +379,7 @@
     ],
     "max-statements": [
       "warn",
-      120
+      140
     ],
     "max-statements-per-line": "warn",
     "multiline-comment-style": "off", // not needed: seems useless

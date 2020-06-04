@@ -18,6 +18,8 @@ import {
 	StorageInfo,
 	FileData,
 	StreamRange,
+	FilePath,
+	StorageRequestHeaders,
 } from '../src/send-stream';
 
 // test server
@@ -230,6 +232,37 @@ describe('send(file).pipe(res)', () => {
 			await request(app)
 				.get('/name.txt')
 				.expect(500);
+		});
+	});
+
+	describe('should handle custom file system stream implementation', () => {
+		let app: http.Server;
+		before(() => {
+			class CustomFileSystemStorage extends FileSystemStorage {
+				async open(path: FilePath, requestHeaders: StorageRequestHeaders): Promise<StorageInfo<FileData>> {
+					const res = await super.open(path, requestHeaders);
+					res.etag = '"123"';
+					res.lastModified = 'Thu, 04 Jun 2020 01:53:53 GMT';
+					return res;
+				}
+			}
+			const storage = new CustomFileSystemStorage(fixtures, {});
+			app = http.createServer((req, res) => {
+				(async () => {
+					// eslint-disable-next-line @typescript-eslint/no-non-null-assertion
+					(await storage.prepareResponse(req.url!, req)).send(res);
+				})().catch(err => {
+					res.statusCode = 500;
+					res.end(String(err));
+				});
+			});
+		});
+		it('should set matching etag and last-modified headers', async () => {
+			await request(app)
+				.get('/name.txt')
+				.expect('ETag', '"123"')
+				.expect('Last-Modified', 'Thu, 04 Jun 2020 01:53:53 GMT')
+				.expect(200);
 		});
 	});
 

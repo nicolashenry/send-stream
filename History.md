@@ -1,3 +1,8 @@
+1.1.0
+==================
+
+* Feature: Add a way to define ETag and Last-Modified headers directly from the storage
+
 1.0.0
 ==================
 

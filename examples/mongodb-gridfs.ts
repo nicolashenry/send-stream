@@ -40,21 +40,9 @@ class GridFSStorage extends Storage<string, File> {
 			fileName: file.filename,
 			mtimeMs: file.uploadDate.getTime(),
 			size: file.length,
+			contentType: file.metadata?.contentType,
+			etag: file.metadata?.etag,
 		};
-	}
-
-	createContentType(storageInfo: StorageInfo<File>) {
-		if (storageInfo.attachedData.metadata && storageInfo.attachedData.metadata.contentType !== undefined) {
-			return storageInfo.attachedData.metadata.contentType;
-		}
-		return super.createContentType(storageInfo);
-	}
-
-	createEtag(storageInfo: StorageInfo<File>) {
-		if (storageInfo.attachedData.metadata && storageInfo.attachedData.metadata.etag !== undefined) {
-			return storageInfo.attachedData.metadata.etag;
-		}
-		return super.createEtag(storageInfo);
 	}
 
 	createReadableStream(storageInfo: StorageInfo<File>, range: StreamRange | undefined, autoClose: boolean): Readable {

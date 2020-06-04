@@ -163,6 +163,14 @@ export interface StorageInfo<AttachedData> {
 	 * Content type charset
 	 */
 	contentTypeCharset?: string;
+	/**
+	 * Last-Modified header
+	 */
+	lastModified?: string;
+	/**
+	 * ETag header
+	 */
+	etag?: string;
 }
 
 /**
