@@ -440,8 +440,8 @@ export class FileSystemStorage extends Storage<FilePath, FileData> {
 	 */
 	async opendir(storageInfo: StorageInfo<FileData>) {
 		return this.fsOpendir
-			? await this.fsOpendir(storageInfo.attachedData.resolvedPath)
-			: await this.fsReaddir(storageInfo.attachedData.resolvedPath, { withFileTypes: true });
+			? this.fsOpendir(storageInfo.attachedData.resolvedPath)
+			: this.fsReaddir(storageInfo.attachedData.resolvedPath, { withFileTypes: true });
 	}
 
 	/**
