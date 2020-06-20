@@ -464,6 +464,7 @@
     "no-octal-escape": "warn",
     "no-param-reassign": "warn",
     "no-plusplus": "off", // not needed: seems useless
+    "no-promise-executor-return": "warn",
     "no-proto": "off", // not needed: covered by typescript
     "no-prototype-builtins": "warn",
     "no-redeclare": "off", // disabled by typescript-eslint
@@ -512,6 +513,7 @@
     "no-unmodified-loop-condition": "warn",
     "no-unneeded-ternary": "warn",
     "no-unreachable": "off", // disabled by typescript-eslint
+    "no-unreachable-loop": "warn",
     "no-unsafe-finally": "warn",
     "no-unsafe-negation": "off", // disabled by typescript-eslint
     "no-unused-expressions": "off", // disabled by typescript-eslint
