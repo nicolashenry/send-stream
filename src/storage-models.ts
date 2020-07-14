@@ -39,17 +39,17 @@ export interface PrepareResponseOptions {
 	 */
 	etag?: string | false;
 	/**
-	 * Custom content-type header value (without charset), overrides storage value
+	 * Custom mime type for content-type header, overrides storage value
 	 *
 	 * `false` to remove header
 	 */
-	contentType?: string | false;
+	mimeType?: string | false;
 	/**
-	 * Custom content-type charset value, overrides storage value
+	 * Custom mime type charset value, overrides storage value
 	 *
 	 * `false` to remove charset
 	 */
-	contentTypeCharset?: string | false;
+	mimeTypeCharset?: string | false;
 	/**
 	 * Custom content-disposition header type value, overrides storage value
 	 *
@@ -87,31 +87,15 @@ interface AcceptEncodingHeader {
 export type StorageRequestHeaders = (http.IncomingHttpHeaders | http2.IncomingHttpHeaders) & AcceptEncodingHeader;
 
 /**
- * Mime module type
- */
-export interface MimeModule {
-	getType: (path: string) => string | null;
-}
-
-/**
  * Storage options
  */
 export interface StorageOptions {
-	/**
-	 * "mime" module instance to use
-	 */
-	mimeModule?: MimeModule;
+	mimeTypesLookup?: (type: string) => string | false;
+	mimeTypesCharset?: (type: string) => string | false;
 	/**
 	 * Default content type, e.g. "application/octet-stream"
 	 */
-	defaultContentType?: string;
-	/**
-	 * Default charsets mapping, defaults to UTF-8 for text/* and application/(javascript|json) content types,
-	 * e.g. `[{ matcher: /^text\/.*\/, charset: 'windows-1252' }]`
-	 *
-	 * Can be disabled by setting it to `false`
-	 */
-	defaultCharsets?: readonly CharsetMapping[] | false;
+	defaultMimeType?: string;
 	/**
 	 * Maximum ranges supported for range requests (default is `200`)
 	 *
@@ -156,13 +140,13 @@ export interface StorageInfo<AttachedData> {
 	 */
 	contentEncoding?: string;
 	/**
-	 * Content type (without charset)
+	 * Mime type
 	 */
-	contentType?: string;
+	mimeType?: string;
 	/**
-	 * Content type charset
+	 * Mime type charset
 	 */
-	contentTypeCharset?: string;
+	mimeTypeCharset?: string;
 	/**
 	 * Last-Modified header
 	 */

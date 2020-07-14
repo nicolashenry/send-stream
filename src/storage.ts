@@ -4,7 +4,7 @@ import * as http2 from 'http2';
 import { Readable } from 'stream';
 
 import contentDisposition from 'content-disposition';
-import mime from 'mime';
+import { lookup as mimeTypesLookup, charset as mimeTypesCharset } from 'mime-types';
 import parseRange from 'range-parser';
 
 import { StreamResponse } from './response';
@@ -18,11 +18,9 @@ import {
 	randomBytes,
 	StreamRange,
 	ResponseHeaders,
-	RegexpCharsetMapping,
 	BufferOrStreamRange,
 } from './utils';
 import {
-	MimeModule,
 	StorageOptions,
 	PrepareResponseOptions,
 	StorageRequestHeaders,
@@ -30,7 +28,6 @@ import {
 	StorageError,
 } from './storage-models';
 
-const DEFAULT_CHARSETS = <const> [{ matcher: /^(?:text\/.+|application\/(?:javascript|json))$/u, charset: 'UTF-8' }];
 const DEFAULT_ALLOWED_METHODS = <const> ['GET', 'HEAD'];
 const DEFAULT_MAX_RANGES = 200;
 
@@ -38,15 +35,13 @@ const DEFAULT_MAX_RANGES = 200;
  * send-stream storage base class
  */
 export abstract class Storage<Reference, AttachedData> {
-	readonly mimeModule: MimeModule;
-
-	readonly defaultContentType: string | false;
-
-	readonly defaultCharsets: readonly RegexpCharsetMapping[] | false;
+	readonly defaultMimeType: string | false;
 
 	readonly maxRanges: number;
 
 	readonly weakEtags: boolean;
+	readonly mimeTypesLookup: NonNullable<StorageOptions['mimeTypesLookup']>;
+	readonly mimeTypesCharset: NonNullable<StorageOptions['mimeTypesCharset']>;
 
 	/**
 	 * Create storage
@@ -54,16 +49,9 @@ export abstract class Storage<Reference, AttachedData> {
 	 * @param opts - storage options
 	 */
 	constructor(opts: StorageOptions = { }) {
-		this.mimeModule = opts.mimeModule ? opts.mimeModule : mime;
-		this.defaultContentType = opts.defaultContentType ? opts.defaultContentType : false;
-		this.defaultCharsets = opts.defaultCharsets === undefined
-			? DEFAULT_CHARSETS
-			: opts.defaultCharsets === false
-				? opts.defaultCharsets
-				: opts.defaultCharsets.map(({ matcher, charset }) => ({
-					matcher: matcher instanceof RegExp ? matcher : new RegExp(matcher, 'u'),
-					charset,
-				}));
+		this.mimeTypesLookup = opts.mimeTypesLookup ? opts.mimeTypesLookup : mimeTypesLookup;
+		this.mimeTypesCharset = opts.mimeTypesCharset ? opts.mimeTypesCharset : mimeTypesCharset;
+		this.defaultMimeType = opts.defaultMimeType ? opts.defaultMimeType : false;
 		this.maxRanges = opts.maxRanges === undefined ? DEFAULT_MAX_RANGES : opts.maxRanges;
 		this.weakEtags = opts.weakEtags === true;
 	}
@@ -76,10 +64,15 @@ export abstract class Storage<Reference, AttachedData> {
 	 */
 	// eslint-disable-next-line class-methods-use-this
 	createLastModified(storageInfo: StorageInfo<AttachedData>): string | false {
-		if (storageInfo.mtimeMs === undefined) {
+		const { lastModified } = storageInfo;
+		if (lastModified) {
+			return lastModified;
+		}
+		const { mtimeMs } = storageInfo;
+		if (mtimeMs === undefined) {
 			return false;
 		}
-		return millisecondsToUTCString(storageInfo.mtimeMs);
+		return millisecondsToUTCString(mtimeMs);
 	}
 
 	/**
@@ -89,10 +82,15 @@ export abstract class Storage<Reference, AttachedData> {
 	 * @returns etag header
 	 */
 	createEtag(storageInfo: StorageInfo<AttachedData>): string | false {
-		if (storageInfo.size === undefined || storageInfo.mtimeMs === undefined) {
+		const { etag } = storageInfo;
+		if (etag) {
+			return etag;
+		}
+		const { size, mtimeMs } = storageInfo;
+		if (size === undefined || mtimeMs === undefined) {
 			return false;
 		}
-		return statsToEtag(storageInfo.size, storageInfo.mtimeMs, storageInfo.contentEncoding, this.weakEtags);
+		return statsToEtag(size, mtimeMs, storageInfo.contentEncoding, this.weakEtags);
 	}
 
 	/**
@@ -107,41 +105,39 @@ export abstract class Storage<Reference, AttachedData> {
 	}
 
 	/**
-	 * Create content-type header value from storage information
+	 * Create mime type for content-type header value from storage information
 	 *
 	 * @param storageInfo - storage information (unused unless overriden)
-	 * @returns content-type header (without charset)
+	 * @returns mime type
 	 */
-	createContentType(storageInfo: StorageInfo<AttachedData>): string | false {
+	createMimeType(storageInfo: StorageInfo<AttachedData>): string | false {
+		const { mimeType } = storageInfo;
+		if (mimeType) {
+			return mimeType;
+		}
 		const { fileName } = storageInfo;
 		if (!fileName) {
-			return this.defaultContentType;
+			return this.defaultMimeType;
 		}
-		const type = this.mimeModule.getType(fileName);
+		const type = this.mimeTypesLookup(fileName);
 		if (!type) {
-			return this.defaultContentType;
+			return this.defaultMimeType;
 		}
 		return type;
 	}
 
 	/**
-	 * Create charset that will be appended
-	 * (from filename using mime module and adding default charset for some types)
+	 * Create charset that will be appended with mime type into content-type header
 	 *
 	 * @param storageInfo - storage information (unused unless overriden)
-	 * @returns content-type header
+	 * @param mimeType - mime type
+	 * @returns charset
 	 */
-	createContentTypeCharset(storageInfo: StorageInfo<AttachedData>): string | false {
-		const { contentType } = storageInfo;
-		const { defaultCharsets } = this;
-		if (defaultCharsets && contentType) {
-			for (const { matcher, charset } of defaultCharsets) {
-				if (matcher.test(contentType)) {
-					return charset;
-				}
-			}
+	createMimeTypeCharset(storageInfo: StorageInfo<AttachedData>, mimeType: string): string | false {
+		if (storageInfo.mimeTypeCharset) {
+			return storageInfo.mimeTypeCharset;
 		}
-		return false;
+		return this.mimeTypesCharset(mimeType);
 	}
 
 	/**
@@ -223,7 +219,7 @@ export abstract class Storage<Reference, AttachedData> {
 			}
 
 			const lastModified = opts.lastModified === undefined
-				? storageInfo.lastModified ?? this.createLastModified(storageInfo)
+				? this.createLastModified(storageInfo)
 				: opts.lastModified;
 
 			if (lastModified) {
@@ -231,7 +227,7 @@ export abstract class Storage<Reference, AttachedData> {
 			}
 
 			const etag = opts.etag === undefined
-				? storageInfo.etag ?? this.createEtag(storageInfo)
+				? this.createEtag(storageInfo)
 				: opts.etag;
 
 			if (etag) {
@@ -266,19 +262,19 @@ export abstract class Storage<Reference, AttachedData> {
 			}
 
 			let contentTypeHeader;
-			const contentType = opts.contentType === undefined
-				? storageInfo.contentType ?? this.createContentType(storageInfo)
-				: opts.contentType;
-			if (contentType) {
-				storageInfo.contentType = contentType;
-				const contentTypeCharset = opts.contentTypeCharset === undefined
-					? storageInfo.contentTypeCharset ?? this.createContentTypeCharset(storageInfo)
-					: opts.contentTypeCharset;
-				if (contentTypeCharset) {
-					storageInfo.contentTypeCharset = contentTypeCharset;
-					contentTypeHeader = `${ contentType }; charset=${ contentTypeCharset }`;
+			const mimeType = opts.mimeType === undefined
+				? this.createMimeType(storageInfo)
+				: opts.mimeType;
+			if (mimeType) {
+				storageInfo.mimeType = mimeType;
+				const mimeTypeCharset = opts.mimeTypeCharset === undefined
+					? this.createMimeTypeCharset(storageInfo, mimeType)
+					: opts.mimeTypeCharset;
+				if (mimeTypeCharset) {
+					storageInfo.mimeTypeCharset = mimeTypeCharset;
+					contentTypeHeader = `${ mimeType }; charset=${ mimeTypeCharset }`;
 				} else {
-					contentTypeHeader = contentType;
+					contentTypeHeader = mimeType;
 				}
 				responseHeaders['Content-Type'] = contentTypeHeader;
 				responseHeaders['X-Content-Type-Options'] = 'nosniff';

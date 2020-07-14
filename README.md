@@ -29,7 +29,7 @@ Serve all files from a directory (also serve index.html from directories on trai
 
 See [examples](#examples) for more advanced usages.
 
-Using Fastify:
+Using Fastify (v3.x.x):
 ```js
 const path = require('path');
 const fastify = require('fastify');
@@ -41,7 +41,7 @@ const storage = new FileSystemStorage(path.join(__dirname, 'assets'), { onDirect
 app.route({
   method: ['HEAD', 'GET'],
   url: '*',
-  handler: async ({ req }, { res }) => {
+  handler: async ({ raw: req }, { raw: res }) => {
     const result = await storage.prepareResponse(req.url, req);
     result.send(res);
   }
@@ -53,7 +53,7 @@ app.listen(3000)
   });
 ```
 
-Using Koa:
+Using Koa (v2.x.x):
 ```js
 const path = require('path');
 const Koa = require('koa');
@@ -74,7 +74,7 @@ app.listen(3000, () => {
 });
 ```
 
-Using Express:
+Using Express (v4.x.x):
 ```js
 const path = require("path");
 const express = require("express");

@@ -1,7 +1,7 @@
 
 import { join } from 'path';
 
-import fastify from 'fastify';
+import { fastify } from 'fastify';
 
 import { FileSystemStorage } from '../src/send-stream';
 
@@ -12,7 +12,7 @@ const storage = new FileSystemStorage(join(__dirname, 'assets'));
 app.route({
 	method: ['HEAD', 'GET'],
 	url: '*',
-	handler: async ({ req }, { res }) => {
+	handler: async ({ raw: req }, { raw: res }) => {
 		if (req.url === undefined) {
 			throw new Error('url not set');
 		}

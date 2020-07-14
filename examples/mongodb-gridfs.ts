@@ -8,6 +8,8 @@ import * as mongodb from 'mongodb';
 
 import { Storage, StorageOptions, StorageInfo, StorageError, StreamRange } from '../src/send-stream';
 
+declare const URL: typeof import('url').URL;
+
 const uri = 'mongodb://localhost:27017';
 const dbName = 'test';
 

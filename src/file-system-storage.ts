@@ -24,6 +24,8 @@ import {
 	DoesNotExistError,
 } from './file-system-storage-models';
 
+declare const URL: typeof import('url').URL;
+
 /**
  * Escape HTML in path for this library (only replace & character since ", < and > are already excluded)
  *
@@ -360,8 +362,8 @@ export class FileSystemStorage extends Storage<FilePath, FileData> {
 							stats,
 						},
 						fileName: `${ pathParts.length > 1 ? pathParts[pathParts.length - 1] : '_' }.html`,
-						contentType: 'text/html',
-						contentTypeCharset: 'UTF-8',
+						mimeType: 'text/html',
+						mimeTypeCharset: 'UTF-8',
 					};
 				} else if (haveTrailingSlash) {
 					throw new TrailingSlashError(

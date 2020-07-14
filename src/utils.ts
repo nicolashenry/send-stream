@@ -1,4 +1,4 @@
-import crypto from 'crypto';
+import * as crypto from 'crypto';
 import { promisify } from 'util';
 
 /**
@@ -66,20 +66,6 @@ export type BufferOrStreamRange = StreamRange | Buffer;
  * Random bytes function returing promise
  */
 export const randomBytes = promisify(crypto.randomBytes);
-
-/**
- * Charset mapping
- */
-export interface RegexpCharsetMapping {
-	/**
-	 * Regexp pattern used to match content type
-	 */
-	matcher: RegExp;
-	/**
-	 * Charset to use with the matched content type
-	 */
-	charset: string;
-}
 
 /**
  * Transform stats to etag

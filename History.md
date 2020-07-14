@@ -1,3 +1,14 @@
+1.2.0
+==================
+
+* Breaking change: rename `contentType` prepare option to `mimeType` and `contentTypeCharset` to `mimeTypeCharset`
+* Breaking change: rename storage option `defaultContentType` to `defaultMimeType`
+* Breaking change: replace `defaultCharsets` and `mimeModule` storage options with `mimeTypesLookup` and
+`mimeTypesCharset` functions
+* Feature: `mime` package is replaced by `mime-types` for charset lookups
+* Use fastify v3 in examples
+* Use typescript project references
+
 1.1.0
 ==================
 

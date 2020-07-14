@@ -10,7 +10,6 @@ import * as http from 'http';
 import { promisify } from 'util';
 
 import Koa from 'koa';
-import Mime from 'mime/Mime';
 import request from 'supertest';
 import * as memfs from 'memfs';
 
@@ -1499,96 +1498,6 @@ describe('send(ctx, file)', () => {
 			});
 		});
 
-		describe('should set the Content-Type with no charset for html when disabled', () => {
-			let server: http.Server;
-			before(() => {
-				const app = new Koa();
-
-				app.use(async ctx => {
-					await send(ctx, __dirname, '/fixtures-koa/world/index.html', { defaultCharsets: false });
-				});
-
-				server = app.listen();
-			});
-			after(done => {
-				server.close(done);
-			});
-			it('should set the Content-Type with no charset for html when disabled', async () => {
-				await request(server)
-					.get('/')
-					.expect('Content-Type', 'text/html');
-			});
-		});
-
-		describe('should set the Content-Type with a charset when option used', () => {
-			let server: http.Server;
-			before(() => {
-				const app = new Koa();
-
-				app.use(async ctx => {
-					await send(ctx, __dirname, '/fixtures-koa/world/index.html', {
-						defaultCharsets: [{ matcher: /^text\/.*/u, charset: 'windows-1252' }],
-					});
-				});
-
-				server = app.listen();
-			});
-			after(done => {
-				server.close(done);
-			});
-			it('should set the Content-Type with a charset when option used', async () => {
-				await request(server)
-					.get('/')
-					.expect('Content-Type', 'text/html; charset=windows-1252');
-			});
-		});
-
-		describe('should set the Content-Type with a charset when option used (with regexp as text)', () => {
-			let server: http.Server;
-			before(() => {
-				const app = new Koa();
-
-				app.use(async ctx => {
-					await send(ctx, __dirname, '/fixtures-koa/world/index.html', {
-						defaultCharsets: [{ matcher: '^text\\/.*', charset: 'windows-1252' }],
-					});
-				});
-
-				server = app.listen();
-			});
-			after(done => {
-				server.close(done);
-			});
-			it('should set the Content-Type with a charset when option used', async () => {
-				await request(server)
-					.get('/')
-					.expect('Content-Type', 'text/html; charset=windows-1252');
-			});
-		});
-
-		describe('should not set the Content-Type with a charset when content type does not match', () => {
-			let server: http.Server;
-			before(() => {
-				const app = new Koa();
-
-				app.use(async ctx => {
-					await send(ctx, __dirname, '/fixtures-koa/user.json', {
-						defaultCharsets: [{ matcher: /^text\/.*/u, charset: 'windows-1252' }],
-					});
-				});
-
-				server = app.listen();
-			});
-			after(done => {
-				server.close(done);
-			});
-			it('should not set the Content-Type with a charset when content type does not match', async () => {
-				await request(server)
-					.get('/')
-					.expect('Content-Type', 'application/json');
-			});
-		});
-
 		describe('should not set Content-Type when type is unknown, (koa force to application/octet-stream)', () => {
 			let server: http.Server;
 			before(() => {
@@ -1640,7 +1549,7 @@ describe('send(ctx, file)', () => {
 				const app = new Koa();
 
 				app.use(async ctx => {
-					await send(ctx, __dirname, '/fixtures-koa/user.json', { contentType: false });
+					await send(ctx, __dirname, '/fixtures-koa/user.json', { mimeType: false });
 				});
 
 				server = app.listen();
@@ -1661,7 +1570,7 @@ describe('send(ctx, file)', () => {
 				const app = new Koa();
 
 				app.use(async ctx => {
-					await send(ctx, __dirname, '/fixtures-koa/world/index.html', { contentTypeCharset: false });
+					await send(ctx, __dirname, '/fixtures-koa/world/index.html', { mimeTypeCharset: false });
 				});
 
 				server = app.listen();
@@ -1682,7 +1591,7 @@ describe('send(ctx, file)', () => {
 				const app = new Koa();
 
 				app.use(async ctx => {
-					await send(ctx, __dirname, '/fixtures-koa/unknown', { defaultContentType: 'application/x-test' });
+					await send(ctx, __dirname, '/fixtures-koa/unknown', { defaultMimeType: 'application/x-test' });
 				});
 
 				server = app.listen();
@@ -1697,7 +1606,7 @@ describe('send(ctx, file)', () => {
 			});
 		});
 
-		describe('should use mime module instance when set', () => {
+		describe('should use mime mimeTypesLookup when set', () => {
 			let server: http.Server;
 			before(() => {
 				const app = new Koa();
@@ -1707,7 +1616,7 @@ describe('send(ctx, file)', () => {
 						ctx,
 						__dirname,
 						'/fixtures-koa/user.json',
-						{ mimeModule: new Mime({ 'application/x-test': ['json'] }) },
+						{ mimeTypesLookup: () => 'application/x-test' },
 					);
 				});
 
@@ -1716,14 +1625,14 @@ describe('send(ctx, file)', () => {
 			after(done => {
 				server.close(done);
 			});
-			it('should use mime module instance when set', async () => {
+			it('should use mimeTypesLookup when set', async () => {
 				await request(server)
 					.get('/')
 					.expect('Content-Type', 'application/x-test');
 			});
 		});
 
-		describe('should 500 when mime module instance throw', () => {
+		describe('should 500 when mimeTypesLookup throw', () => {
 			let server: http.Server;
 			before(() => {
 				const app = new Koa();
@@ -1734,10 +1643,8 @@ describe('send(ctx, file)', () => {
 						__dirname,
 						'/fixtures-koa/user.json',
 						{
-							mimeModule: {
-								getType() {
-									throw new Error('oops');
-								},
+							mimeTypesLookup: () => {
+								throw new Error('oops');
 							},
 						},
 					);
@@ -1748,7 +1655,63 @@ describe('send(ctx, file)', () => {
 			after(done => {
 				server.close(done);
 			});
-			it('should 500 when mime module instance throw', async () => {
+			it('should 500 when mimeTypesLookup throw', async () => {
+				await request(server)
+					.get('/')
+					.expect(500);
+			});
+		});
+
+		describe('should use mime mimeTypesCharset when set', () => {
+			let server: http.Server;
+			before(() => {
+				const app = new Koa();
+
+				app.use(async ctx => {
+					await send(
+						ctx,
+						__dirname,
+						'/fixtures-koa/user.json',
+						{ mimeTypesCharset: () => 'iso-8859-1' },
+					);
+				});
+
+				server = app.listen();
+			});
+			after(done => {
+				server.close(done);
+			});
+			it('should use mimeTypesCharset when set', async () => {
+				await request(server)
+					.get('/')
+					.expect('Content-Type', 'application/json; charset=iso-8859-1');
+			});
+		});
+
+		describe('should 500 when mimeTypesCharset throw', () => {
+			let server: http.Server;
+			before(() => {
+				const app = new Koa();
+
+				app.use(async ctx => {
+					await send(
+						ctx,
+						__dirname,
+						'/fixtures-koa/user.json',
+						{
+							mimeTypesCharset: () => {
+								throw new Error('oops');
+							},
+						},
+					);
+				});
+
+				server = app.listen();
+			});
+			after(done => {
+				server.close(done);
+			});
+			it('should 500 when mimeTypesCharset throw', async () => {
 				await request(server)
 					.get('/')
 					.expect(500);
