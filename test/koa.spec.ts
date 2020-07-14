@@ -1543,7 +1543,7 @@ describe('send(ctx, file)', () => {
 			});
 		});
 
-		describe('be unset with false contentType option', () => {
+		describe('be unset with false mimeType option', () => {
 			let server: http.Server;
 			before(() => {
 				const app = new Koa();
@@ -1557,14 +1557,14 @@ describe('send(ctx, file)', () => {
 			after(done => {
 				server.close(done);
 			});
-			it('be unset with false contentType option', async () => {
+			it('be unset with false mimeType option', async () => {
 				await request(server)
 					.get('/')
 					.expect('Content-Type', 'application/octet-stream');
 			});
 		});
 
-		describe('be charset unset with false contentType option', () => {
+		describe('be charset unset with false mimeType option', () => {
 			let server: http.Server;
 			before(() => {
 				const app = new Koa();
@@ -1578,7 +1578,7 @@ describe('send(ctx, file)', () => {
 			after(done => {
 				server.close(done);
 			});
-			it('be unset with false contentType option', async () => {
+			it('be unset with false mimeTypeCharset option', async () => {
 				await request(server)
 					.get('/')
 					.expect('Content-Type', 'text/html');

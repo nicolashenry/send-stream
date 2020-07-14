@@ -20,7 +20,8 @@ interface File {
 	uploadDate: Date;
 	filename: string;
 	metadata?: {
-		contentType?: string;
+		mimeType?: string;
+		mimeTypeCharset?: string;
 		etag?: string;
 	};
 }
@@ -42,7 +43,8 @@ class GridFSStorage extends Storage<string, File> {
 			fileName: file.filename,
 			mtimeMs: file.uploadDate.getTime(),
 			size: file.length,
-			contentType: file.metadata?.contentType,
+			mimeType: file.metadata?.mimeType,
+			mimeTypeCharset: file.metadata?.mimeTypeCharset,
 			etag: file.metadata?.etag,
 		};
 	}

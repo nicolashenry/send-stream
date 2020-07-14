@@ -108,24 +108,53 @@ The **`options`** parameter let you add some addition options.
 
 #### Options
 
-##### mimeModule
+##### mimeTypesLookup
 
-In order to return the content type, the storage will try to guess the content type thanks to the `mime` module
-(see [mime module documentation](https://github.com/broofa/node-mime)).
-This option override the mime module instance which will be used for this purpose.
+In order to return the content type, the storage will try to guess the mime type thanks to the `mime-types` module
+(see [mime-types module documentation](https://github.com/broofa/node-mime)).
+This option override the mime-types lookup function which will be used for this purpose.
 
 Example:
 
 ```js
-const Mime = require('mime/Mime');
-const myMime = new Mime({
-  'text/abc': ['abc']
-});
-new FileSystemStorage(directory, { mimeModule: myMime })
+new FileSystemStorage(
+  directory,
+  {
+    mimeTypesLookup: filename => {
+      if (filename.endsWith('.abc')) {
+        return 'text/abc';
+      }
+      return undefined;
+    }
+  }
+)
 ```
 
 ---
-##### defaultContentType
+##### mimeTypesCharset
+
+In order to return the content type, the storage will try to guess the mime type charset thanks to the `mime-types`
+module (see [mime-types module documentation](https://github.com/broofa/node-mime)).
+This option override the mime-types charset function which will be used for this purpose.
+
+Example:
+
+```js
+new FileSystemStorage(
+  directory,
+  {
+    mimeTypesCharset: mimeType => {
+      if (mimeType === 'text/abc') {
+        return 'UTF-8';
+      }
+      return undefined;
+    }
+  }
+)
+```
+
+---
+##### defaultMimeType
 
 Configures the default content type (without charset) that will be used if the content type is unknown.
 
@@ -134,22 +163,7 @@ Configures the default content type (without charset) that will be used if the c
 Example:
 
 ```js
-new FileSystemStorage(directory, { defaultContentType: 'application/octet-stream' })
-```
-
----
-##### defaultCharsets
-
-Configures the default charset that will be appended to the content type header.
-
-`false` will disable it
-
-The default is `[{ matcher: /^(?:text\/.+|application\/(?:javascript|json))$/, charset: 'UTF-8' }]`
-
-Example:
-
-```js
-new FileSystemStorage(directory, { defaultCharsets: [{ matcher: /^(?:text\/html$/, charset: 'UTF-8' }] })
+new FileSystemStorage(directory, { defaultMimeType: 'application/octet-stream' })
 ```
 
 ---
@@ -309,20 +323,20 @@ await storage.prepareResponse(req.url, req, { etag: '"123"' })
 ```
 
 ---
-##### contentType
+##### mimeType
 
-Custom content-type header value (without charset), overrides storage value (defaults to storage content type)
+Custom mime type for content-type header value, overrides storage value (defaults to storage content type)
 
 `false` to remove header
 
 Example:
 
 ```js
-await storage.prepareResponse(req.url, req, { contentType: 'text/plain' })
+await storage.prepareResponse(req.url, req, { mimeType: 'text/plain' })
 ```
 
 ---
-##### contentTypeCharset
+##### mimeTypeCharset
 
 Custom content-type charset value, overrides storage value (defaults to storage content type charset mapping)
 
@@ -331,7 +345,7 @@ Custom content-type charset value, overrides storage value (defaults to storage 
 Example:
 
 ```js
-await storage.prepareResponse(req.url, req, { contentTypeCharset: 'UTF-8' })
+await storage.prepareResponse(req.url, req, { mimeTypeCharset: 'UTF-8' })
 ```
 
 ---
@@ -567,7 +581,7 @@ const storage = new FileSystemStorage(directory);
 ...
 
 let result = await storage.prepareResponse(req.url, req);
-if (result.storageInfo?.contentType === 'text/html') {
+if (result.storageInfo?.mimeType === 'text/html') {
   result.headers['Content-Security-Policy'] = "script-src 'self'";
   // you can also add some other security headers:
   // result.headers['X-Frame-Options'] = "SAMEORIGIN";
