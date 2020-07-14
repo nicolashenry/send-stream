@@ -118,6 +118,7 @@ export class FileSystemStorage extends Storage<FilePath, FileData> {
 	 *
 	 * @param path - url encoded path or path array to be accessed from root
 	 * @returns path array
+	 * @throws when the path can not be parsed
 	 */
 	parsePath(path: FilePath) {
 		let pathParts;
@@ -265,6 +266,7 @@ export class FileSystemStorage extends Storage<FilePath, FileData> {
 	 * @param path - file path
 	 * @param requestHeaders - request headers
 	 * @returns StorageInfo object
+	 * @throws when the file can not be opened
 	 */
 	async open(path: FilePath, requestHeaders: StorageRequestHeaders): Promise<StorageInfo<FileData>> {
 		let fd: number | undefined;

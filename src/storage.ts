@@ -170,6 +170,7 @@ export abstract class Storage<Reference, AttachedData> {
 	 * @param req - request headers or request objects
 	 * @param [opts] - options
 	 * @returns status, response headers and body to use
+	 * @throws when method is incorrect or when storage can not create the storage stream
 	 */
 	async prepareResponse(
 		reference: Reference,

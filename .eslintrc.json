@@ -156,6 +156,7 @@
     "@typescript-eslint/no-inferrable-types": "warn",
     "@typescript-eslint/no-invalid-this": "warn",
     "@typescript-eslint/no-invalid-void-type": "warn",
+    "@typescript-eslint/no-loss-of-precision": "warn",
     "@typescript-eslint/no-magic-numbers": "off", // too restrictive
     "@typescript-eslint/no-misused-new": "warn",
     "@typescript-eslint/no-misused-promises": "warn",
@@ -200,6 +201,7 @@
     "@typescript-eslint/prefer-for-of": "warn",
     "@typescript-eslint/prefer-function-type": "off", // not needed: seems useless
     "@typescript-eslint/prefer-includes": "warn",
+    "@typescript-eslint/prefer-literal-enum-member": "warn",
     "@typescript-eslint/prefer-namespace-keyword": "warn",
     "@typescript-eslint/prefer-nullish-coalescing": "warn",
     "@typescript-eslint/prefer-optional-chain": "off", // bug: https://github.com/typescript-eslint/typescript-eslint/issues/1893
@@ -312,7 +314,8 @@
     "getter-return": "off", // disabled by typescript-eslint
     "grouped-accessor-pairs": "warn",
     "guard-for-in": "warn",
-    "id-blacklist": [
+    "id-blacklist": "off", // alias for id-denylist
+    "id-denylist": [
       "warn",
       "any",
       "Number",
@@ -443,7 +446,7 @@
     "no-lone-blocks": "warn",
     "no-lonely-if": "warn",
     "no-loop-func": "warn",
-    "no-loss-of-precision": "warn",
+    "no-loss-of-precision": "off",
     "no-magic-numbers": "off", // disabled by typescript-eslint
     "no-misleading-character-class": "warn",
     "no-mixed-operators": "warn",
@@ -733,6 +736,7 @@
     "jsdoc/require-returns-description": "warn",
     "jsdoc/require-returns-type": "off", // not needed: covered by typescript
     "jsdoc/require-returns": "warn",
+    "jsdoc/require-throws": "warn",
     "jsdoc/valid-types": "warn",
     "unicorn/better-regex": "warn",
     "unicorn/catch-error-name": [
