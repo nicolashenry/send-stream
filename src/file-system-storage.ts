@@ -78,7 +78,7 @@ export class FileSystemStorage extends Storage<FilePath, FileData> {
 	) {
 		super(opts);
 		this.root = root;
-		const { contentEncodingMappings } = opts;
+		const { contentEncodingMappings, ignorePattern, onDirectory, fsModule } = opts;
 		if (contentEncodingMappings) {
 			this.contentEncodingMappings = contentEncodingMappings.map(encodingConfig => {
 				const encodingPreferences = new Map(
@@ -97,20 +97,20 @@ export class FileSystemStorage extends Storage<FilePath, FileData> {
 		} else {
 			this.contentEncodingMappings = false;
 		}
-		this.ignorePattern = opts.ignorePattern === undefined
+		this.ignorePattern = ignorePattern === undefined
 			? /^\./u
-			: opts.ignorePattern === false || opts.ignorePattern instanceof RegExp
-				? opts.ignorePattern
-				: new RegExp(opts.ignorePattern, 'u');
-		this.onDirectory = opts.onDirectory ?? false;
-		const fsModule = opts.fsModule === undefined ? fs : opts.fsModule;
-		this.fsOpen = promisify(fsModule.open);
-		this.fsFstat = promisify(fsModule.fstat);
-		this.fsClose = promisify(fsModule.close);
-		this.fsCreateReadStream = fsModule.createReadStream;
-		this.fsOpendir = fsModule.opendir ? promisify(fsModule.opendir) : undefined;
-		this.fsReaddir = promisify(fsModule.readdir);
-		this.fsConstants = fsModule.constants;
+			: ignorePattern === false || ignorePattern instanceof RegExp
+				? ignorePattern
+				: new RegExp(ignorePattern, 'u');
+		this.onDirectory = onDirectory ?? false;
+		const fsMod = fsModule ?? fs;
+		this.fsOpen = promisify(fsMod.open);
+		this.fsFstat = promisify(fsMod.fstat);
+		this.fsClose = promisify(fsMod.close);
+		this.fsCreateReadStream = fsMod.createReadStream;
+		this.fsOpendir = fsMod.opendir ? promisify(fsMod.opendir) : undefined;
+		this.fsReaddir = promisify(fsMod.readdir);
+		this.fsConstants = fsMod.constants;
 	}
 
 	/**

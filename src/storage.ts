@@ -49,10 +49,10 @@ export abstract class Storage<Reference, AttachedData> {
 	 * @param opts - storage options
 	 */
 	constructor(opts: StorageOptions = { }) {
-		this.mimeTypesLookup = opts.mimeTypesLookup ? opts.mimeTypesLookup : mimeTypesLookup;
-		this.mimeTypesCharset = opts.mimeTypesCharset ? opts.mimeTypesCharset : mimeTypesCharset;
-		this.defaultMimeType = opts.defaultMimeType ? opts.defaultMimeType : false;
-		this.maxRanges = opts.maxRanges === undefined ? DEFAULT_MAX_RANGES : opts.maxRanges;
+		this.mimeTypesLookup = opts.mimeTypesLookup ?? mimeTypesLookup;
+		this.mimeTypesCharset = opts.mimeTypesCharset ?? mimeTypesCharset;
+		this.defaultMimeType = opts.defaultMimeType ?? false;
+		this.maxRanges = opts.maxRanges ?? DEFAULT_MAX_RANGES;
 		this.weakEtags = opts.weakEtags === true;
 	}
 
@@ -192,7 +192,7 @@ export abstract class Storage<Reference, AttachedData> {
 		const isGetMethod = method === 'GET';
 		const isHeadMethod = method === 'HEAD';
 		const isGetOrHead = isGetMethod || isHeadMethod;
-		const allowedMethods = opts.allowedMethods ? opts.allowedMethods : DEFAULT_ALLOWED_METHODS;
+		const allowedMethods = opts.allowedMethods ?? DEFAULT_ALLOWED_METHODS;
 		if (!allowedMethods.includes(method)) {
 			return this.createMethodNotAllowedError(isHeadMethod, allowedMethods);
 		}
@@ -208,9 +208,7 @@ export abstract class Storage<Reference, AttachedData> {
 		}
 		try {
 			const responseHeaders: ResponseHeaders = { };
-			const cacheControl = opts.cacheControl === undefined
-				? this.createCacheControl(storageInfo)
-				: opts.cacheControl;
+			const cacheControl = opts.cacheControl ?? this.createCacheControl(storageInfo);
 			if (cacheControl) {
 				responseHeaders['Cache-Control'] = cacheControl;
 			}
@@ -219,17 +217,13 @@ export abstract class Storage<Reference, AttachedData> {
 				responseHeaders['Vary'] = storageInfo.vary;
 			}
 
-			const lastModified = opts.lastModified === undefined
-				? this.createLastModified(storageInfo)
-				: opts.lastModified;
+			const lastModified = opts.lastModified ?? this.createLastModified(storageInfo);
 
 			if (lastModified) {
 				storageInfo.lastModified = lastModified;
 			}
 
-			const etag = opts.etag === undefined
-				? this.createEtag(storageInfo)
-				: opts.etag;
+			const etag = opts.etag ?? this.createEtag(storageInfo);
 
 			if (etag) {
 				storageInfo.etag = etag;
@@ -263,14 +257,10 @@ export abstract class Storage<Reference, AttachedData> {
 			}
 
 			let contentTypeHeader;
-			const mimeType = opts.mimeType === undefined
-				? this.createMimeType(storageInfo)
-				: opts.mimeType;
+			const mimeType = opts.mimeType ?? this.createMimeType(storageInfo);
 			if (mimeType) {
 				storageInfo.mimeType = mimeType;
-				const mimeTypeCharset = opts.mimeTypeCharset === undefined
-					? this.createMimeTypeCharset(storageInfo, mimeType)
-					: opts.mimeTypeCharset;
+				const mimeTypeCharset = opts.mimeTypeCharset ?? this.createMimeTypeCharset(storageInfo, mimeType);
 				if (mimeTypeCharset) {
 					storageInfo.mimeTypeCharset = mimeTypeCharset;
 					contentTypeHeader = `${ mimeType }; charset=${ mimeTypeCharset }`;
@@ -281,21 +271,21 @@ export abstract class Storage<Reference, AttachedData> {
 				responseHeaders['X-Content-Type-Options'] = 'nosniff';
 			}
 
-			const contentDispositionType = opts.contentDispositionType === undefined
-				? this.createContentDispositionType(storageInfo)
-				: opts.contentDispositionType;
+			const contentDispositionType = opts.contentDispositionType
+				?? this.createContentDispositionType(storageInfo);
 			if (contentDispositionType) {
+				const { contentDispositionFilename: optsContentDispositionFilename } = opts;
 				responseHeaders['Content-Disposition'] = contentDisposition(
-					opts.contentDispositionFilename === undefined
+					optsContentDispositionFilename === undefined
 						? this.createContentDispositionFilename(storageInfo)
-						: opts.contentDispositionFilename
-							? opts.contentDispositionFilename
+						: optsContentDispositionFilename
+							? optsContentDispositionFilename
 							: undefined,
 					{ type: contentDispositionType },
 				);
 			}
 
-			let statusCode = opts.statusCode === undefined ? 200 : opts.statusCode;
+			let statusCode = opts.statusCode ?? 200;
 			const { size } = storageInfo;
 			let rangeToUse: StreamRange | BufferOrStreamRange[] | undefined;
 			if (size === undefined) {
