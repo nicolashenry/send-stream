@@ -198,6 +198,7 @@
     "@typescript-eslint/no-useless-constructor": "warn",
     "@typescript-eslint/no-var-requires": "off", // not needed: seems useless
     "@typescript-eslint/prefer-as-const": "warn",
+    "@typescript-eslint/prefer-enum-initializers": "warn",
     "@typescript-eslint/prefer-for-of": "warn",
     "@typescript-eslint/prefer-function-type": "off", // not needed: seems useless
     "@typescript-eslint/prefer-includes": "warn",
