@@ -134,7 +134,7 @@ export class FileSystemStorage extends Storage<FilePath, FileData> {
 			pathParts = pathname.split('/');
 			try {
 				pathParts = pathParts.map(decodeURIComponent);
-			} catch (err) {
+			} catch (err: unknown) {
 				throw new MalformedPathError(
 					String(err),
 					path,
@@ -376,7 +376,7 @@ export class FileSystemStorage extends Storage<FilePath, FileData> {
 					);
 				}
 			}
-		} catch (err) {
+		} catch (err: unknown) {
 			if (fd !== undefined) {
 				await this.earlyClose(fd, resolvedPath);
 			}

@@ -152,6 +152,7 @@
     "@typescript-eslint/no-extraneous-class": "warn",
     "@typescript-eslint/no-floating-promises": ["warn", { "ignoreVoid": false }],
     "@typescript-eslint/no-for-in-array": "warn",
+    "@typescript-eslint/no-implicit-any-catch": "warn",
     "@typescript-eslint/no-implied-eval": "warn",
     "@typescript-eslint/no-inferrable-types": "warn",
     "@typescript-eslint/no-invalid-this": "warn",
@@ -315,7 +316,6 @@
     "getter-return": "off", // disabled by typescript-eslint
     "grouped-accessor-pairs": "warn",
     "guard-for-in": "warn",
-    "id-blacklist": "off", // alias for id-denylist
     "id-denylist": [
       "warn",
       "any",

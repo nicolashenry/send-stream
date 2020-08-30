@@ -24,7 +24,7 @@ app.get('*', async (req, res, next) => {
 	try {
 		const result = await storage.prepareResponse(req.url, req);
 		result.send(res);
-	} catch (err) {
+	} catch (err: unknown) {
 		// eslint-disable-next-line node/callback-return
 		next(err);
 	}

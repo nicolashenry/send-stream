@@ -89,7 +89,7 @@ client.connect(error => {
 	app.get('*', async (req, res, next) => {
 		try {
 			(await storage.prepareResponse(req.url, req)).send(res);
-		} catch (err) {
+		} catch (err: unknown) {
 			// eslint-disable-next-line node/callback-return
 			next(err);
 		}

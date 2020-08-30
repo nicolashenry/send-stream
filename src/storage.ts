@@ -203,7 +203,7 @@ export abstract class Storage<Reference, AttachedData> {
 				reference,
 				requestHeaders,
 			);
-		} catch (error) {
+		} catch (error: unknown) {
 			return this.createStorageError(isHeadMethod, error);
 		}
 		try {
@@ -387,7 +387,7 @@ export abstract class Storage<Reference, AttachedData> {
 			}
 
 			return this.createSuccessfulResponse(statusCode, responseHeaders, stream, storageInfo);
-		} catch (err) {
+		} catch (err: unknown) {
 			earlyClose = true;
 			throw err;
 		} finally {
