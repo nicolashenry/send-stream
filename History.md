@@ -1,4 +1,4 @@
-1.2.0
+2.0.0
 ==================
 
 * Breaking change: rename `contentType` prepare option to `mimeType` and `contentTypeCharset` to `mimeTypeCharset`
@@ -8,6 +8,7 @@
 * Feature: `mime` package is replaced by `mime-types` for charset lookups
 * Use fastify v3 in examples
 * Use typescript project references
+* Bump typescript from 3.9.x to 4.0.x
 
 1.1.0
 ==================
