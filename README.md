@@ -108,7 +108,7 @@ The **`options`** parameter let you add some addition options.
 
 #### Options
 
-##### mimeTypesLookup
+##### mimeTypeLookup
 
 In order to return the content type, the storage will try to guess the mime type thanks to the `mime-types` module
 (see [mime-types module documentation](https://github.com/broofa/node-mime)).
@@ -120,7 +120,7 @@ Example:
 new FileSystemStorage(
   directory,
   {
-    mimeTypesLookup: filename => {
+    mimeTypeLookup: filename => {
       if (filename.endsWith('.abc')) {
         return 'text/abc';
       }
@@ -131,7 +131,7 @@ new FileSystemStorage(
 ```
 
 ---
-##### mimeTypesCharset
+##### mimeTypeDefaultCharset
 
 In order to return the content type, the storage will try to guess the mime type charset thanks to the `mime-types`
 module (see [mime-types module documentation](https://github.com/broofa/node-mime)).
@@ -143,7 +143,7 @@ Example:
 new FileSystemStorage(
   directory,
   {
-    mimeTypesCharset: mimeType => {
+    mimeTypeDefaultCharset: mimeType => {
       if (mimeType === 'text/abc') {
         return 'UTF-8';
       }

@@ -274,7 +274,7 @@ export class FileSystemStorage extends Storage<FilePath, FileData> {
 		let resolvedPath = join(this.root, ...pathParts);
 		let stats;
 		let vary;
-		let contentEncoding = 'identity';
+		let contentEncoding;
 		try {
 			const { contentEncodingMappings: encodingsMappings } = this;
 			let selectedEncodingMapping;
@@ -321,7 +321,7 @@ export class FileSystemStorage extends Storage<FilePath, FileData> {
 						await this.earlyClose(directoryFd, encodedPath);
 						continue;
 					}
-					contentEncoding = acceptableEncodingName;
+					contentEncoding = acceptableEncodingName === 'identity' ? undefined : acceptableEncodingName;
 					resolvedPath = encodedPath;
 					break;
 				}
@@ -364,8 +364,14 @@ export class FileSystemStorage extends Storage<FilePath, FileData> {
 							stats,
 						},
 						fileName: `${ pathParts.length > 1 ? pathParts[pathParts.length - 1] : '_' }.html`,
+						mtimeMs: undefined,
+						size: undefined,
+						vary: undefined,
+						contentEncoding: undefined,
 						mimeType: 'text/html',
 						mimeTypeCharset: 'UTF-8',
+						lastModified: undefined,
+						etag: undefined,
 					};
 				} else if (haveTrailingSlash) {
 					throw new TrailingSlashError(
@@ -395,6 +401,10 @@ export class FileSystemStorage extends Storage<FilePath, FileData> {
 			size: stats.size,
 			vary,
 			contentEncoding,
+			mimeType: undefined,
+			mimeTypeCharset: undefined,
+			lastModified: undefined,
+			etag: undefined,
 		};
 	}
 

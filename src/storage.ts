@@ -1,11 +1,13 @@
 
 import * as http from 'http';
 import * as http2 from 'http2';
-import { Readable } from 'stream';
+import { Readable, pipeline } from 'stream';
+import * as zlib from 'zlib';
 
 import contentDisposition from 'content-disposition';
-import { lookup as mimeTypesLookup, charset as mimeTypesCharset } from 'mime-types';
+import { lookup, charset } from 'mime-types';
 import parseRange from 'range-parser';
+import compressible from 'compressible';
 
 import { StreamResponse } from './response';
 import { EmptyStream, BufferStream, MultiStream } from './streams';
@@ -19,6 +21,7 @@ import {
 	StreamRange,
 	ResponseHeaders,
 	BufferOrStreamRange,
+	acceptEncodings,
 } from './utils';
 import {
 	StorageOptions,
@@ -40,8 +43,13 @@ export abstract class Storage<Reference, AttachedData> {
 	readonly maxRanges: number;
 
 	readonly weakEtags: boolean;
-	readonly mimeTypesLookup: NonNullable<StorageOptions['mimeTypesLookup']>;
-	readonly mimeTypesCharset: NonNullable<StorageOptions['mimeTypesCharset']>;
+	readonly mimeTypeLookup: NonNullable<StorageOptions['mimeTypeLookup']>;
+	readonly mimeTypeDefaultCharset: NonNullable<StorageOptions['mimeTypeDefaultCharset']>;
+	readonly dynamicCompression: {
+		encodingPreferences: ReadonlyMap<string, { order: number }>;
+		identityEncodingPreference: { order: number };
+	} | false;
+	readonly mimeTypeCompressible: NonNullable<StorageOptions['mimeTypeCompressible']>;
 
 	/**
 	 * Create storage
@@ -49,8 +57,23 @@ export abstract class Storage<Reference, AttachedData> {
 	 * @param opts - storage options
 	 */
 	constructor(opts: StorageOptions = { }) {
-		this.mimeTypesLookup = opts.mimeTypesLookup ?? mimeTypesLookup;
-		this.mimeTypesCharset = opts.mimeTypesCharset ?? mimeTypesCharset;
+		this.mimeTypeLookup = opts.mimeTypeLookup ?? lookup;
+		this.mimeTypeDefaultCharset = opts.mimeTypeDefaultCharset ?? charset;
+		if (opts.dynamicCompression) {
+			const encodingPreferences: Map<string, { order: number }>
+				= opts.dynamicCompression === true
+					? new Map([['br', { order: 0 }], ['gzip', { order: 1 }], ['identity', { order: 2 }]])
+					: new Map(opts.dynamicCompression.map((name, order) => [name, { order }]));
+			let identityEncodingPreference = encodingPreferences.get('identity');
+			if (!identityEncodingPreference) {
+				identityEncodingPreference = { order: encodingPreferences.size };
+				encodingPreferences.set('identity', identityEncodingPreference);
+			}
+			this.dynamicCompression = { encodingPreferences, identityEncodingPreference };
+		} else {
+			this.dynamicCompression = false;
+		}
+		this.mimeTypeCompressible = opts.mimeTypeCompressible ?? compressible;
 		this.defaultMimeType = opts.defaultMimeType ?? false;
 		this.maxRanges = opts.maxRanges ?? DEFAULT_MAX_RANGES;
 		this.weakEtags = opts.weakEtags === true;
@@ -119,7 +142,7 @@ export abstract class Storage<Reference, AttachedData> {
 		if (!fileName) {
 			return this.defaultMimeType;
 		}
-		const type = this.mimeTypesLookup(fileName);
+		const type = this.mimeTypeLookup(fileName);
 		if (!type) {
 			return this.defaultMimeType;
 		}
@@ -137,7 +160,7 @@ export abstract class Storage<Reference, AttachedData> {
 		if (storageInfo.mimeTypeCharset) {
 			return storageInfo.mimeTypeCharset;
 		}
-		return this.mimeTypesCharset(mimeType);
+		return this.mimeTypeDefaultCharset(mimeType);
 	}
 
 	/**
@@ -178,7 +201,7 @@ export abstract class Storage<Reference, AttachedData> {
 		opts: PrepareResponseOptions = {},
 	): Promise<StreamResponse<AttachedData>> {
 		let method;
-		let requestHeaders;
+		let requestHeaders: StorageRequestHeaders;
 		if (req instanceof http.IncomingMessage || req instanceof http2.Http2ServerRequest) {
 			method = req.method;
 			requestHeaders = req.headers;
@@ -198,6 +221,8 @@ export abstract class Storage<Reference, AttachedData> {
 		}
 		let earlyClose = false;
 		let storageInfo;
+		let contentLength;
+		let dynamicContentEncoding;
 		try {
 			storageInfo = await this.open(
 				reference,
@@ -208,6 +233,26 @@ export abstract class Storage<Reference, AttachedData> {
 		}
 		try {
 			const responseHeaders: ResponseHeaders = { };
+			const mimeType = opts.mimeType ?? this.createMimeType(storageInfo);
+			const { dynamicCompression } = this;
+			if (
+				dynamicCompression
+				&& !storageInfo.contentEncoding
+				&& mimeType
+				&& this.mimeTypeCompressible(mimeType)
+			) {
+				storageInfo.vary = 'Accept-Encoding';
+				const [[preferedEncoding]] = acceptEncodings(
+					requestHeaders['accept-encoding'],
+					dynamicCompression.encodingPreferences,
+					dynamicCompression.identityEncodingPreference,
+				);
+				if (preferedEncoding !== 'identity') {
+					storageInfo.contentEncoding = preferedEncoding;
+					dynamicContentEncoding = preferedEncoding;
+				}
+			}
+
 			const cacheControl = opts.cacheControl ?? this.createCacheControl(storageInfo);
 			if (cacheControl) {
 				responseHeaders['Cache-Control'] = cacheControl;
@@ -252,12 +297,11 @@ export abstract class Storage<Reference, AttachedData> {
 				}
 			}
 
-			if (storageInfo.contentEncoding && storageInfo.contentEncoding !== 'identity') {
+			if (storageInfo.contentEncoding) {
 				responseHeaders['Content-Encoding'] = storageInfo.contentEncoding;
 			}
 
 			let contentTypeHeader;
-			const mimeType = opts.mimeType ?? this.createMimeType(storageInfo);
 			if (mimeType) {
 				storageInfo.mimeType = mimeType;
 				const mimeTypeCharset = opts.mimeTypeCharset ?? this.createMimeTypeCharset(storageInfo, mimeType);
@@ -293,8 +337,7 @@ export abstract class Storage<Reference, AttachedData> {
 				rangeToUse = undefined;
 			} else {
 				const { maxRanges } = this;
-				let contentLength;
-				if (maxRanges <= 0 || fullResponse || !isGetOrHead) {
+				if (maxRanges <= 0 || fullResponse || !isGetOrHead || dynamicContentEncoding) {
 					responseHeaders['Accept-Ranges'] = 'none';
 					rangeToUse = new StreamRange(0, size - 1);
 					contentLength = size;
@@ -352,7 +395,9 @@ export abstract class Storage<Reference, AttachedData> {
 						}
 					}
 				}
-				responseHeaders['Content-Length'] = String(contentLength);
+				if (!dynamicContentEncoding) {
+					responseHeaders['Content-Length'] = String(contentLength);
+				}
 			}
 
 			let stream: Readable;
@@ -385,6 +430,9 @@ export abstract class Storage<Reference, AttachedData> {
 					async () => this.close(si),
 				);
 			}
+			if (dynamicContentEncoding) {
+				stream = this.createCompressedStream(stream, dynamicContentEncoding, contentLength);
+			}
 
 			return this.createSuccessfulResponse(statusCode, responseHeaders, stream, storageInfo);
 		} catch (err: unknown) {
@@ -394,6 +442,42 @@ export abstract class Storage<Reference, AttachedData> {
 			if (earlyClose) {
 				await this.close(storageInfo);
 			}
+		}
+	}
+
+	// eslint-disable-next-line class-methods-use-this
+	createCompressedStream(stream: Readable, contentEncoding: string, expectedSize?: number) {
+		switch (contentEncoding) {
+		case 'br':
+			return pipeline(
+				stream,
+				zlib.createBrotliCompress({
+					params: {
+						[zlib.constants.BROTLI_PARAM_MODE]: zlib.constants.BROTLI_MODE_TEXT,
+						[zlib.constants.BROTLI_PARAM_QUALITY]: 4,
+						[zlib.constants.BROTLI_PARAM_SIZE_HINT]: expectedSize ?? 0,
+					},
+				}),
+				err => {
+					if (err) {
+						console.error('Broti compress failed.', err);
+					}
+				},
+			);
+		case 'gzip':
+			return pipeline(
+				stream,
+				zlib.createGzip({ level: 6 }),
+				err => {
+					if (err) {
+						console.error('Gzip failed.', err);
+					}
+				},
+			);
+		default:
+			throw new Error(`${
+				contentEncoding
+			} is not supported as dynamic compression encoding (you can override createCompressedStream to handle it)`);
 		}
 	}
 

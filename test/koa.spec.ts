@@ -83,6 +83,40 @@ async function send(
 	return result;
 }
 
+async function sendWithError(
+	ctx: Koa.Context,
+	root: string,
+	path: string | string[],
+	opts?: PrepareResponseOptions & FileSystemStorageOptions,
+) {
+	class FileSystemStorageWithError extends FileSystemStorage {
+		// eslint-disable-next-line class-methods-use-this
+		createReadableStream() {
+			return new Readable({
+				read() {
+					process.nextTick(() => {
+						this.destroy(new Error('ooops'));
+					});
+				},
+			});
+		}
+	}
+	const storage = new FileSystemStorageWithError(root, opts);
+	const result = await storage.prepareResponse(
+		path,
+		ctx.req,
+		opts,
+	);
+	ctx.status = result.statusCode;
+	if (result.error) {
+		result.headers['X-Send-Stream-Error'] = result.error.name;
+	}
+	result.headers['X-Send-Stream-Resolved-Path'] = result.storageInfo?.attachedData.resolvedPath;
+	ctx.set(<{ [key: string]: string }> result.headers);
+	ctx.body = result.stream;
+	return result;
+}
+
 function multipartHandler(res: request.Response, cb: (err: Error | null, body: unknown) => void) {
 	const chunks: Buffer[] = [];
 	res.on('data', chunk => {
@@ -455,6 +489,207 @@ describe('send(ctx, file)', () => {
 					.get('/')
 					.expect('X-Send-Stream-Error', 'NotNormalizedError')
 					.expect(404);
+			});
+		});
+	});
+
+	describe('when dynamic compression is activated', () => {
+		describe('should compress', () => {
+			let server: http.Server;
+			before(() => {
+				const app = new Koa();
+
+				app.use(async ctx => {
+					await send(ctx, __dirname, ctx.path, { dynamicCompression: true });
+				});
+
+				server = app.listen();
+			});
+			after(done => {
+				server.close(done);
+			});
+			it('return compressed text', async () => {
+				const { body } = <{ body: string }> await request(server)
+					.get('/fixtures-koa/user.json')
+					.parse(brotliParser)
+					.set('Accept-Encoding', 'br, gzip, identity')
+					.expect('X-Send-Stream-Resolved-Path', join(__dirname, '/fixtures-koa/user.json'))
+					.expect(shouldNotHaveHeader('Content-Length'))
+					.expect('Content-Encoding', 'br')
+					.expect(200);
+				assert.deepStrictEqual(body, '{ "name": "tobi" }');
+			});
+			it('return not return compressed text when identity is required', async () => {
+				await request(server)
+					.get('/fixtures-koa/user.json')
+					.set('Accept-Encoding', 'br;q=0.8, gzip;q=0.8, identity')
+					.expect('X-Send-Stream-Resolved-Path', join(__dirname, '/fixtures-koa/user.json'))
+					.expect('Content-Length', '18')
+					.expect(shouldNotHaveHeader('Content-Encoding'))
+					.expect('{ "name": "tobi" }')
+					.expect(200);
+			});
+			it('return png without compression', async () => {
+				await request(server)
+					.get('/fixtures-koa/test.png')
+					.set('Accept-Encoding', 'br, gzip, identity')
+					.expect('X-Send-Stream-Resolved-Path', join(__dirname, '/fixtures-koa/test.png'))
+					.expect('Content-Length', '538')
+					.expect(shouldNotHaveHeader('Content-Encoding'))
+					.expect(200);
+			});
+		});
+
+		describe('should compress file listing', () => {
+			let server: http.Server;
+			before(() => {
+				const app = new Koa();
+
+				app.use(async ctx => {
+					await send(ctx, __dirname, ctx.path, { dynamicCompression: true, onDirectory: 'list-files' });
+				});
+
+				server = app.listen();
+			});
+			after(done => {
+				server.close(done);
+			});
+			it('return compressed text', async () => {
+				const { body } = <{ body: string }> await request(server)
+					.get('/fixtures-koa/')
+					.parse(brotliParser)
+					.set('Accept-Encoding', 'br, gzip, identity')
+					.expect(shouldNotHaveHeader('Content-Length'))
+					.expect('Content-Encoding', 'br')
+					.expect(200);
+				// eslint-disable-next-line max-len
+				assert.deepStrictEqual(body, '<!DOCTYPE html><html lang="en"><head><meta charset="utf-8"><title>fixtures-koa</title><meta name="viewport" content="width=device-width"><meta name="description" content="Content of /fixtures-koa/ directory"></head><body><h1>Directory: /fixtures-koa/</h1><ul><li><a href="..">..</a></li><li><a href="./gzip.json">gzip.json</a></li><li><a href="./gzip.json.br">gzip.json.br</a></li><li><a href="./gzip.json.gz">gzip.json.gz</a></li><li><a href="./hello.txt">hello.txt</a></li><li><a href="./hello.txt.br/">hello.txt.br/</a></li><li><a href="./index.txt">index.txt</a></li><li><a href="./some.path/">some.path/</a></li><li><a href="./test.png">test.png</a></li><li><a href="./unknown">unknown</a></li><li><a href="./user.json">user.json</a></li><li><a href="./user.txt">user.txt</a></li><li><a href="./world/">world/</a></li></ul></body></html>');
+			});
+		});
+
+		describe('should compress when custom compressible filter is set', () => {
+			let server: http.Server;
+			before(() => {
+				const app = new Koa();
+
+				app.use(async ctx => {
+					await send(ctx, __dirname, ctx.path, {
+						dynamicCompression: true,
+						mimeTypeCompressible: () => true,
+					});
+				});
+
+				server = app.listen();
+			});
+			after(done => {
+				server.close(done);
+			});
+			it('return compressed text', async () => {
+				const { body } = <{ body: string }> await request(server)
+					.get('/fixtures-koa/user.json')
+					.parse(brotliParser)
+					.set('Accept-Encoding', 'br, gzip, identity')
+					.expect('X-Send-Stream-Resolved-Path', join(__dirname, '/fixtures-koa/user.json'))
+					.expect(shouldNotHaveHeader('Content-Length'))
+					.expect('Content-Encoding', 'br')
+					.expect(200);
+				assert.deepStrictEqual(body, '{ "name": "tobi" }');
+			});
+			it('return png without compression', async () => {
+				await request(server)
+					.get('/fixtures-koa/test.png')
+					.set('Accept-Encoding', 'br, gzip, identity')
+					.expect('X-Send-Stream-Resolved-Path', join(__dirname, '/fixtures-koa/test.png'))
+					.expect(shouldNotHaveHeader('Content-Length'))
+					.expect('Content-Encoding', 'br')
+					.expect(200);
+			});
+		});
+
+		describe('should compress with restricted list of encodings', () => {
+			let server: http.Server;
+			before(() => {
+				const app = new Koa();
+
+				app.use(async ctx => {
+					await send(ctx, __dirname, ctx.path, { dynamicCompression: ['gzip'] });
+				});
+
+				server = app.listen();
+			});
+			after(done => {
+				server.close(done);
+			});
+			it('return compressed text', async () => {
+				await request(server)
+					.get('/fixtures-koa/user.json')
+					.set('Accept-Encoding', 'br, gzip, identity')
+					.expect('X-Send-Stream-Resolved-Path', join(__dirname, '/fixtures-koa/user.json'))
+					.expect(shouldNotHaveHeader('Content-Length'))
+					.expect('Content-Encoding', 'gzip')
+					.expect('{ "name": "tobi" }')
+					.expect(200);
+			});
+		});
+
+		describe('should not work for unsupported encodings', () => {
+			let server: http.Server;
+			before(() => {
+				const app = new Koa();
+
+				app.use(async ctx => {
+					await send(ctx, __dirname, ctx.path, { dynamicCompression: ['deflate'] });
+				});
+
+				server = app.listen();
+			});
+			after(done => {
+				server.close(done);
+			});
+			it('throw error', async () => {
+				await request(server)
+					.get('/fixtures-koa/user.json')
+					.set('Accept-Encoding', 'deflate, identity')
+					.expect(shouldNotHaveHeader('Content-Encoding'))
+					.expect(500);
+			});
+		});
+
+		describe('should handle errors', () => {
+			let server: http.Server;
+			before(() => {
+				const app = new Koa();
+
+				app.use(async ctx => {
+					await sendWithError(ctx, __dirname, ctx.path, { dynamicCompression: true });
+				});
+
+				server = app.listen();
+			});
+			after(done => {
+				server.close(done);
+			});
+			it('should throw error', async () => {
+				try {
+					await request(server)
+						.get('/fixtures-koa/user.json')
+						.parse(brotliParser)
+						.set('Accept-Encoding', 'br, gzip, identity');
+					assert.fail();
+				} catch {
+					// noop
+				}
+			});
+			it('should throw error', async () => {
+				try {
+					await request(server)
+						.get('/fixtures-koa/user.json')
+						.parse(brotliParser)
+						.set('Accept-Encoding', 'gzip, identity');
+					assert.fail();
+				} catch {
+					// noop
+				}
 			});
 		});
 	});
@@ -1606,7 +1841,7 @@ describe('send(ctx, file)', () => {
 			});
 		});
 
-		describe('should use mime mimeTypesLookup when set', () => {
+		describe('should use mime mimeTypeLookup when set', () => {
 			let server: http.Server;
 			before(() => {
 				const app = new Koa();
@@ -1616,7 +1851,7 @@ describe('send(ctx, file)', () => {
 						ctx,
 						__dirname,
 						'/fixtures-koa/user.json',
-						{ mimeTypesLookup: () => 'application/x-test' },
+						{ mimeTypeLookup: () => 'application/x-test' },
 					);
 				});
 
@@ -1625,14 +1860,14 @@ describe('send(ctx, file)', () => {
 			after(done => {
 				server.close(done);
 			});
-			it('should use mimeTypesLookup when set', async () => {
+			it('should use mimeTypeLookup when set', async () => {
 				await request(server)
 					.get('/')
 					.expect('Content-Type', 'application/x-test');
 			});
 		});
 
-		describe('should 500 when mimeTypesLookup throw', () => {
+		describe('should 500 when mimeTypeLookup throw', () => {
 			let server: http.Server;
 			before(() => {
 				const app = new Koa();
@@ -1643,7 +1878,7 @@ describe('send(ctx, file)', () => {
 						__dirname,
 						'/fixtures-koa/user.json',
 						{
-							mimeTypesLookup: () => {
+							mimeTypeLookup: () => {
 								throw new Error('oops');
 							},
 						},
@@ -1655,14 +1890,14 @@ describe('send(ctx, file)', () => {
 			after(done => {
 				server.close(done);
 			});
-			it('should 500 when mimeTypesLookup throw', async () => {
+			it('should 500 when mimeTypeLookup throw', async () => {
 				await request(server)
 					.get('/')
 					.expect(500);
 			});
 		});
 
-		describe('should use mime mimeTypesCharset when set', () => {
+		describe('should use mime mimeTypeDefaultCharset when set', () => {
 			let server: http.Server;
 			before(() => {
 				const app = new Koa();
@@ -1672,7 +1907,7 @@ describe('send(ctx, file)', () => {
 						ctx,
 						__dirname,
 						'/fixtures-koa/user.json',
-						{ mimeTypesCharset: () => 'iso-8859-1' },
+						{ mimeTypeDefaultCharset: () => 'iso-8859-1' },
 					);
 				});
 
@@ -1681,14 +1916,14 @@ describe('send(ctx, file)', () => {
 			after(done => {
 				server.close(done);
 			});
-			it('should use mimeTypesCharset when set', async () => {
+			it('should use mimeTypeDefaultCharset when set', async () => {
 				await request(server)
 					.get('/')
 					.expect('Content-Type', 'application/json; charset=iso-8859-1');
 			});
 		});
 
-		describe('should 500 when mimeTypesCharset throw', () => {
+		describe('should 500 when mimeTypeDefaultCharset throw', () => {
 			let server: http.Server;
 			before(() => {
 				const app = new Koa();
@@ -1699,7 +1934,7 @@ describe('send(ctx, file)', () => {
 						__dirname,
 						'/fixtures-koa/user.json',
 						{
-							mimeTypesCharset: () => {
+							mimeTypeDefaultCharset: () => {
 								throw new Error('oops');
 							},
 						},
@@ -1711,7 +1946,7 @@ describe('send(ctx, file)', () => {
 			after(done => {
 				server.close(done);
 			});
-			it('should 500 when mimeTypesCharset throw', async () => {
+			it('should 500 when mimeTypeDefaultCharset throw', async () => {
 				await request(server)
 					.get('/')
 					.expect(500);

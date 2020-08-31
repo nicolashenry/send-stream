@@ -3,9 +3,11 @@
 
 * Breaking change: rename `contentType` prepare option to `mimeType` and `contentTypeCharset` to `mimeTypeCharset`
 * Breaking change: rename storage option `defaultContentType` to `defaultMimeType`
-* Breaking change: replace `defaultCharsets` and `mimeModule` storage options with `mimeTypesLookup` and
-`mimeTypesCharset` functions
+* Breaking change: replace `defaultCharsets` and `mimeModule` storage options with `mimeTypeLookup` and
+`mimeTypeDefaultCharset` functions
+* Breaking change: `contentEncoding` in storage information is now (and needs to be) undefined when identity is used
 * Feature: `mime` package is replaced by `mime-types` for charset lookups
+* Feature: Add `dynamicCompression` and `mimeTypeCompressible` storage options
 * Use fastify v3 in examples
 * Use typescript project references
 * Bump typescript from 3.9.x to 4.0.x

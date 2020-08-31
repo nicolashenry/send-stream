@@ -77,9 +77,7 @@ export const randomBytes = promisify(crypto.randomBytes);
  * @returns etag
  */
 export function statsToEtag(size: number, mtimeMs: number, contentEncoding?: string, weak?: boolean) {
-	const suffix = contentEncoding && contentEncoding !== 'identity'
-		? `-${ contentEncoding }`
-		: '';
+	const suffix = contentEncoding ? `-${ contentEncoding }` : '';
 	return `${
 		weak ? 'W/' : ''
 	}"${

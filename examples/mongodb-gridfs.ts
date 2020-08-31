@@ -23,6 +23,7 @@ interface File {
 		mimeType?: string;
 		mimeTypeCharset?: string;
 		etag?: string;
+		lastModified?: string;
 	};
 }
 
@@ -43,8 +44,11 @@ class GridFSStorage extends Storage<string, File> {
 			fileName: file.filename,
 			mtimeMs: file.uploadDate.getTime(),
 			size: file.length,
+			vary: undefined,
+			contentEncoding: undefined,
 			mimeType: file.metadata?.mimeType,
 			mimeTypeCharset: file.metadata?.mimeTypeCharset,
+			lastModified: file.metadata?.lastModified,
 			etag: file.metadata?.etag,
 		};
 	}

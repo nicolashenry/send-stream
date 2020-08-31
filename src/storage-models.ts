@@ -90,8 +90,16 @@ export type StorageRequestHeaders = (http.IncomingHttpHeaders | http2.IncomingHt
  * Storage options
  */
 export interface StorageOptions {
-	mimeTypesLookup?: (type: string) => string | false;
-	mimeTypesCharset?: (type: string) => string | false;
+	/**
+	 * Function used to determine mime type from filename
+	 * `lookup` function from `mime-types` module will be used by default
+	 */
+	mimeTypeLookup?: (filename: string) => string | false;
+	/**
+	 * Function used to determine default charset from mime type
+	 * `charset` function from `mime-types` module will be used by default
+	 */
+	mimeTypeDefaultCharset?: (type: string) => string | false;
 	/**
 	 * Default content type, e.g. "application/octet-stream"
 	 */
@@ -108,6 +116,26 @@ export interface StorageOptions {
 	 * Defaults to `false`
 	 */
 	weakEtags?: boolean;
+	/**
+	 * Enable dynamic compression of file content.
+	 * This can be a boolean or a list of encodings ordered by priority, `['br', 'gzip'] if `true` is used.
+	 * Activating this option will automatically compress content as brotli or gzip
+	 * if the content is detected as compressible and supported by the client.
+	 *
+	 * Note that this is highly recommended to use this option only if you can not use pre-compressed options
+	 * like the 'contentEncodingMappings' option from FileSystemStorage.
+	 *
+	 * Also when dynamic compression is active, `Content-Length` header will be removed
+	 * and range requests will be disabled as content length is unknown
+	 *
+	 * Defaults to `false`
+	 */
+	dynamicCompression?: boolean | string[];
+	/**
+	 * Function used to determine if a type is compressible (for dynamic compression only)
+	 * `compressible` module will be used by default
+	 */
+	mimeTypeCompressible?: (type: string) => boolean | undefined;
 }
 
 /**
@@ -136,7 +164,7 @@ export interface StorageInfo<AttachedData> {
 	 */
 	vary?: string;
 	/**
-	 * Content encoding
+	 * Content encoding (undefined when `identity` is used)
 	 */
 	contentEncoding?: string;
 	/**
