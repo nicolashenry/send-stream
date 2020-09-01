@@ -1,6 +1,6 @@
 import { Readable, PassThrough } from 'stream';
 
-import { BufferOrStreamRange } from './utils';
+import type { BufferOrStreamRange } from './utils';
 
 /**
  * Single buffer stream
@@ -56,7 +56,7 @@ export class MultiStream extends PassThrough {
 		this.sendNextRange();
 	}
 
-	_destroy(error: Error | null, callback: (error: Error | null) => void) {
+	_destroy(error: Error | null, callback: (err: Error | null) => void) {
 		this.onDestroy()
 			.then(() => {
 				// eslint-disable-next-line no-underscore-dangle

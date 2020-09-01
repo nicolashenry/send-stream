@@ -1,13 +1,15 @@
 
-import { Readable } from 'stream';
+import type { Readable } from 'stream';
 import { relative } from 'path';
 import * as assert from 'assert';
 
 import express from 'express';
 import * as mongodb from 'mongodb';
 
-import { Storage, StorageOptions, StorageInfo, StorageError, StreamRange } from '../src/send-stream';
+import type { StorageOptions, StorageInfo, StreamRange } from '../src/send-stream';
+import { Storage, StorageError } from '../src/send-stream';
 
+// eslint-disable-next-line @typescript-eslint/consistent-type-imports
 declare const URL: typeof import('url').URL;
 
 const uri = 'mongodb://localhost:27017';

@@ -1,7 +1,8 @@
-import { Readable } from 'stream';
-import { Dir, Stats, Dirent } from 'fs';
+import type { Readable } from 'stream';
+import type { Dir, Stats, Dirent } from 'fs';
 
-import { StorageOptions, StorageError } from './storage-models';
+import type { StorageOptions } from './storage-models';
+import { StorageError } from './storage-models';
 
 /**
  * File data used by storage

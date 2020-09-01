@@ -6,25 +6,23 @@ import * as fs from 'fs';
 import { createBrotliDecompress } from 'zlib';
 import { join } from 'path';
 import { Readable } from 'stream';
-import * as http from 'http';
+import type * as http from 'http';
 import { promisify } from 'util';
 
 import Koa from 'koa';
 import request from 'supertest';
 import * as memfs from 'memfs';
 
-import {
+import type {
 	PrepareResponseOptions,
-	Storage,
-	FileSystemStorage,
 	StorageInfo,
 	FileSystemStorageOptions,
 	FileData,
 	StreamRange,
 	FilePath,
 	StorageRequestHeaders,
-	BufferStream,
 } from '../src/send-stream';
+import { Storage, FileSystemStorage, BufferStream } from '../src/send-stream';
 
 function brotliParser(res: request.Response, cb: (err: Error | null, body: unknown) => void) {
 	const decompress = res.pipe(createBrotliDecompress());

@@ -48,6 +48,7 @@
       }
     ],
     "@typescript-eslint/consistent-type-definitions": "warn",
+    "@typescript-eslint/consistent-type-imports": "warn",
     "@typescript-eslint/default-param-last": "warn",
     "@typescript-eslint/dot-notation": "off", // too restrictive
     "@typescript-eslint/explicit-function-return-type": "off", // not needed: seems useless
@@ -413,7 +414,7 @@
     "no-dupe-else-if": "warn",
     "no-dupe-keys": "off", // disabled by typescript-eslint
     "no-duplicate-case": "warn",
-    "no-duplicate-imports": "warn",
+    "no-duplicate-imports": "off", // not needed: covered by import/no-duplicates
     "no-else-return": "warn",
     "no-empty": "warn",
     "no-empty-character-class": "warn",
@@ -652,7 +653,7 @@
     "import/no-amd": "off", // not needed: covered by typescript
     "import/no-anonymous-default-export": "off", // not needed: seems useless
     "import/no-commonjs": "off", // not needed: covered by typescript
-    "import/no-cycle": "warn", // "import/no-cycle": ["warn", { "ignoreExternal": true }], // bug: https://github.com/benmosher/eslint-plugin-import/pull/1681
+    "import/no-cycle": ["warn", { "ignoreExternal": true }],
     "import/no-default-export": "warn",
     "import/no-deprecated": "off", // not needed: slow and cases are rare
     "import/no-duplicates": "warn",
@@ -713,7 +714,7 @@
     "jsdoc/no-bad-blocks": "warn",
     "jsdoc/no-defaults": "warn",
     "jsdoc/no-types": "warn",
-    "jsdoc/no-undefined-types": "warn",
+    "jsdoc/no-undefined-types": "off", // bug: https://github.com/gajus/eslint-plugin-jsdoc/issues/629
     "jsdoc/require-description-complete-sentence": "off", // not needed: seems useless
     "jsdoc/require-description": "warn",
     "jsdoc/require-example": "off", // not needed: seems useless

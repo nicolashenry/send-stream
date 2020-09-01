@@ -1,18 +1,23 @@
 
-import * as fs from 'fs';
+import type { Dir, Dirent, Stats } from 'fs';
+import { open, fstat, close, createReadStream, opendir, readdir, constants } from 'fs';
 import { join } from 'path';
 import { Readable } from 'stream';
 import { promisify } from 'util';
 
 import { Storage } from './storage';
-import { StorageRequestHeaders, StorageInfo, StorageError } from './storage-models';
-import { acceptEncodings, StreamRange } from './utils';
-import {
+import type { StorageRequestHeaders, StorageInfo } from './storage-models';
+import { StorageError } from './storage-models';
+import type { StreamRange } from './utils';
+import { acceptEncodings } from './utils';
+import type {
 	FilePath,
 	FileData,
 	FSModule,
 	FileSystemStorageOptions,
 	RegexpContentEncodingMapping,
+} from './file-system-storage-models';
+import {
 	MalformedPathError,
 	NotNormalizedError,
 	InvalidPathError,
@@ -24,6 +29,7 @@ import {
 	DoesNotExistError,
 } from './file-system-storage-models';
 
+// eslint-disable-next-line @typescript-eslint/consistent-type-imports
 declare const URL: typeof import('url').URL;
 
 /**
@@ -52,15 +58,15 @@ export class FileSystemStorage extends Storage<FilePath, FileData> {
 
 	readonly fsOpen: (path: string, flags: number) => Promise<number>;
 
-	readonly fsFstat: (fd: number) => Promise<fs.Stats>;
+	readonly fsFstat: (fd: number) => Promise<Stats>;
 
 	readonly fsClose: (fd: number) => Promise<void>;
 
 	readonly fsCreateReadStream: FSModule['createReadStream'];
 
-	readonly fsOpendir?: (path: string) => Promise<fs.Dir>;
+	readonly fsOpendir?: (path: string) => Promise<Dir>;
 
-	readonly fsReaddir: (path: string, options: { withFileTypes: true }) => Promise<fs.Dirent[]>;
+	readonly fsReaddir: (path: string, options: { withFileTypes: true }) => Promise<Dirent[]>;
 
 	readonly fsConstants: FSModule['constants'];
 
@@ -103,7 +109,7 @@ export class FileSystemStorage extends Storage<FilePath, FileData> {
 				? ignorePattern
 				: new RegExp(ignorePattern, 'u');
 		this.onDirectory = onDirectory ?? false;
-		const fsMod = fsModule ?? fs;
+		const fsMod = fsModule ?? { open, fstat, close, createReadStream, opendir, readdir, constants };
 		this.fsOpen = promisify(fsMod.open);
 		this.fsFstat = promisify(fsMod.fstat);
 		this.fsClose = promisify(fsMod.close);

@@ -1,11 +1,12 @@
 
 import { EventEmitter } from 'events';
-import * as http from 'http';
-import * as http2 from 'http2';
-import { Readable } from 'stream';
+import { ServerResponse } from 'http';
+import type { ServerHttp2Stream } from 'http2';
+import { Http2ServerResponse, constants } from 'http2';
+import type { Readable } from 'stream';
 
-import { ResponseHeaders } from './utils';
-import { StorageInfo, StorageError } from './storage-models';
+import type { ResponseHeaders } from './utils';
+import type { StorageInfo, StorageError } from './storage-models';
 
 /**
  * Stream response
@@ -36,7 +37,7 @@ export class StreamResponse<AttachedData> extends EventEmitter {
 	 * @param res - http response
 	 * @returns self
 	 */
-	send(res: http.ServerResponse | http2.Http2ServerResponse | http2.ServerHttp2Stream) {
+	send(res: ServerResponse | Http2ServerResponse | ServerHttp2Stream) {
 		const { statusCode } = this;
 		const { headers: responseHeaders, stream: readStream } = this;
 
@@ -46,7 +47,7 @@ export class StreamResponse<AttachedData> extends EventEmitter {
 			return this;
 		}
 		let endResponseOnError: () => void;
-		if (res instanceof http.ServerResponse) {
+		if (res instanceof ServerResponse) {
 			const { connection } = res;
 			if (res.destroyed || connection.destroyed) {
 				readStream.destroy();
@@ -68,7 +69,7 @@ export class StreamResponse<AttachedData> extends EventEmitter {
 			res.on('close', responseClose);
 			readStream.pipe(res);
 		} else {
-			const resStream = res instanceof http2.Http2ServerResponse ? res.stream : res;
+			const resStream = res instanceof Http2ServerResponse ? res.stream : res;
 			if (resStream.destroyed || resStream.closed) {
 				readStream.destroy();
 				this.emit('responseError', new Error('response already closed'));
@@ -79,7 +80,7 @@ export class StreamResponse<AttachedData> extends EventEmitter {
 				...responseHeaders,
 			});
 			endResponseOnError = () => {
-				resStream.close(http2.constants.NGHTTP2_INTERNAL_ERROR);
+				resStream.close(constants.NGHTTP2_INTERNAL_ERROR);
 			};
 			const responseClose = () => {
 				resStream.off('error', responseClose);

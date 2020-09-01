@@ -6,21 +6,20 @@ import * as http from 'http';
 import * as http2 from 'http2';
 import { normalize, join } from 'path';
 import { Readable } from 'stream';
-import { AddressInfo } from 'net';
+import type { AddressInfo } from 'net';
 
 import request from 'supertest';
 
-import {
+import type {
 	FileSystemStorageOptions,
-	FileSystemStorage,
 	PrepareResponseOptions,
-	getFreshStatus,
 	StorageInfo,
 	FileData,
 	StreamRange,
 	FilePath,
 	StorageRequestHeaders,
 } from '../src/send-stream';
+import { FileSystemStorage, getFreshStatus } from '../src/send-stream';
 
 // test server
 
@@ -1604,7 +1603,7 @@ describe('when something happenned too soon', () => {
 						}
 
 						// eslint-disable-next-line class-methods-use-this
-						async _destroy(error: Error | null, callback: (error?: Error | null) => void) {
+						async _destroy(error: Error | null, callback: (err?: Error | null) => void) {
 							await st.close(si);
 							callback(error);
 						}
@@ -1649,7 +1648,7 @@ describe('when something happenned too soon', () => {
 						}
 
 						// eslint-disable-next-line class-methods-use-this
-						async _destroy(error: Error | null, callback: (error?: Error | null) => void) {
+						async _destroy(error: Error | null, callback: (err?: Error | null) => void) {
 							await st.close(si);
 							callback(error);
 						}
@@ -1706,7 +1705,7 @@ describe('when something happenned too soon', () => {
 						}
 
 						// eslint-disable-next-line class-methods-use-this
-						async _destroy(error: Error | null, callback: (error?: Error | null) => void) {
+						async _destroy(error: Error | null, callback: (err?: Error | null) => void) {
 							await st.close(si);
 							callback(error);
 						}

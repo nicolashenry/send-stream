@@ -1,4 +1,4 @@
-import * as crypto from 'crypto';
+import { randomBytes as cryptoRandomBytes } from 'crypto';
 import { promisify } from 'util';
 
 /**
@@ -65,7 +65,7 @@ export type BufferOrStreamRange = StreamRange | Buffer;
 /**
  * Random bytes function returing promise
  */
-export const randomBytes = promisify(crypto.randomBytes);
+export const randomBytes = promisify(cryptoRandomBytes);
 
 /**
  * Transform stats to etag

@@ -6,12 +6,8 @@ import * as path from 'path';
 
 import request from 'supertest';
 
-import {
-	FileSystemStorageOptions,
-	FileSystemStorage,
-	PrepareResponseOptions,
-	TrailingSlashError,
-} from '../src/send-stream';
+import type { FileSystemStorageOptions, PrepareResponseOptions } from '../src/send-stream';
+import { FileSystemStorage, TrailingSlashError } from '../src/send-stream';
 
 const fixtures = path.join(__dirname, '/fixtures-static');
 

@@ -1,7 +1,8 @@
 
 import * as http from 'http';
 import * as http2 from 'http2';
-import { Readable, pipeline } from 'stream';
+import type { Readable } from 'stream';
+import { pipeline } from 'stream';
 import * as zlib from 'zlib';
 
 import contentDisposition from 'content-disposition';
@@ -11,6 +12,7 @@ import compressible from 'compressible';
 
 import { StreamResponse } from './response';
 import { EmptyStream, BufferStream, MultiStream } from './streams';
+import type { ResponseHeaders, BufferOrStreamRange } from './utils';
 import {
 	millisecondsToUTCString,
 	statsToEtag,
@@ -19,17 +21,15 @@ import {
 	contentRange,
 	randomBytes,
 	StreamRange,
-	ResponseHeaders,
-	BufferOrStreamRange,
 	acceptEncodings,
 } from './utils';
-import {
+import type {
 	StorageOptions,
 	PrepareResponseOptions,
 	StorageRequestHeaders,
 	StorageInfo,
-	StorageError,
 } from './storage-models';
+import { StorageError } from './storage-models';
 
 const DEFAULT_ALLOWED_METHODS = <const> ['GET', 'HEAD'];
 const DEFAULT_MAX_RANGES = 200;

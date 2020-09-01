@@ -1,6 +1,6 @@
 
-import * as http from 'http';
-import * as http2 from 'http2';
+import type { IncomingHttpHeaders as HttpIncomingHttpHeaders } from 'http';
+import type { IncomingHttpHeaders as Http2IncomingHttpHeaders } from 'http2';
 
 /**
  * Charset mapping
@@ -84,7 +84,7 @@ interface AcceptEncodingHeader {
 /**
  * Request headers
  */
-export type StorageRequestHeaders = (http.IncomingHttpHeaders | http2.IncomingHttpHeaders) & AcceptEncodingHeader;
+export type StorageRequestHeaders = (HttpIncomingHttpHeaders | Http2IncomingHttpHeaders) & AcceptEncodingHeader;
 
 /**
  * Storage options
