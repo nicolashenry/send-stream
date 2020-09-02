@@ -242,6 +242,9 @@ describe('send(file).pipe(res)', () => {
 					const res = await super.open(path, requestHeaders);
 					res.etag = '"123"';
 					res.lastModified = 'Thu, 04 Jun 2020 01:53:53 GMT';
+					res.cacheControl = 'no-cache';
+					res.contentDispositionType = 'attachment';
+					res.contentDispositionFilename = 'test.txt';
 					return res;
 				}
 			}
@@ -261,6 +264,8 @@ describe('send(file).pipe(res)', () => {
 				.get('/name.txt')
 				.expect('ETag', '"123"')
 				.expect('Last-Modified', 'Thu, 04 Jun 2020 01:53:53 GMT')
+				.expect('Cache-Control', 'no-cache')
+				.expect('Content-Disposition', 'attachment; filename="test.txt"')
 				.expect(200);
 		});
 	});

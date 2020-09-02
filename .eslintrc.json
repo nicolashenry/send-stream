@@ -277,7 +277,7 @@
     "comma-style": "warn",
     "complexity": [
       "warn",
-      60
+      80
     ],
     "computed-property-spacing": "warn",
     "consistent-return": "warn",
@@ -372,7 +372,7 @@
     ],
     "max-statements": [
       "warn",
-      140
+      160
     ],
     "max-statements-per-line": "warn",
     "multiline-comment-style": "off", // not needed: seems useless

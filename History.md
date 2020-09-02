@@ -8,6 +8,7 @@
 * Breaking change: `contentEncoding` in storage information is now (and needs to be) undefined when identity is used
 * Feature: `mime` package is replaced by `mime-types` for charset lookups
 * Feature: Add `dynamicCompression` and `mimeTypeCompressible` storage options
+* Feature: Add `cacheControl`, `contentDispositionType` and `contentDispositionType` in storage information
 * Use fastify v3 in examples
 * Use typescript project references
 * Bump typescript from 3.9.x to 4.0.x

@@ -119,11 +119,15 @@ export abstract class Storage<Reference, AttachedData> {
 	/**
 	 * Create cache-control header value from storage information (return always public, max-age=0 unless overriden)
 	 *
-	 * @param _storageInfo - storage information (unused unless overriden)
+	 * @param storageInfo - storage information
 	 * @returns cache-control header
 	 */
 	// eslint-disable-next-line class-methods-use-this
-	createCacheControl(_storageInfo: StorageInfo<AttachedData>): string | false {
+	createCacheControl(storageInfo: StorageInfo<AttachedData>): string | false {
+		const { cacheControl } = storageInfo;
+		if (cacheControl) {
+			return cacheControl;
+		}
 		return 'public, max-age=0';
 	}
 
@@ -164,6 +168,21 @@ export abstract class Storage<Reference, AttachedData> {
 	}
 
 	/**
+	 * Create content-disposition header type from storage information (return always inline unless overriden)
+	 *
+	 * @param storageInfo - storage information (unused unless overriden)
+	 * @returns content-disposition header type
+	 */
+	// eslint-disable-next-line class-methods-use-this
+	createContentDispositionType(storageInfo: StorageInfo<AttachedData>): 'inline' | 'attachment' | undefined {
+		const { contentDispositionType } = storageInfo;
+		if (contentDispositionType) {
+			return contentDispositionType;
+		}
+		return 'inline';
+	}
+
+	/**
 	 * Create content-disposition header filename from storage information
 	 * (return always the original filename unless overriden)
 	 *
@@ -172,18 +191,11 @@ export abstract class Storage<Reference, AttachedData> {
 	 */
 	// eslint-disable-next-line class-methods-use-this
 	createContentDispositionFilename(storageInfo: StorageInfo<AttachedData>): string | undefined {
+		const { contentDispositionFilename } = storageInfo;
+		if (contentDispositionFilename) {
+			return contentDispositionFilename;
+		}
 		return storageInfo.fileName;
-	}
-
-	/**
-	 * Create content-disposition header type from storage information (return always inline unless overriden)
-	 *
-	 * @param _storageInfo - storage information (unused unless overriden)
-	 * @returns content-disposition header type
-	 */
-	// eslint-disable-next-line class-methods-use-this
-	createContentDispositionType(_storageInfo: StorageInfo<AttachedData>): 'inline' | 'attachment' | undefined {
-		return 'inline';
 	}
 
 	/**
@@ -234,6 +246,14 @@ export abstract class Storage<Reference, AttachedData> {
 		try {
 			const responseHeaders: ResponseHeaders = { };
 			const mimeType = opts.mimeType ?? this.createMimeType(storageInfo);
+			let mimeTypeCharset;
+			if (mimeType) {
+				storageInfo.mimeType = mimeType;
+				mimeTypeCharset = opts.mimeTypeCharset ?? this.createMimeTypeCharset(storageInfo, mimeType);
+				if (mimeTypeCharset) {
+					storageInfo.mimeTypeCharset = mimeTypeCharset;
+				}
+			}
 			const { dynamicCompression } = this;
 			if (
 				dynamicCompression
@@ -253,15 +273,6 @@ export abstract class Storage<Reference, AttachedData> {
 				}
 			}
 
-			const cacheControl = opts.cacheControl ?? this.createCacheControl(storageInfo);
-			if (cacheControl) {
-				responseHeaders['Cache-Control'] = cacheControl;
-			}
-
-			if (storageInfo.vary) {
-				responseHeaders['Vary'] = storageInfo.vary;
-			}
-
 			const lastModified = opts.lastModified ?? this.createLastModified(storageInfo);
 
 			if (lastModified) {
@@ -272,6 +283,30 @@ export abstract class Storage<Reference, AttachedData> {
 
 			if (etag) {
 				storageInfo.etag = etag;
+			}
+
+			const contentDispositionType = opts.contentDispositionType
+				?? this.createContentDispositionType(storageInfo);
+			let contentDispositionFilename;
+			if (contentDispositionType) {
+				storageInfo.contentDispositionType = contentDispositionType;
+				const { contentDispositionFilename: optsContentDispositionFilename } = opts;
+				contentDispositionFilename = optsContentDispositionFilename === undefined
+					? this.createContentDispositionFilename(storageInfo)
+					: optsContentDispositionFilename
+						? optsContentDispositionFilename
+						: undefined;
+				storageInfo.contentDispositionFilename = contentDispositionFilename;
+			}
+
+			const cacheControl = opts.cacheControl ?? this.createCacheControl(storageInfo);
+			if (cacheControl) {
+				storageInfo.cacheControl = cacheControl;
+				responseHeaders['Cache-Control'] = cacheControl;
+			}
+
+			if (storageInfo.vary) {
+				responseHeaders['Vary'] = storageInfo.vary;
 			}
 
 			const fullResponse = opts.statusCode !== undefined;
@@ -303,10 +338,7 @@ export abstract class Storage<Reference, AttachedData> {
 
 			let contentTypeHeader;
 			if (mimeType) {
-				storageInfo.mimeType = mimeType;
-				const mimeTypeCharset = opts.mimeTypeCharset ?? this.createMimeTypeCharset(storageInfo, mimeType);
 				if (mimeTypeCharset) {
-					storageInfo.mimeTypeCharset = mimeTypeCharset;
 					contentTypeHeader = `${ mimeType }; charset=${ mimeTypeCharset }`;
 				} else {
 					contentTypeHeader = mimeType;
@@ -315,16 +347,9 @@ export abstract class Storage<Reference, AttachedData> {
 				responseHeaders['X-Content-Type-Options'] = 'nosniff';
 			}
 
-			const contentDispositionType = opts.contentDispositionType
-				?? this.createContentDispositionType(storageInfo);
 			if (contentDispositionType) {
-				const { contentDispositionFilename: optsContentDispositionFilename } = opts;
 				responseHeaders['Content-Disposition'] = contentDisposition(
-					optsContentDispositionFilename === undefined
-						? this.createContentDispositionFilename(storageInfo)
-						: optsContentDispositionFilename
-							? optsContentDispositionFilename
-							: undefined,
+					contentDispositionFilename,
 					{ type: contentDispositionType },
 				);
 			}

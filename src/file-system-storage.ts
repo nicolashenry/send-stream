@@ -378,6 +378,9 @@ export class FileSystemStorage extends Storage<FilePath, FileData> {
 						mimeTypeCharset: 'UTF-8',
 						lastModified: undefined,
 						etag: undefined,
+						cacheControl: undefined,
+						contentDispositionType: undefined,
+						contentDispositionFilename: undefined,
 					};
 				} else if (haveTrailingSlash) {
 					throw new TrailingSlashError(
@@ -411,6 +414,9 @@ export class FileSystemStorage extends Storage<FilePath, FileData> {
 			mimeTypeCharset: undefined,
 			lastModified: undefined,
 			etag: undefined,
+			cacheControl: undefined,
+			contentDispositionType: undefined,
+			contentDispositionFilename: undefined,
 		};
 	}
 

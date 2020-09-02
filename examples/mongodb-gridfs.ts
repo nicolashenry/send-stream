@@ -52,6 +52,9 @@ class GridFSStorage extends Storage<string, File> {
 			mimeTypeCharset: file.metadata?.mimeTypeCharset,
 			lastModified: file.metadata?.lastModified,
 			etag: file.metadata?.etag,
+			cacheControl: undefined,
+			contentDispositionType: undefined,
+			contentDispositionFilename: undefined,
 		};
 	}
 

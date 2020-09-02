@@ -183,6 +183,18 @@ export interface StorageInfo<AttachedData> {
 	 * ETag header
 	 */
 	etag?: string;
+	/**
+	 * Cache-Control header ('public, max-age=0' by default)
+	 */
+	cacheControl?: string;
+	/**
+	 * Content-Disposition header type ('inline' by default)
+	 */
+	contentDispositionType?: 'inline' | 'attachment';
+	/**
+	 * Content-Disposition header filename (filename by default)
+	 */
+	contentDispositionFilename?: string;
 }
 
 /**
