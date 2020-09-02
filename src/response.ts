@@ -2,8 +2,9 @@
 import { EventEmitter } from 'events';
 import { ServerResponse } from 'http';
 import type { ServerHttp2Stream } from 'http2';
-import { Http2ServerResponse, constants } from 'http2';
+import { Http2ServerResponse } from 'http2';
 import type { Readable } from 'stream';
+import { pipeline } from 'stream';
 
 import type { ResponseHeaders } from './utils';
 import type { StorageInfo, StorageError } from './storage-models';
@@ -46,7 +47,12 @@ export class StreamResponse<AttachedData> extends EventEmitter {
 			this.emit('responseError', new Error('response headers already sent'));
 			return this;
 		}
-		let endResponseOnError: () => void;
+		// eslint-disable-next-line unicorn/consistent-function-scoping
+		const pipelineEnd = (err: NodeJS.ErrnoException | null) => {
+			if (err) {
+				this.emit('readError', err);
+			}
+		};
 		if (res instanceof ServerResponse) {
 			const { connection } = res;
 			if (res.destroyed || connection.destroyed) {
@@ -55,19 +61,7 @@ export class StreamResponse<AttachedData> extends EventEmitter {
 				return this;
 			}
 			res.writeHead(statusCode, responseHeaders);
-			endResponseOnError = () => {
-				res.destroy();
-			};
-			const responseClose = () => {
-				res.off('error', responseClose);
-				res.off('close', responseClose);
-				if (!readStream.destroyed) {
-					readStream.destroy();
-				}
-			};
-			res.on('error', responseClose);
-			res.on('close', responseClose);
-			readStream.pipe(res);
+			pipeline(readStream, res, pipelineEnd);
 		} else {
 			const resStream = res instanceof Http2ServerResponse ? res.stream : res;
 			if (resStream.destroyed || resStream.closed) {
@@ -79,32 +73,8 @@ export class StreamResponse<AttachedData> extends EventEmitter {
 				':status': statusCode,
 				...responseHeaders,
 			});
-			endResponseOnError = () => {
-				resStream.close(constants.NGHTTP2_INTERNAL_ERROR);
-			};
-			const responseClose = () => {
-				resStream.off('error', responseClose);
-				resStream.off('close', responseClose);
-				if (!readStream.destroyed) {
-					readStream.destroy();
-				}
-			};
-			resStream.on('error', responseClose);
-			resStream.on('close', responseClose);
-			readStream.pipe(resStream);
+			pipeline(readStream, resStream, pipelineEnd);
 		}
-		// eslint-disable-next-line prefer-const
-		let offReadableEvents: () => void;
-
-		const readableError = (err: Error) => {
-			offReadableEvents();
-			endResponseOnError();
-			this.emit('readError', err);
-		};
-		readStream.on('error', readableError);
-		offReadableEvents = () => {
-			readStream.off('error', readableError);
-		};
 
 		return this;
 	}
