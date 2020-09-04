@@ -50,6 +50,7 @@ export abstract class Storage<Reference, AttachedData> {
 		identityEncodingPreference: { order: number };
 	} | false;
 	readonly mimeTypeCompressible: NonNullable<StorageOptions['mimeTypeCompressible']>;
+	readonly dynamicCompressionMinLength: number;
 
 	/**
 	 * Create storage
@@ -74,6 +75,7 @@ export abstract class Storage<Reference, AttachedData> {
 			this.dynamicCompression = false;
 		}
 		this.mimeTypeCompressible = opts.mimeTypeCompressible ?? compressible;
+		this.dynamicCompressionMinLength = opts.dynamicCompressionMinLength ?? 20;
 		this.defaultMimeType = opts.defaultMimeType ?? false;
 		this.maxRanges = opts.maxRanges ?? DEFAULT_MAX_RANGES;
 		this.weakEtags = opts.weakEtags === true;
@@ -260,6 +262,7 @@ export abstract class Storage<Reference, AttachedData> {
 				&& !storageInfo.contentEncoding
 				&& mimeType
 				&& this.mimeTypeCompressible(mimeType)
+				&& (storageInfo.size === undefined || storageInfo.size > this.dynamicCompressionMinLength)
 			) {
 				storageInfo.vary = 'Accept-Encoding';
 				const [[preferedEncoding]] = acceptEncodings(

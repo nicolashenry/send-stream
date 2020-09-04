@@ -118,7 +118,7 @@ export interface StorageOptions {
 	weakEtags?: boolean;
 	/**
 	 * Enable dynamic compression of file content.
-	 * This can be a boolean or a list of encodings ordered by priority, `['br', 'gzip'] if `true` is used.
+	 * This can be a boolean or a list of encodings ordered by priority, `['br', 'gzip']` if `true` is used.
 	 * Activating this option will automatically compress content as brotli or gzip
 	 * if the content is detected as compressible and supported by the client.
 	 *
@@ -136,6 +136,12 @@ export interface StorageOptions {
 	 * `compressible` module will be used by default
 	 */
 	mimeTypeCompressible?: (type: string) => boolean | undefined;
+	/**
+	 * Sets the minimum length of a response that will be dynamically compressed (only when the length is known)
+	 *
+	 * Default to 20
+	 */
+	dynamicCompressionMinLength?: number;
 }
 
 /**

@@ -1,3 +1,9 @@
+2.1.0
+==================
+
+* Feature: Add dynamicCompressionMinLength option
+* Fix: Add missing documentation on `dynamicCompression` and `mimeTypeCompressible`
+
 2.0.0
 ==================
 

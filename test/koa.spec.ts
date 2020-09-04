@@ -508,16 +508,26 @@ describe('send(ctx, file)', () => {
 			});
 			it('return compressed text', async () => {
 				const { body } = <{ body: string }> await request(server)
-					.get('/fixtures-koa/user.json')
+					.get('/fixtures-koa/some.path/index.json')
 					.parse(brotliParser)
 					.set('Accept-Encoding', 'br, gzip, identity')
-					.expect('X-Send-Stream-Resolved-Path', join(__dirname, '/fixtures-koa/user.json'))
+					.expect('X-Send-Stream-Resolved-Path', join(__dirname, '/fixtures-koa/some.path/index.json'))
 					.expect(shouldNotHaveHeader('Content-Length'))
 					.expect('Content-Encoding', 'br')
 					.expect(200);
-				assert.deepStrictEqual(body, '{ "name": "tobi" }');
+				assert.deepStrictEqual(body, '{\n\t"foo": 123,\n\t"bar": 456\n}\n');
 			});
-			it('return not return compressed text when identity is required', async () => {
+			it('not return compressed text when identity is required', async () => {
+				await request(server)
+					.get('/fixtures-koa/some.path/index.json')
+					.set('Accept-Encoding', 'br;q=0.8, gzip;q=0.8, identity')
+					.expect('X-Send-Stream-Resolved-Path', join(__dirname, '/fixtures-koa/some.path/index.json'))
+					.expect('Content-Length', '29')
+					.expect(shouldNotHaveHeader('Content-Encoding'))
+					.expect('{\n\t"foo": 123,\n\t"bar": 456\n}\n')
+					.expect(200);
+			});
+			it('not return compressed text when length < 20', async () => {
 				await request(server)
 					.get('/fixtures-koa/user.json')
 					.set('Accept-Encoding', 'br;q=0.8, gzip;q=0.8, identity')
@@ -534,6 +544,55 @@ describe('send(ctx, file)', () => {
 					.expect('X-Send-Stream-Resolved-Path', join(__dirname, '/fixtures-koa/test.png'))
 					.expect('Content-Length', '538')
 					.expect(shouldNotHaveHeader('Content-Encoding'))
+					.expect(200);
+			});
+		});
+
+		describe('should compress with dynamicCompressionMinLength', () => {
+			let server: http.Server;
+			before(() => {
+				const app = new Koa();
+
+				app.use(async ctx => {
+					await send(ctx, __dirname, ctx.path, { dynamicCompression: true, dynamicCompressionMinLength: 10 });
+				});
+
+				server = app.listen();
+			});
+			after(done => {
+				server.close(done);
+			});
+			it('return compressed text', async () => {
+				const { body } = <{ body: string }> await request(server)
+					.get('/fixtures-koa/some.path/index.json')
+					.parse(brotliParser)
+					.set('Accept-Encoding', 'br, gzip, identity')
+					.expect('X-Send-Stream-Resolved-Path', join(__dirname, '/fixtures-koa/some.path/index.json'))
+					.expect(shouldNotHaveHeader('Content-Length'))
+					.expect('Content-Encoding', 'br')
+					.expect(200);
+				assert.deepStrictEqual(body, '{\n\t"foo": 123,\n\t"bar": 456\n}\n');
+			});
+			it('return compressed text when length >= dynamicCompressionMinLength', async () => {
+				const { body } = <{ body: string }> await request(server)
+					.get('/fixtures-koa/user.json')
+					.parse(brotliParser)
+					.set('Accept-Encoding', 'br, gzip, identity')
+					.expect('X-Send-Stream-Resolved-Path', join(__dirname, '/fixtures-koa/user.json'))
+					.expect(shouldNotHaveHeader('Content-Length'))
+					.expect('Content-Encoding', 'br')
+					.expect(200);
+				assert.deepStrictEqual(body, '{ "name": "tobi" }');
+			});
+
+			it('not return compressed text when length < dynamicCompressionMinLength', async () => {
+				await request(server)
+					.get('/fixtures-koa/hello.txt')
+					.set('Accept-Encoding', 'br, gzip, identity')
+					.expect('X-Send-Stream-Resolved-Path', join(__dirname, '/fixtures-koa/hello.txt'))
+					.expect('Content-Length', '5')
+					.expect(shouldNotHaveHeader('Content-Encoding'))
+					.expect('world')
 					.expect(200);
 			});
 		});
@@ -583,14 +642,14 @@ describe('send(ctx, file)', () => {
 			});
 			it('return compressed text', async () => {
 				const { body } = <{ body: string }> await request(server)
-					.get('/fixtures-koa/user.json')
+					.get('/fixtures-koa/some.path/index.json')
 					.parse(brotliParser)
 					.set('Accept-Encoding', 'br, gzip, identity')
-					.expect('X-Send-Stream-Resolved-Path', join(__dirname, '/fixtures-koa/user.json'))
+					.expect('X-Send-Stream-Resolved-Path', join(__dirname, '/fixtures-koa/some.path/index.json'))
 					.expect(shouldNotHaveHeader('Content-Length'))
 					.expect('Content-Encoding', 'br')
 					.expect(200);
-				assert.deepStrictEqual(body, '{ "name": "tobi" }');
+				assert.deepStrictEqual(body, '{\n\t"foo": 123,\n\t"bar": 456\n}\n');
 			});
 			it('return png without compression', async () => {
 				await request(server)
@@ -619,12 +678,12 @@ describe('send(ctx, file)', () => {
 			});
 			it('return compressed text', async () => {
 				await request(server)
-					.get('/fixtures-koa/user.json')
+					.get('/fixtures-koa/some.path/index.json')
 					.set('Accept-Encoding', 'br, gzip, identity')
-					.expect('X-Send-Stream-Resolved-Path', join(__dirname, '/fixtures-koa/user.json'))
+					.expect('X-Send-Stream-Resolved-Path', join(__dirname, '/fixtures-koa/some.path/index.json'))
 					.expect(shouldNotHaveHeader('Content-Length'))
 					.expect('Content-Encoding', 'gzip')
-					.expect('{ "name": "tobi" }')
+					.expect('{\n\t"foo": 123,\n\t"bar": 456\n}\n')
 					.expect(200);
 			});
 		});
@@ -645,7 +704,7 @@ describe('send(ctx, file)', () => {
 			});
 			it('throw error', async () => {
 				await request(server)
-					.get('/fixtures-koa/user.json')
+					.get('/fixtures-koa/some.path/index.json')
 					.set('Accept-Encoding', 'deflate, identity')
 					.expect(shouldNotHaveHeader('Content-Encoding'))
 					.expect(500);
@@ -669,8 +728,7 @@ describe('send(ctx, file)', () => {
 			it('should throw error', async () => {
 				try {
 					await request(server)
-						.get('/fixtures-koa/user.json')
-						.parse(brotliParser)
+						.get('/fixtures-koa/some.path/index.json')
 						.set('Accept-Encoding', 'br, gzip, identity');
 					assert.fail();
 				} catch {
@@ -680,8 +738,7 @@ describe('send(ctx, file)', () => {
 			it('should throw error', async () => {
 				try {
 					await request(server)
-						.get('/fixtures-koa/user.json')
-						.parse(brotliParser)
+						.get('/fixtures-koa/some.path/index.json')
 						.set('Accept-Encoding', 'gzip, identity');
 					assert.fail();
 				} catch {

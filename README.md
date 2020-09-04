@@ -154,6 +154,70 @@ new FileSystemStorage(
 ```
 
 ---
+##### dynamicCompression
+
+Enable dynamic compression of file content.
+This can be a boolean or a list of encodings ordered by priority, `['br', 'gzip']` if `true` is used.
+Activating this option will automatically compress content as brotli or gzip
+if the content is detected as compressible and supported by the client.
+
+Note that this is highly recommended to use this option only if you can not use pre-compressed options
+like the 'contentEncodingMappings' option from FileSystemStorage.
+
+Also when dynamic compression is active, `Content-Length` header will be removed
+and range requests will be disabled as content length is unknown
+
+Defaults to `false`
+
+Example:
+
+```js
+new FileSystemStorage(
+  directory,
+  {
+    dynamicCompression: true
+  }
+)
+```
+
+---
+##### mimeTypeCompressible
+
+Function used to determine if a type is compressible (for dynamic compression only)
+`compressible` module will be used by default
+
+Example:
+
+```js
+new FileSystemStorage(
+  directory,
+  {
+    dynamicCompression: true,
+    mimeTypeCompressible: mimeType => mimeType === 'text/plain'
+  }
+)
+```
+
+---
+##### dynamicCompressionMinLength
+
+Sets the minimum length of a response that will be dynamically compressed (only when the length is known)
+
+Default to 20
+
+Example:
+
+```js
+new FileSystemStorage(
+  directory,
+  {
+    dynamicCompression: true,
+    dynamicCompressionMinLength: 100
+  }
+)
+```
+
+---
 ##### defaultMimeType
 
 Configures the default content type (without charset) that will be used if the content type is unknown.
