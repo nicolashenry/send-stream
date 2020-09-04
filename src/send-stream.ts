@@ -6,3 +6,4 @@ export * from './response';
 export * from './storage';
 export * from './file-system-storage-models';
 export * from './file-system-storage';
+export * from './memory-storage';
