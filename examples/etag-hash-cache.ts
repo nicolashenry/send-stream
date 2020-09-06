@@ -19,19 +19,14 @@ const app = express();
 
 class EtagHashCacheStorage extends FileSystemStorage {
 	etagCache = new Map<string, string>();
+	etagsCached: Promise<void>;
 
 	constructor(
 		root: string,
 		opts: FileSystemStorageOptions = { },
 	) {
 		super(root, opts);
-		this.addAllFilesInEtagCache(root)
-			.then(() => {
-				console.info('all files have their hash etag cached');
-			})
-			.catch(error => {
-				console.error(error);
-			});
+		this.etagsCached = this.addAllFilesInEtagCache(root);
 	}
 
 	async addAllFilesInEtagCache(dir: string) {
@@ -92,6 +87,13 @@ app.get('*', async (req, res, next) => {
 	}
 });
 
-app.listen(3000, () => {
-	console.info('listening on http://localhost:3000');
-});
+storage.etagsCached
+	.then(() => {
+		console.info('all files have their hash etag cached');
+		app.listen(3000, () => {
+			console.info('listening on http://localhost:3000');
+		});
+	})
+	.catch(err => {
+		console.error(err);
+	});
