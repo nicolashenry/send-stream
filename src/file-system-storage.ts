@@ -4,6 +4,8 @@ import { open, fstat, close, createReadStream, opendir, readdir, constants } fro
 import { join } from 'path';
 import { Readable } from 'stream';
 import { promisify } from 'util';
+// eslint-disable-next-line node/prefer-global/url
+import { URL } from 'url';
 
 import { Storage } from './storage';
 import type { StorageRequestHeaders, StorageInfo } from './storage-models';
@@ -28,9 +30,6 @@ import {
 	IsDirectoryError,
 	DoesNotExistError,
 } from './file-system-storage-models';
-
-// eslint-disable-next-line @typescript-eslint/consistent-type-imports
-declare const URL: typeof import('url').URL;
 
 /**
  * Escape HTML in path for this library (only replace & character since ", < and > are already excluded)
