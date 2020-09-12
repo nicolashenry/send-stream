@@ -6,32 +6,29 @@ import type { BufferOrStreamRange } from './utils';
  * Single buffer stream
  */
 export class BufferStream extends Readable {
-	private buffer?: Buffer;
+	private buffer?: Uint8Array;
 
 	/**
 	 * Create a single buffer stream
 	 *
-	 * @param buffer - content buffer
+	 * @param buffer - content buffer or undefined if stream need to be empty
 	 */
-	constructor(buffer: Buffer) {
-		super();
+	constructor(buffer?: Uint8Array) {
+		super({ autoDestroy: true });
 		this.buffer = buffer;
 	}
 
 	_read() {
 		const { buffer } = this;
-		this.buffer = undefined;
-		this.push(buffer);
+		if (buffer) {
+			this.buffer = undefined;
+			this.push(buffer);
+		}
 		this.push(null);
 	}
-}
 
-/**
- * Empty stream
- */
-export class EmptyStream extends Readable {
-	_read() {
-		this.push(null);
+	_destroy() {
+		this.buffer = undefined;
 	}
 }
 

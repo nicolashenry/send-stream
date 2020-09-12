@@ -11,7 +11,7 @@ import parseRange from 'range-parser';
 import compressible from 'compressible';
 
 import { StreamResponse } from './response';
-import { EmptyStream, BufferStream, MultiStream } from './streams';
+import { BufferStream, MultiStream } from './streams';
 import type { ResponseHeaders, BufferOrStreamRange } from './utils';
 import {
 	millisecondsToUTCString,
@@ -431,13 +431,13 @@ export abstract class Storage<Reference, AttachedData> {
 			let stream: Readable;
 			if (isHeadMethod) {
 				earlyClose = true;
-				stream = new EmptyStream();
+				stream = new BufferStream();
 			} else if (rangeToUse === undefined) {
 				stream = this.createReadableStream(storageInfo, undefined, true);
 			} else if (rangeToUse instanceof StreamRange) {
 				if (rangeToUse.end < rangeToUse.start) {
 					earlyClose = true;
-					stream = new EmptyStream();
+					stream = new BufferStream();
 				} else {
 					stream = this.createReadableStream(storageInfo, rangeToUse, true);
 				}
@@ -533,7 +533,7 @@ export abstract class Storage<Reference, AttachedData> {
 				// eslint-disable-next-line @typescript-eslint/naming-convention
 				Allow: allowedMethods.join(', '),
 			},
-			isHeadMethod ? new EmptyStream() : new BufferStream(statusMessageBuffer),
+			isHeadMethod ? new BufferStream() : new BufferStream(statusMessageBuffer),
 		);
 	}
 
@@ -559,7 +559,7 @@ export abstract class Storage<Reference, AttachedData> {
 				// eslint-disable-next-line @typescript-eslint/naming-convention
 				'X-Content-Type-Options': 'nosniff',
 			},
-			isHeadMethod ? new EmptyStream() : new BufferStream(statusMessageBuffer),
+			isHeadMethod ? new BufferStream() : new BufferStream(statusMessageBuffer),
 			undefined,
 			error instanceof StorageError ? error : new StorageError('Unknown error', error),
 		);
@@ -578,7 +578,7 @@ export abstract class Storage<Reference, AttachedData> {
 		storageInfo: StorageInfo<AttachedData>,
 	) {
 		// Not Modified
-		return new StreamResponse(304, responseHeaders, new EmptyStream(), storageInfo);
+		return new StreamResponse(304, responseHeaders, new BufferStream(), storageInfo);
 	}
 
 	/**
@@ -603,7 +603,7 @@ export abstract class Storage<Reference, AttachedData> {
 				// eslint-disable-next-line @typescript-eslint/naming-convention
 				'Content-Length': String(statusMessageBuffer.byteLength),
 			},
-			isHeadMethod ? new EmptyStream() : new BufferStream(statusMessageBuffer),
+			isHeadMethod ? new BufferStream() : new BufferStream(statusMessageBuffer),
 			storageInfo,
 		);
 	}
@@ -633,7 +633,7 @@ export abstract class Storage<Reference, AttachedData> {
 				// eslint-disable-next-line @typescript-eslint/naming-convention
 				'Content-Length': String(statusMessageBuffer.byteLength),
 			},
-			isHeadMethod ? new EmptyStream() : new BufferStream(statusMessageBuffer),
+			isHeadMethod ? new BufferStream() : new BufferStream(statusMessageBuffer),
 			storageInfo,
 		);
 	}

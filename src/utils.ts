@@ -60,7 +60,7 @@ export class StreamRange {
 	) {}
 }
 
-export type BufferOrStreamRange = StreamRange | Buffer;
+export type BufferOrStreamRange = StreamRange | Uint8Array;
 
 /**
  * Random bytes function returing promise
