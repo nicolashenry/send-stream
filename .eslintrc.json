@@ -757,6 +757,7 @@
     "unicorn/explicit-length-check": "off", // bug: not checking if type is array
     "unicorn/filename-case": "warn",
     "unicorn/import-index": "warn",
+    "unicorn/import-style": "off", // not needed: seems useless
     "unicorn/new-for-builtins": "warn",
     "unicorn/no-abusive-eslint-disable": "warn",
     "unicorn/no-array-instanceof": "warn",
