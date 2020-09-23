@@ -40,6 +40,10 @@
     "@typescript-eslint/ban-types": "warn",
     "@typescript-eslint/brace-style": "warn",
     "@typescript-eslint/class-literal-property-style": "warn",
+    "@typescript-eslint/comma-dangle": [
+      "warn",
+      "always-multiline"
+    ],
     "@typescript-eslint/comma-spacing": "warn",
     "@typescript-eslint/consistent-type-assertions": [
       "warn",
@@ -158,6 +162,7 @@
     "@typescript-eslint/no-inferrable-types": "warn",
     "@typescript-eslint/no-invalid-this": "warn",
     "@typescript-eslint/no-invalid-void-type": "warn",
+    "@typescript-eslint/no-loop-func": "warn",
     "@typescript-eslint/no-loss-of-precision": "warn",
     "@typescript-eslint/no-magic-numbers": "off", // too restrictive
     "@typescript-eslint/no-misused-new": "warn",
@@ -166,7 +171,14 @@
     "@typescript-eslint/no-non-null-asserted-optional-chain": "warn",
     "@typescript-eslint/no-non-null-assertion": "warn",
     "@typescript-eslint/no-parameter-properties": "off", // not needed: seems useless
+    "@typescript-eslint/no-redeclare": "warn",
     "@typescript-eslint/no-require-imports": "warn",
+    "@typescript-eslint/no-shadow": [
+      "warn",
+      {
+        "hoist": "all"
+      }
+    ],
     "@typescript-eslint/no-this-alias": "warn",
     "@typescript-eslint/no-throw-literal": "warn",
     "@typescript-eslint/no-type-alias": [
@@ -269,10 +281,7 @@
     "camelcase": "off", // not needed: covered by @typescript-eslint/naming-convention
     "capitalized-comments": "off", // not needed: seems useless
     "class-methods-use-this": "warn",
-    "comma-dangle": [
-      "warn",
-      "always-multiline"
-    ],
+    "comma-dangle": "off", // disabled by typescript-eslint
     "comma-spacing": "off", // disabled by typescript-eslint
     "comma-style": "warn",
     "complexity": [
@@ -447,7 +456,7 @@
     "no-labels": "off", // not needed: seems useless
     "no-lone-blocks": "warn",
     "no-lonely-if": "warn",
-    "no-loop-func": "warn",
+    "no-loop-func": "off", // disabled by typescript-eslint
     "no-loss-of-precision": "off",
     "no-magic-numbers": "off", // disabled by typescript-eslint
     "no-misleading-character-class": "warn",
@@ -496,12 +505,7 @@
     "no-self-compare": "warn",
     "no-sequences": "warn",
     "no-setter-return": "off", // disabled by typescript-eslint
-    "no-shadow": [
-      "warn",
-      {
-        "hoist": "all"
-      }
-    ],
+    "no-shadow": "off", // disabled by typescript-eslint
     "no-shadow-restricted-names": "warn",
     "no-sparse-arrays": "warn",
     "no-tabs": "off", // not needed: opposite of project rules
@@ -701,6 +705,7 @@
     "jsdoc/check-alignment": "warn",
     "jsdoc/check-examples": "warn",
     "jsdoc/check-indentation": "warn",
+    "jsdoc/check-line-alignment": "warn",
     "jsdoc/check-param-names": "warn",
     "jsdoc/check-property-names": "warn",
     "jsdoc/check-syntax": "warn",
