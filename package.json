@@ -34,7 +34,6 @@
     "coveralls": "~3.1.0",
     "cross-env": "~7.0.2",
     "eslint": "~7.9.0",
-    "eslint-find-rules": "^3.6.1",
     "eslint-import-resolver-typescript": "~2.3.0",
     "eslint-plugin-import": "~2.22.0",
     "eslint-plugin-jsdoc": "~30.5.1",
