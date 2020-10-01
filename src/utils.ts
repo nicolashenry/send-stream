@@ -208,8 +208,7 @@ export function contentRange(rangeType: string, size: number, range?: StreamRang
  */
 function parseMultiValueHeader(header: string) {
 	const splitted = header
-		.replace(/^[ \t]+/u, '')
-		.replace(/[ \t]+$/u, '')
+		.replace(/^[ \t]+|(?<![ \t])[ \t]+$/gu, '')
 		.split(/[ \t]*,[ \t]*/u);
 	while (splitted.length > 0 && splitted[0] === '') {
 		splitted.shift();
