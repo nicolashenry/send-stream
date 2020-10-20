@@ -65,7 +65,7 @@ function multipartHandler(res: request.Response, cb: (err: Error | null, body: u
 
 function shouldNotHaveHeader(header: string) {
 	return (res: request.Response) => {
-		const { [header.toLowerCase()]: value } = <{ [key: string]: string }> res.header;
+		const { [header.toLowerCase()]: value } = <Record<string, string>> res.header;
 		assert.strictEqual(
 			value,
 			undefined,
@@ -93,7 +93,7 @@ describe('koa', () => {
 		if (result.error) {
 			result.headers['X-Send-Stream-Error'] = result.error.name;
 		}
-		ctx.set(<{ [key: string]: string }> result.headers);
+		ctx.set(<Record<string, string>> result.headers);
 		ctx.body = result.stream;
 		return result;
 	}
@@ -116,7 +116,7 @@ describe('koa', () => {
 			result.headers['X-Send-Stream-Error'] = result.error.name;
 		}
 		result.headers['X-Send-Stream-Resolved-Path'] = result.storageInfo?.attachedData.resolvedPath;
-		ctx.set(<{ [key: string]: string }> result.headers);
+		ctx.set(<Record<string, string>> result.headers);
 		ctx.body = result.stream;
 		return result;
 	}
@@ -151,7 +151,7 @@ describe('koa', () => {
 			result.headers['X-Send-Stream-Error'] = result.error.name;
 		}
 		result.headers['X-Send-Stream-Resolved-Path'] = result.storageInfo?.attachedData.resolvedPath;
-		ctx.set(<{ [key: string]: string }> result.headers);
+		ctx.set(<Record<string, string>> result.headers);
 		ctx.body = result.stream;
 		return result;
 	}
@@ -1643,7 +1643,7 @@ describe('koa', () => {
 
 					app.use(async ctx => {
 						// hack because superagent always add accept-encoding
-						delete (<{ [key: string]: string }> ctx.request.header)['accept-encoding'];
+						delete (<Record<string, string>> ctx.request.header)['accept-encoding'];
 						await send(ctx, __dirname, '/fixtures-koa/gzip.json', {
 							contentEncodingMappings: [
 								{

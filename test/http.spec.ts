@@ -24,7 +24,7 @@ import { FileSystemStorage, getFreshStatus } from '../src/send-stream';
 
 function shouldNotHaveHeader(header: string) {
 	return (res: request.Response) => {
-		const { [header.toLowerCase()]: value } = <{ [key: string]: string }> res.header;
+		const { [header.toLowerCase()]: value } = <Record<string, string>> res.header;
 		assert.strictEqual(
 			value,
 			undefined,
@@ -35,7 +35,7 @@ function shouldNotHaveHeader(header: string) {
 
 function shouldHaveHeader(header: string) {
 	return (res: request.Response) => {
-		const { [header.toLowerCase()]: value } = <{ [key: string]: string }> res.header;
+		const { [header.toLowerCase()]: value } = <Record<string, string>> res.header;
 		assert.notStrictEqual(
 			value,
 			undefined,
@@ -521,7 +521,7 @@ describe('http', () => {
 						.expect(200);
 					await request(server)
 						.get('/name.txt')
-						.set('If-None-Match', (<{ [key: string]: string }> res.header).etag)
+						.set('If-None-Match', (<Record<string, string>> res.header).etag)
 						.expect(shouldNotHaveHeader('Content-Length'))
 						.expect(shouldNotHaveHeader('Content-Type'))
 						.expect(304);
@@ -572,7 +572,7 @@ describe('http', () => {
 							.expect(200);
 						await request(app)
 							.get('/name.txt')
-							.set('If-Match', `"foo", "bar", ${ (<{ [key: string]: string }> res.header).etag }`)
+							.set('If-Match', `"foo", "bar", ${ (<Record<string, string>> res.header).etag }`)
 							.expect(412);
 					});
 				});
@@ -583,7 +583,7 @@ describe('http', () => {
 						.expect(200);
 					await request(mainApp)
 						.get('/name.txt')
-						.set('If-Match', `"foo", "bar", ${ (<{ [key: string]: string }> res.header).etag }`)
+						.set('If-Match', `"foo", "bar", ${ (<Record<string, string>> res.header).etag }`)
 						.expect(200);
 				});
 			});
@@ -595,7 +595,7 @@ describe('http', () => {
 						.expect(200);
 					await request(mainApp)
 						.get('/name.txt')
-						.set('If-Modified-Since', (<{ [key: string]: string }> res.header)['last-modified'])
+						.set('If-Modified-Since', (<Record<string, string>> res.header)['last-modified'])
 						.expect(304);
 				});
 
@@ -603,7 +603,7 @@ describe('http', () => {
 					const res = await request(mainApp)
 						.get('/name.txt')
 						.expect(200);
-					const lmod = Date.parse((<{ [key: string]: string }> res.header)['last-modified']);
+					const lmod = Date.parse((<Record<string, string>> res.header)['last-modified']);
 					const date = new Date(lmod - 60_000);
 					await request(mainApp)
 						.get('/name.txt')
@@ -619,7 +619,7 @@ describe('http', () => {
 						.expect(200);
 					await request(mainApp)
 						.get('/name.txt')
-						.set('If-None-Match', (<{ [key: string]: string }> res.header).etag)
+						.set('If-None-Match', (<Record<string, string>> res.header).etag)
 						.expect(304);
 				});
 
@@ -645,7 +645,7 @@ describe('http', () => {
 							.expect(200);
 						await request(mainApp)
 							.get('/name.txt')
-							.set('If-None-Match', (<{ [key: string]: string }> res.header).etag)
+							.set('If-None-Match', (<Record<string, string>> res.header).etag)
 							.expect(304);
 					});
 				});
@@ -671,7 +671,7 @@ describe('http', () => {
 						.expect(200);
 					await request(mainApp)
 						.get('/name.txt')
-						.set('If-Unmodified-Since', (<{ [key: string]: string }> res.header)['last-modified'])
+						.set('If-Unmodified-Since', (<Record<string, string>> res.header)['last-modified'])
 						.expect(200);
 				});
 
@@ -679,7 +679,7 @@ describe('http', () => {
 					const res = await request(mainApp)
 						.get('/name.txt')
 						.expect(200);
-					const lmod = Date.parse((<{ [key: string]: string }> res.header)['last-modified']);
+					const lmod = Date.parse((<Record<string, string>> res.header)['last-modified']);
 					const date = new Date(lmod - 60_000).toUTCString();
 					await request(mainApp)
 						.get('/name.txt')
@@ -711,7 +711,7 @@ describe('http', () => {
 						.expect(200);
 					await request(server)
 						.get('/name.txt')
-						.set('If-None-Match', (<{ [key: string]: string }> res.header).etag)
+						.set('If-None-Match', (<Record<string, string>> res.header).etag)
 						.expect(418);
 				});
 			});
@@ -871,7 +871,7 @@ describe('http', () => {
 						const res = await request(app)
 							.get('/nums.txt')
 							.expect(200);
-						const { etag } = <{ [key: string]: string }> res.header;
+						const { etag } = <Record<string, string>> res.header;
 
 						await request(app)
 							.get('/nums.txt')
@@ -885,7 +885,7 @@ describe('http', () => {
 					const res = await request(mainApp)
 						.get('/nums.txt')
 						.expect(200);
-					const { etag } = <{ [key: string]: string }> res.header;
+					const { etag } = <Record<string, string>> res.header;
 
 					await request(mainApp)
 						.get('/nums.txt')
@@ -898,7 +898,7 @@ describe('http', () => {
 					const res = await request(mainApp)
 						.get('/nums.txt')
 						.expect(200);
-					const etag = (<{ [key: string]: string }> res.header).etag.replace(/"(?<c>.)/u, '"0$<c>');
+					const etag = (<Record<string, string>> res.header).etag.replace(/"(?<c>.)/u, '"0$<c>');
 
 					await request(mainApp)
 						.get('/nums.txt')
@@ -911,7 +911,7 @@ describe('http', () => {
 					const res = await request(mainApp)
 						.get('/nums.txt')
 						.expect(200);
-					const { 'last-modified': modified } = <{ [key: string]: string }> res.header;
+					const { 'last-modified': modified } = <Record<string, string>> res.header;
 
 					await request(mainApp)
 						.get('/nums.txt')
@@ -924,7 +924,7 @@ describe('http', () => {
 					const res = await request(mainApp)
 						.get('/nums.txt')
 						.expect(200);
-					const modified = Date.parse((<{ [key: string]: string }> res.header)['last-modified']) - 20_000;
+					const modified = Date.parse((<Record<string, string>> res.header)['last-modified']) - 20_000;
 
 					await request(mainApp)
 						.get('/nums.txt')

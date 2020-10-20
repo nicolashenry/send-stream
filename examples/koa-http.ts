@@ -12,7 +12,7 @@ const storage = new FileSystemStorage(join(__dirname, 'assets'));
 app.use(async ctx => {
 	const result = await storage.prepareResponse(ctx.request.path, ctx.req);
 	ctx.response.status = result.statusCode;
-	ctx.response.set(<{ [key: string]: string }> result.headers);
+	ctx.response.set(<Record<string, string>> result.headers);
 	ctx.body = result.stream;
 });
 

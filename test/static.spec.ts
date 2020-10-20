@@ -11,7 +11,7 @@ import { FileSystemStorage, TrailingSlashError } from '../src/send-stream';
 
 function shouldNotHaveHeader(header: string) {
 	return (res: request.Response) => {
-		const { [header.toLowerCase()]: value } = <{ [key: string]: string }> res.header;
+		const { [header.toLowerCase()]: value } = <Record<string, string>> res.header;
 		assert.strictEqual(
 			value,
 			undefined,
@@ -154,7 +154,7 @@ describe('static', () => {
 					.get('/todo.txt');
 				await request(server)
 					.get('/todo.txt')
-					.set('If-None-Match', (<{ [key: string]: string }> res.header).etag)
+					.set('If-None-Match', (<Record<string, string>> res.header).etag)
 					.expect(304);
 			});
 
