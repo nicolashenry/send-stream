@@ -753,7 +753,9 @@ describe('koa', () => {
 							.set('Accept-Encoding', 'br, gzip, identity');
 						assert.fail();
 					} catch {
-						// noop
+						await new Promise(resolve => {
+							setTimeout(resolve, 500);
+						});
 					}
 				});
 				it('should throw error', async () => {
@@ -763,7 +765,9 @@ describe('koa', () => {
 							.set('Accept-Encoding', 'gzip, identity');
 						assert.fail();
 					} catch {
-						// noop
+						await new Promise(resolve => {
+							setTimeout(resolve, 500);
+						});
 					}
 				});
 			});
@@ -2657,7 +2661,9 @@ describe('koa', () => {
 							.parse(multipartHandler);
 						assert.fail();
 					} catch {
-						// noop
+						await new Promise(resolve => {
+							setTimeout(resolve, 500);
+						});
 					}
 				});
 			});
@@ -2706,7 +2712,9 @@ describe('koa', () => {
 							.parse(multipartHandler);
 						assert.fail();
 					} catch {
-						// noop
+						await new Promise(resolve => {
+							setTimeout(resolve, 500);
+						});
 					}
 				});
 			});
@@ -2783,7 +2791,9 @@ describe('koa', () => {
 							.parse(multipartHandler);
 						assert.fail();
 					} catch {
-						// noop
+						await new Promise(resolve => {
+							setTimeout(resolve, 500);
+						});
 					}
 				});
 			});

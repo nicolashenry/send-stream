@@ -367,7 +367,9 @@ describe('http', () => {
 					await request(app).get('/name.txt');
 					assert.fail();
 				} catch {
-					// noop
+					await new Promise(resolve => {
+						setTimeout(resolve, 500);
+					});
 				}
 			});
 		});
@@ -1619,7 +1621,40 @@ describe('http', () => {
 						.get('/nums.txt');
 					assert.fail();
 				} catch {
-					// noop
+					await new Promise(resolve => {
+						setTimeout(resolve, 500);
+					});
+				}
+			});
+		});
+
+		describe('should ignore if connection already destroyed and no socket', () => {
+			let app: http.Server;
+			before(() => {
+				app = http.createServer((req, res) => {
+					(async () => {
+						res.destroy();
+						res.socket = null;
+						lastResult = true;
+						// eslint-disable-next-line @typescript-eslint/no-non-null-assertion
+						const result = await mainStorage.prepareResponse(req.url!, req);
+						lastResult = result;
+						result.send(res);
+					})().catch(err => {
+						res.statusCode = 500;
+						res.end(String(err));
+					});
+				});
+			});
+			it('should ignore if connection already destroyed and no socket', async () => {
+				try {
+					await request(app)
+						.get('/nums.txt');
+					assert.fail();
+				} catch {
+					await new Promise(resolve => {
+						setTimeout(resolve, 500);
+					});
 				}
 			});
 		});
@@ -1646,7 +1681,9 @@ describe('http', () => {
 						.get('/nums.txt');
 					assert.fail();
 				} catch {
-					// noop
+					await new Promise(resolve => {
+						setTimeout(resolve, 500);
+					});
 				}
 			});
 		});
@@ -1693,7 +1730,9 @@ describe('http', () => {
 						.get('/nums.txt');
 					assert.fail();
 				} catch {
-					// noop
+					await new Promise(resolve => {
+						setTimeout(resolve, 500);
+					});
 				}
 			});
 		});
@@ -1749,7 +1788,9 @@ describe('http', () => {
 						.get('/nums.txt');
 					assert.fail();
 				} catch {
-					// noop
+					await new Promise(resolve => {
+						setTimeout(resolve, 500);
+					});
 				}
 			});
 		});

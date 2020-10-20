@@ -54,10 +54,21 @@ export class StreamResponse<AttachedData> extends EventEmitter {
 			}
 		};
 		if (res instanceof ServerResponse) {
+			const { socket } = res;
+			if (res.destroyed || !socket || socket.destroyed) {
+				readStream.destroy();
+				this.emit('responseError', new Error('response already closed'));
+				return this;
+			}
 			res.writeHead(statusCode, responseHeaders);
 			pipeline(readStream, res, pipelineEnd);
 		} else {
 			const resStream = res instanceof Http2ServerResponse ? res.stream : res;
+			if (resStream.destroyed || resStream.closed) {
+				readStream.destroy();
+				this.emit('responseError', new Error('response already closed'));
+				return this;
+			}
 			resStream.respond({
 				':status': statusCode,
 				...responseHeaders,
