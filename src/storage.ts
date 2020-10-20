@@ -341,11 +341,7 @@ export abstract class Storage<Reference, AttachedData> {
 
 			let contentTypeHeader;
 			if (mimeType) {
-				if (mimeTypeCharset) {
-					contentTypeHeader = `${ mimeType }; charset=${ mimeTypeCharset }`;
-				} else {
-					contentTypeHeader = mimeType;
-				}
+				contentTypeHeader = mimeTypeCharset ? `${ mimeType }; charset=${ mimeTypeCharset }` : mimeType;
 				responseHeaders['Content-Type'] = contentTypeHeader;
 				responseHeaders['X-Content-Type-Options'] = 'nosniff';
 			}

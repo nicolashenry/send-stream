@@ -372,7 +372,7 @@
     ],
     "max-lines-per-function": [
       "warn",
-      400
+      500
     ],
     "max-nested-callbacks": "warn",
     "max-params": [
@@ -783,12 +783,14 @@
     "unicorn/no-useless-undefined": "off", // too restrictive
     "unicorn/no-zero-fractions": "warn",
     "unicorn/number-literal-case": "warn",
+    "unicorn/numeric-separators-style": "warn",
     "unicorn/prefer-add-event-listener": "warn",
     "unicorn/prefer-array-find": "warn",
     "unicorn/prefer-dataset": "off", // not needed: not executed in a browser
     "unicorn/prefer-event-key": "off", // not needed: not executed in a browser
     "unicorn/prefer-flat-map": "warn",
     "unicorn/prefer-includes": "warn",
+    "unicorn/prefer-math-trunc": "warn",
     "unicorn/prefer-modern-dom-apis": "off", // not needed: not executed in a browser
     "unicorn/prefer-negative-index": "warn",
     "unicorn/prefer-node-append": "off", // not needed: not executed in a browser
@@ -802,6 +804,7 @@
     "unicorn/prefer-spread": "warn",
     "unicorn/prefer-starts-ends-with": "warn",
     "unicorn/prefer-string-slice": "warn",
+    "unicorn/prefer-ternary": "warn",
     "unicorn/prefer-text-content": "off", // not needed: not executed in a browser
     "unicorn/prefer-trim-start-end": "warn",
     "unicorn/prefer-type-error": "warn",
@@ -852,7 +855,7 @@
     "node/prefer-promises/fs": "warn",
     "node/process-exit-as-throw": "warn",
     "node/shebang": "warn",
-    "sonarjs/cognitive-complexity": ["warn", 120],
+    "sonarjs/cognitive-complexity": ["warn", 140],
     "sonarjs/max-switch-cases": "warn",
     "sonarjs/no-all-duplicated-branches": "warn",
     "sonarjs/no-collapsible-if": "warn",

@@ -486,7 +486,7 @@ export class FileSystemStorage extends Storage<FilePath, FileData> {
 		if (attachedData.stats.isDirectory()) {
 			return Readable.from(
 				this.getDirectoryListing(storageInfo),
-				{ objectMode: false, encoding: 'utf-8', highWaterMark: 16384 },
+				{ objectMode: false, encoding: 'utf-8', highWaterMark: 16_384 },
 			);
 		}
 		return this.fsCreateReadStream(
