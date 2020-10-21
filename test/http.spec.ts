@@ -1696,7 +1696,6 @@ describe('http', () => {
 						// eslint-disable-next-line @typescript-eslint/no-this-alias
 						const st = this;
 						return new class extends Readable {
-							// eslint-disable-next-line class-methods-use-this
 							pipe<T extends NodeJS.WritableStream>(destination: T, options?: { end?: boolean }): T {
 								this.destroy(new Error('oops'));
 								return super.pipe(destination, options);
@@ -1746,7 +1745,6 @@ describe('http', () => {
 						// eslint-disable-next-line @typescript-eslint/no-this-alias
 						const st = this;
 						return new class extends Readable {
-							// eslint-disable-next-line class-methods-use-this
 							pipe<T extends NodeJS.WritableStream>(destination: T, options?: { end?: boolean }): T {
 								this.destroy(new Error('oops'));
 								return super.pipe(destination, options);
@@ -1807,7 +1805,6 @@ describe('http', () => {
 						// eslint-disable-next-line @typescript-eslint/no-this-alias
 						const st = this;
 						return new class extends Readable {
-							// eslint-disable-next-line class-methods-use-this
 							pipe<T extends NodeJS.WritableStream>(destination: T, options?: { end?: boolean }): T {
 								this.destroy(new Error('oops'));
 								return super.pipe(destination, options);
