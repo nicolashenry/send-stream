@@ -1697,8 +1697,9 @@ describe('http', () => {
 						const st = this;
 						return new class extends Readable {
 							// eslint-disable-next-line class-methods-use-this
-							pipe<T extends NodeJS.WritableStream>(): T {
-								throw new Error('oops');
+							pipe<T extends NodeJS.WritableStream>(destination: T, options?: { end?: boolean }): T {
+								this.destroy(new Error('oops'));
+								return super.pipe(destination, options);
 							}
 
 							// eslint-disable-next-line class-methods-use-this
@@ -1746,8 +1747,9 @@ describe('http', () => {
 						const st = this;
 						return new class extends Readable {
 							// eslint-disable-next-line class-methods-use-this
-							pipe<T extends NodeJS.WritableStream>(): T {
-								throw new Error('oops');
+							pipe<T extends NodeJS.WritableStream>(destination: T, options?: { end?: boolean }): T {
+								this.destroy(new Error('oops'));
+								return super.pipe(destination, options);
 							}
 
 							// eslint-disable-next-line class-methods-use-this
@@ -1806,8 +1808,9 @@ describe('http', () => {
 						const st = this;
 						return new class extends Readable {
 							// eslint-disable-next-line class-methods-use-this
-							pipe<T extends NodeJS.WritableStream>(): T {
-								throw new Error('oops');
+							pipe<T extends NodeJS.WritableStream>(destination: T, options?: { end?: boolean }): T {
+								this.destroy(new Error('oops'));
+								return super.pipe(destination, options);
 							}
 
 							// eslint-disable-next-line class-methods-use-this
