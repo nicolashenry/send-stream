@@ -20,7 +20,7 @@ This is a [Node.js](https://nodejs.org/en/) module available through the
 [`npm install` command](https://docs.npmjs.com/getting-started/installing-npm-packages-locally):
 
 ```bash
-$ npm install send-stream
+npm install send-stream
 ```
 
 ## Getting start
@@ -29,7 +29,31 @@ Serve all files from a directory (also serve index.html from directories on trai
 
 See [examples](#examples) for more advanced usages.
 
+Using Express (v4.x.x):
+
+```js
+const path = require("path");
+const express = require("express");
+const { FileSystemStorage } = require('send-stream');
+
+const app = express();
+const storage = new FileSystemStorage(path.join(__dirname, 'assets'), { onDirectory: 'serve-index' });
+
+app.get('*', async (req, res, next) => {
+  try {
+    let result = await storage.prepareResponse(req.url, req);
+    result.send(res);
+  } catch (err) {
+    next(err);
+  }
+});
+app.listen(3000, () => {
+  console.info('listening on http://localhost:3000');
+});
+```
+
 Using Fastify (v3.x.x):
+
 ```js
 const path = require('path');
 const fastify = require('fastify');
@@ -54,6 +78,7 @@ app.listen(3000)
 ```
 
 Using Koa (v2.x.x):
+
 ```js
 const path = require('path');
 const Koa = require('koa');
@@ -74,28 +99,6 @@ app.listen(3000, () => {
 });
 ```
 
-Using Express (v4.x.x):
-```js
-const path = require("path");
-const express = require("express");
-const { FileSystemStorage } = require('send-stream');
-
-const app = express();
-const storage = new FileSystemStorage(path.join(__dirname, 'assets'), { onDirectory: 'serve-index' });
-
-app.get('*', async (req, res, next) => {
-  try {
-    let result = await storage.prepareResponse(req.url, req);
-    result.send(res);
-  } catch (err) {
-    next(err);
-  }
-});
-app.listen(3000, () => {
-  console.info('listening on http://localhost:3000');
-});
-```
-
 ## API
 
 ### `new FileSystemStorage(root, [options])`
@@ -106,7 +109,7 @@ The **`root`** parameter is a the absolute path from which the storage takes the
 
 The **`options`** parameter let you add some addition options.
 
-#### Options
+#### constructor options
 
 ##### mimeTypeLookup
 
@@ -131,6 +134,7 @@ new FileSystemStorage(
 ```
 
 ---
+
 ##### mimeTypeDefaultCharset
 
 In order to return the content type, the storage will try to guess the mime type charset thanks to the `mime-types`
@@ -154,6 +158,7 @@ new FileSystemStorage(
 ```
 
 ---
+
 ##### dynamicCompression
 
 Enable dynamic compression of file content.
@@ -181,6 +186,7 @@ new FileSystemStorage(
 ```
 
 ---
+
 ##### mimeTypeCompressible
 
 Function used to determine if a type is compressible (for dynamic compression only)
@@ -199,6 +205,7 @@ new FileSystemStorage(
 ```
 
 ---
+
 ##### dynamicCompressionMinLength
 
 Sets the minimum length of a response that will be dynamically compressed (only when the length is known)
@@ -218,6 +225,7 @@ new FileSystemStorage(
 ```
 
 ---
+
 ##### defaultMimeType
 
 Configures the default content type (without charset) that will be used if the content type is unknown.
@@ -231,6 +239,7 @@ new FileSystemStorage(directory, { defaultMimeType: 'application/octet-stream' }
 ```
 
 ---
+
 ##### maxRanges
 
 Configure how many ranges can be accessed in one request.
@@ -248,6 +257,7 @@ new FileSystemStorage(directory, { maxRanges: 10 })
 ```
 
 ---
+
 ##### weakEtags
 
 The storage will generate strong etags by default, when set to true the storage will generate weak etags instead.
@@ -261,6 +271,7 @@ new FileSystemStorage(directory, { weakEtags: true })
 ```
 
 ---
+
 ##### contentEncodingMappings
 
 Configure content encoding file mappings.
@@ -287,6 +298,7 @@ new FileSystemStorage(
 ```
 
 ---
+
 ##### ignorePattern
 
 The storage will ignore files which have any parts of the path matching this pattern.
@@ -302,6 +314,7 @@ new FileSystemStorage(directory, { ignorePattern: /^myPrivateFolder$/ })
 ```
 
 ---
+
 ##### fsModule
 
 Let you override the `fs` module that will be used to retrieve files.
@@ -313,13 +326,16 @@ const memfs = require('memfs');
 memfs.fs.writeFileSync('/hello.txt', 'world');
 new FileSystemStorage(directory, { fsModule: memfs })
 ```
+
 ---
+
 ##### directory
 
 Determine what should happen on directory requests (trailing slash)
- - `false` to return an error
- - `'list-files'` to list the files of directories
- - `'serve-index'` to serve the index.html file of directories
+
+- `false` to return an error
+- `'list-files'` to list the files of directories
+- `'serve-index'` to serve the index.html file of directories
 
 Default to false
 
@@ -330,6 +346,7 @@ Example:
 ```js
 new FileSystemStorage(directory, { directory: 'list-files' })
 ```
+
 ---
 
 ### `storage.prepareResponse(path, req, [options])`
@@ -346,7 +363,7 @@ The **`req`** is the related request, it can be a `http.IncomingMessage` or a `h
 
 The **`options`** parameter let you add some addition options.
 
-#### Options
+#### prepareResponse options
 
 ##### cacheControl
 
@@ -361,6 +378,7 @@ await storage.prepareResponse(req.url, req, { cacheControl: 'public, max-age=315
 ```
 
 ---
+
 ##### lastModified
 
 Custom last-modified header value, overrides storage value (defaults to mtimeMs converted to UTC)
@@ -374,6 +392,7 @@ await storage.prepareResponse(req.url, req, { lastModified: 'Wed, 21 Oct 2015 07
 ```
 
 ---
+
 ##### etag
 
 Custom etag header value, overrides storage value (defaults to size + mtimeMs + content encoding)
@@ -387,6 +406,7 @@ await storage.prepareResponse(req.url, req, { etag: '"123"' })
 ```
 
 ---
+
 ##### mimeType
 
 Custom mime type for content-type header value, overrides storage value (defaults to storage content type)
@@ -400,6 +420,7 @@ await storage.prepareResponse(req.url, req, { mimeType: 'text/plain' })
 ```
 
 ---
+
 ##### mimeTypeCharset
 
 Custom content-type charset value, overrides storage value (defaults to storage content type charset mapping)
@@ -413,6 +434,7 @@ await storage.prepareResponse(req.url, req, { mimeTypeCharset: 'UTF-8' })
 ```
 
 ---
+
 ##### contentDispositionType
 
 Custom content-disposition header type value, overrides storage value
@@ -426,6 +448,7 @@ await storage.prepareResponse(req.url, req, { contentDispositionType: 'attachmen
 ```
 
 ---
+
 ##### contentDispositionFilename
 
 Custom content-disposition header filename value, overrides storage value
@@ -439,6 +462,7 @@ await storage.prepareResponse(req.url, req, { contentDispositionFilename: 'file.
 ```
 
 ---
+
 ##### statusCode
 
 Defines the statusCode that will be used in response (instead of 200/206)
@@ -453,6 +477,7 @@ await storage.prepareResponse(req.url, req, { statusCode: 404 })
 ```
 
 ---
+
 ##### allowedMethods
 
 By default GET and HEAD are the only allowed http methods, set this parameter to change allowed methods
@@ -466,6 +491,7 @@ await storage.prepareResponse(req.url, req, { allowedMethods: ['POST'] })
 ```
 
 ---
+
 ### `streamResponse.statusCode`
 
 The status code that match the required resource.
@@ -473,11 +499,13 @@ The status code that match the required resource.
 For example, it can be 200 if the file is found, 206 for a range request, 404 if the file does not exists, ...
 
 ---
+
 ### `streamResponse.headers`
 
 The headers that match the required resource.
 
 ---
+
 ### `streamResponse.error`
 
 If an error occured while reading (e.g. if the file is not found),
@@ -485,6 +513,7 @@ a 404 status is returned and this property will contains the error
 which have been returned by the storage. See [errors](#errors)
 
 ---
+
 ### `streamResponse.send(res)`
 
 Send the current response through the response in parameter
@@ -492,28 +521,35 @@ Send the current response through the response in parameter
 The `res` is the related response, it can be a `http.ServerResponse` or a `http2.Http2ServerResponse` or a `http2.ServerHttp2Stream`.
 
 ## Errors
+
 ---
+
 ### `StorageError`
 
 All errors inherits from this one.
 
 The following property is available:
+
 - `reference`: the storage reference linked to the error
 
 ---
+
 ### `FileSystemStorageError` (extends StorageError)
 
 All errors from FileSystemStorage inherits from this one.
 
 The following additional property is available:
+
 - `pathParts`: the path parts linked to the error
 
 ---
+
 ### `MalformedPathError` (extends FileSystemStorageError)
 
 The path cannot be parsed for some reason.
 
 ---
+
 ### `NotNormalizedPathError` (extends FileSystemStorageError)
 
 Storages only accept normalized paths for security reasons.
@@ -521,46 +557,55 @@ Storages only accept normalized paths for security reasons.
 For example, `'/../index.html'` access will be refused.
 
 The following additional property is available:
+
 - `normalizedPath`: the encoded normalized path (you can redirect to it if you want to)
 
 ---
+
 ### `ForbiddenCharacterError` (extends FileSystemStorageError)
 
 Storages refuse some forbidden characters like encoded slashes.
 
 ---
+
 ### `ConsecutiveSlashesError` (extends FileSystemStorageError)
 
 Storages refuse pathes like `'/dir//index.html'` because it should not contain two consecutive slashes.
 
 ---
+
 ### `TrailingSlashError` (extends FileSystemStorageError)
 
 Storages refuse pathes like `'/dir/'` because it is probably pointing to a directory.
 
 ---
+
 ### `IgnoredFileError` (extends FileSystemStorageError)
 
 Storages can ignore some files/folders composing the path (see [ignorePattern](#ignorePattern)).
 
 ---
+
 ### `IsDirectoryError` (extends FileSystemStorageError)
 
 Storages refuse pathes matching directories.
 
 The following additional property is available:
+
 - `resolvedPath`: the resolved file system path
 
 ---
+
 ### `DoesNotExistError` (extends FileSystemStorageError)
 
 When the file can not be found.
 
-
 The following additional property is available:
+
 - `resolvedPath`: the resolved file system path
 
 ---
+
 ## Examples
 
 See [examples](./examples) folder in this repository for full examples
@@ -598,7 +643,7 @@ let result = await storage.prepareResponse(req.url, req);
 result.send(res);
 ```
 
-### Serve files and add CORS headers 
+### Serve files and add CORS headers
 
 ```js
 const storage = new FileSystemStorage(directory);
