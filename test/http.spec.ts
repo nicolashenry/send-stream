@@ -89,7 +89,8 @@ describe('http', () => {
 				response.send(res);
 			})().catch(err => {
 				res.statusCode = 500;
-				res.end(String(err));
+				console.error(err);
+				res.end('Internal Error');
 			});
 		});
 	}
@@ -116,7 +117,8 @@ describe('http', () => {
 					response.send(res);
 				})().catch(err => {
 					res.statusCode = 500;
-					res.end(String(err));
+					console.error(err);
+					res.end('Internal Error');
 				});
 			});
 		});
@@ -217,7 +219,8 @@ describe('http', () => {
 						response.send(res);
 					})().catch(err => {
 						res.statusCode = 500;
-						res.end(String(err));
+						console.error(err);
+						res.end('Internal Error');
 					});
 				});
 			});
@@ -242,7 +245,8 @@ describe('http', () => {
 						response.send(res);
 					})().catch(err => {
 						res.statusCode = 500;
-						res.end(String(err));
+						console.error(err);
+						res.end('Internal Error');
 					});
 				});
 			});
@@ -276,7 +280,8 @@ describe('http', () => {
 						response.send(res);
 					})().catch(err => {
 						res.statusCode = 500;
-						res.end(String(err));
+						console.error(err);
+						res.end('Internal Error');
 					});
 				});
 			});
@@ -358,7 +363,8 @@ describe('http', () => {
 						response.send(res);
 					})().catch(err => {
 						res.statusCode = 500;
-						res.end(String(err));
+						console.error(err);
+						res.end('Internal Error');
 					});
 				});
 			});
@@ -386,7 +392,8 @@ describe('http', () => {
 							response.send(res);
 						})().catch(err => {
 							res.statusCode = 500;
-							res.end(String(err));
+							console.error(err);
+							res.end('Internal Error');
 						});
 					});
 				});
@@ -409,7 +416,8 @@ describe('http', () => {
 							response.send(res);
 						})().catch(err => {
 							res.statusCode = 500;
-							res.end(String(err));
+							console.error(err);
+							res.end('Internal Error');
 						});
 					});
 				});
@@ -434,7 +442,8 @@ describe('http', () => {
 							response.send(res);
 						})().catch(err => {
 							res.statusCode = 500;
-							res.end(String(err));
+							console.error(err);
+							res.end('Internal Error');
 						});
 					});
 				});
@@ -466,7 +475,8 @@ describe('http', () => {
 							response.send(res);
 						})().catch(err => {
 							res.statusCode = 500;
-							res.end(String(err));
+							console.error(err);
+							res.end('Internal Error');
 						});
 					});
 				});
@@ -495,7 +505,8 @@ describe('http', () => {
 							result.send(res);
 						})().catch(err => {
 							res.statusCode = 500;
-							res.end(String(err));
+							console.error(err);
+							res.end('Internal Error');
 						});
 					});
 				});
@@ -564,7 +575,8 @@ describe('http', () => {
 								result.send(res);
 							})().catch(err => {
 								res.statusCode = 500;
-								res.end(String(err));
+								console.error(err);
+								res.end('Internal Error');
 							});
 						});
 					});
@@ -637,7 +649,8 @@ describe('http', () => {
 								result.send(res);
 							})().catch(err => {
 								res.statusCode = 500;
-								res.end(String(err));
+								console.error(err);
+								res.end('Internal Error');
 							});
 						});
 					});
@@ -865,7 +878,8 @@ describe('http', () => {
 								result.send(res);
 							})().catch(err => {
 								res.statusCode = 500;
-								res.end(String(err));
+								console.error(err);
+								res.end('Internal Error');
 							});
 						});
 					});
@@ -969,7 +983,8 @@ describe('http', () => {
 						result.send(res);
 					})().catch(err => {
 						res.statusCode = 500;
-						res.end(String(err));
+						console.error(err);
+						res.end('Internal Error');
 					});
 				});
 			});
@@ -1003,7 +1018,8 @@ describe('http', () => {
 							result.send(res);
 						})().catch(err => {
 							res.statusCode = 500;
-							res.end(String(err));
+							console.error(err);
+							res.end('Internal Error');
 						});
 					});
 				});
@@ -1425,7 +1441,8 @@ describe('http', () => {
 								response.send(res);
 							})().catch(err => {
 								res.statusCode = 500;
-								res.end(String(err));
+								console.error(err);
+								res.end('Internal Error');
 							});
 						});
 					});
@@ -1491,7 +1508,8 @@ describe('http', () => {
 							response.send(res);
 						})().catch(err => {
 							res.statusCode = 500;
-							res.end(String(err));
+							console.error(err);
+							res.end('Internal Error');
 						});
 					});
 				});
@@ -1521,7 +1539,8 @@ describe('http', () => {
 						result.send(res);
 					})().catch(err => {
 						res.statusCode = 500;
-						res.end(String(err));
+						console.error(err);
+						res.end('Internal Error');
 					});
 				});
 			});
@@ -1587,7 +1606,8 @@ describe('http', () => {
 						result.send(res);
 					})().catch(err => {
 						res.statusCode = 500;
-						res.end(String(err));
+						console.error(err);
+						res.end('Internal Error');
 					});
 				});
 			});
@@ -1611,7 +1631,8 @@ describe('http', () => {
 						result.send(res);
 					})().catch(err => {
 						res.statusCode = 500;
-						res.end(String(err));
+						console.error(err);
+						res.end('Internal Error');
 					});
 				});
 			});
@@ -1642,7 +1663,8 @@ describe('http', () => {
 						result.send(res);
 					})().catch(err => {
 						res.statusCode = 500;
-						res.end(String(err));
+						console.error(err);
+						res.end('Internal Error');
 					});
 				});
 			});
@@ -1671,7 +1693,8 @@ describe('http', () => {
 						res.destroy(new Error('olala'));
 					})().catch(err => {
 						res.statusCode = 500;
-						res.end(String(err));
+						console.error(err);
+						res.end('Internal Error');
 					});
 				});
 			});
@@ -1720,7 +1743,8 @@ describe('http', () => {
 						result.send(res);
 					})().catch(err => {
 						res.statusCode = 500;
-						res.end(String(err));
+						console.error(err);
+						res.end('Internal Error');
 					});
 				});
 			});
@@ -1778,7 +1802,8 @@ describe('http', () => {
 						resp.send(res);
 					})().catch(err => {
 						res.statusCode = 500;
-						res.end(String(err));
+						console.error(err);
+						res.end('Internal Error');
 					});
 				});
 			});
@@ -1837,7 +1862,8 @@ describe('http', () => {
 						resp.send(res);
 					})().catch(err => {
 						res.statusCode = 500;
-						res.end(String(err));
+						console.error(err);
+						res.end('Internal Error');
 					});
 				});
 
@@ -1981,7 +2007,8 @@ describe('http', () => {
 						result.send(res);
 					})().catch(err => {
 						res.statusCode = 500;
-						res.end(String(err));
+						console.error(err);
+						res.end('Internal Error');
 					});
 				});
 
@@ -2068,7 +2095,8 @@ describe('http', () => {
 						result.send(res);
 					})().catch(err => {
 						res.statusCode = 500;
-						res.end(String(err));
+						console.error(err);
+						res.end('Internal Error');
 					});
 				});
 
