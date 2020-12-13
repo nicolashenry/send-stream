@@ -477,6 +477,7 @@
     "no-new-object": "warn",
     "no-new-symbol": "off", // disabled by typescript-eslint
     "no-new-wrappers": "warn",
+    "no-nonoctal-decimal-escape": "warn",
     "no-obj-calls": "off", // disabled by typescript-eslint
     "no-octal": "off", // not needed: covered by typescript
     "no-octal-escape": "warn",
@@ -529,6 +530,7 @@
     "no-unreachable-loop": "warn",
     "no-unsafe-finally": "warn",
     "no-unsafe-negation": "off", // disabled by typescript-eslint
+    "no-unsafe-optional-chaining": "warn",
     "no-unused-expressions": "off", // disabled by typescript-eslint
     "no-unused-labels": "warn",
     "no-unused-vars": "off", // disabled by typescript-eslint
