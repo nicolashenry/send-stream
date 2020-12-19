@@ -1,3 +1,11 @@
+2.2.0
+==================
+
+* Fix: node 15.x on dynamic compression error
+* Fix: remove useless destroyed checks
+* Refactor: merge EmptyStream into BufferStream
+* Refactor: add/update lint rules
+
 2.1.0
 ==================
 
