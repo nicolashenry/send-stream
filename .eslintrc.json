@@ -762,6 +762,7 @@
     ],
     "unicorn/consistent-function-scoping": "warn",
     "unicorn/custom-error-definition": "warn",
+    "unicorn/empty-brace-spaces": "warn",
     "unicorn/error-message": "warn",
     "unicorn/escape-case": "warn",
     "unicorn/expiring-todo-comments": "off", // not needed: seems useless
@@ -777,6 +778,7 @@
     "unicorn/no-for-loop": "warn",
     "unicorn/no-hex-escape": "warn",
     "unicorn/no-keyword-prefix": "off", // not needed: seems useless
+    "unicorn/no-lonely-if": "warn",
     "unicorn/no-nested-ternary": "off", // not needed: seems useless
     "unicorn/no-new-buffer": "warn",
     "unicorn/no-null": "off", // not needed: seems useless
@@ -793,6 +795,7 @@
     "unicorn/prefer-add-event-listener": "warn",
     "unicorn/prefer-array-find": "warn",
     "unicorn/prefer-dataset": "off", // not needed: not executed in a browser
+    "unicorn/prefer-date-now": "warn",
     "unicorn/prefer-event-key": "off", // not needed: not executed in a browser
     "unicorn/prefer-flat-map": "warn",
     "unicorn/prefer-includes": "warn",

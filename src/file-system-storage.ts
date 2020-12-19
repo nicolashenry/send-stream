@@ -79,7 +79,7 @@ export class FileSystemStorage extends Storage<FilePath, FileData> {
 	 */
 	constructor(
 		root: string,
-		opts: FileSystemStorageOptions = { },
+		opts: FileSystemStorageOptions = {},
 	) {
 		super(opts);
 		this.root = root;

@@ -257,7 +257,7 @@ describe('static', () => {
 			describe('when false', () => {
 				let server: http.Server;
 				before(() => {
-					server = createServer(fixtures, { });
+					server = createServer(fixtures, {});
 				});
 
 				it('should 405 when OPTIONS request', async () => {
@@ -313,7 +313,7 @@ describe('static', () => {
 			describe('when true', () => {
 				let server: http.Server;
 				before(() => {
-					server = createServer(fixtures, { });
+					server = createServer(fixtures, {});
 				});
 				it('should include Last-Modifed', async () => {
 					await request(server)
@@ -327,7 +327,7 @@ describe('static', () => {
 		describe('when traversing past root', () => {
 			let server: http.Server;
 			before(() => {
-				server = createServer(fixtures, { });
+				server = createServer(fixtures, {});
 			});
 
 			it('should catch urlencoded ../', async () => {

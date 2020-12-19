@@ -23,7 +23,7 @@ class EtagHashCacheStorage extends FileSystemStorage {
 
 	constructor(
 		root: string,
-		opts: FileSystemStorageOptions = { },
+		opts: FileSystemStorageOptions = {},
 	) {
 		super(root, opts);
 		this.etagsCached = this.addAllFilesInEtagCache(root);

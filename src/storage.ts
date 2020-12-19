@@ -57,7 +57,7 @@ export abstract class Storage<Reference, AttachedData> {
 	 *
 	 * @param opts - storage options
 	 */
-	constructor(opts: StorageOptions = { }) {
+	constructor(opts: StorageOptions = {}) {
 		this.mimeTypeLookup = opts.mimeTypeLookup ?? lookup;
 		this.mimeTypeDefaultCharset = opts.mimeTypeDefaultCharset ?? charset;
 		if (opts.dynamicCompression) {
@@ -246,7 +246,7 @@ export abstract class Storage<Reference, AttachedData> {
 			return this.createStorageError(isHeadMethod, error);
 		}
 		try {
-			const responseHeaders: ResponseHeaders = { };
+			const responseHeaders: ResponseHeaders = {};
 			const mimeType = opts.mimeType ?? this.createMimeType(storageInfo);
 			let mimeTypeCharset;
 			if (mimeType) {
