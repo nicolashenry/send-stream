@@ -245,6 +245,7 @@ export abstract class Storage<Reference, AttachedData> {
 		} catch (error: unknown) {
 			return this.createStorageError(isHeadMethod, error);
 		}
+		let stream;
 		try {
 			const responseHeaders: ResponseHeaders = {};
 			const mimeType = opts.mimeType ?? this.createMimeType(storageInfo);
@@ -424,7 +425,6 @@ export abstract class Storage<Reference, AttachedData> {
 				}
 			}
 
-			let stream: Readable;
 			if (isHeadMethod) {
 				earlyClose = true;
 				stream = new BufferStream();
@@ -460,7 +460,11 @@ export abstract class Storage<Reference, AttachedData> {
 
 			return this.createSuccessfulResponse(statusCode, responseHeaders, stream, storageInfo);
 		} catch (err: unknown) {
-			earlyClose = true;
+			if (stream) {
+				stream.destroy();
+			} else {
+				earlyClose = true;
+			}
 			throw err;
 		} finally {
 			if (earlyClose) {
