@@ -772,10 +772,11 @@
     "unicorn/import-style": "off", // not needed: seems useless
     "unicorn/new-for-builtins": "warn",
     "unicorn/no-abusive-eslint-disable": "warn",
-    "unicorn/no-array-instanceof": "warn",
+    "unicorn/no-array-callback-reference": "off", // not needed: covered by typescript
+    "unicorn/no-array-reduce": "off", // not needed: seems useless
     "unicorn/no-console-spaces": "warn",
-    "unicorn/no-fn-reference-in-iterator": "off", // not needed: covered by typescript
     "unicorn/no-for-loop": "warn",
+    "unicorn/no-instanceof-array": "warn",
     "unicorn/no-hex-escape": "warn",
     "unicorn/no-keyword-prefix": "off", // not needed: seems useless
     "unicorn/no-lonely-if": "warn",
@@ -784,7 +785,6 @@
     "unicorn/no-null": "off", // not needed: seems useless
     "unicorn/no-object-as-default-parameter": "warn",
     "unicorn/no-process-exit": "warn",
-    "unicorn/no-reduce": "off", // not needed: seems useless
     "unicorn/no-unreadable-array-destructuring": "off", // too restrictive
     "unicorn/no-unsafe-regex": "off", // too restrictive
     "unicorn/no-unused-properties": "warn",
@@ -794,28 +794,30 @@
     "unicorn/numeric-separators-style": "warn",
     "unicorn/prefer-add-event-listener": "warn",
     "unicorn/prefer-array-find": "warn",
-    "unicorn/prefer-dataset": "off", // not needed: not executed in a browser
+    "unicorn/prefer-array-flat-map": "warn",
+    "unicorn/prefer-array-some": "warn",
     "unicorn/prefer-date-now": "warn",
-    "unicorn/prefer-event-key": "off", // not needed: not executed in a browser
-    "unicorn/prefer-flat-map": "warn",
+    "unicorn/prefer-default-parameters": "warn",
+    "unicorn/prefer-dom-node-append": "off", // not needed: not executed in a browser
+    "unicorn/prefer-dom-node-dataset": "off", // not needed: not executed in a browser
+    "unicorn/prefer-dom-node-remove": "off", // not needed: not executed in a browser
+    "unicorn/prefer-dom-node-text-content": "off", // not needed: not executed in a browser
+    "unicorn/prefer-keyboard-event-key": "off", // not needed: not executed in a browser
     "unicorn/prefer-includes": "warn",
     "unicorn/prefer-math-trunc": "warn",
     "unicorn/prefer-modern-dom-apis": "off", // not needed: not executed in a browser
     "unicorn/prefer-negative-index": "warn",
-    "unicorn/prefer-node-append": "off", // not needed: not executed in a browser
-    "unicorn/prefer-node-remove": "off", // not needed: not executed in a browser
     "unicorn/prefer-number-properties": "warn",
     "unicorn/prefer-optional-catch-binding": "warn",
     "unicorn/prefer-query-selector": "off", // not needed: not executed in a browser
     "unicorn/prefer-reflect-apply": "warn",
-    "unicorn/prefer-replace-all": "off", // too soon
     "unicorn/prefer-set-has": "warn",
     "unicorn/prefer-spread": "warn",
-    "unicorn/prefer-starts-ends-with": "warn",
+    "unicorn/prefer-string-replace-all": "off", // too soon
     "unicorn/prefer-string-slice": "warn",
+    "unicorn/prefer-string-starts-ends-with": "warn",
+    "unicorn/prefer-string-trim-start-end": "warn",
     "unicorn/prefer-ternary": "warn",
-    "unicorn/prefer-text-content": "off", // not needed: not executed in a browser
-    "unicorn/prefer-trim-start-end": "warn",
     "unicorn/prefer-type-error": "warn",
     "unicorn/prevent-abbreviations": "off", // too restrictive
     "unicorn/string-content": "off", // not needed: seems useless

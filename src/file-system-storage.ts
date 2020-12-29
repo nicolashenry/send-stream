@@ -188,7 +188,7 @@ export class FileSystemStorage extends Storage<FilePath, FileData> {
 		}
 
 		// slashes or null bytes
-		if (pathParts.find(v => FORBIDDEN_CHARACTERS.test(v))) {
+		if (pathParts.some(v => FORBIDDEN_CHARACTERS.test(v))) {
 			throw new ForbiddenCharacterError(
 				`${ String(path) } has one or more forbidden characters`,
 				path,
