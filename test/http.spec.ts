@@ -1890,12 +1890,20 @@ describe('http', () => {
 
 				req.setEncoding('utf8');
 
+				let error = false;
+				req.on('error', err => {
+					error = true;
+					done(err);
+				});
+
 				req.on('end', () => {
 					client.close();
 					for (const session of sessions) {
 						session.destroy();
 					}
-					done();
+					if (!error) {
+						done();
+					}
 				});
 
 				req.end();
