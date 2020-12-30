@@ -1,11 +1,11 @@
 
 import { join } from 'path';
 
-import express from 'express';
+import { fastify } from 'fastify';
 
 import { FileSystemStorage } from '../src/send-stream';
 
-const app = express();
+const app = fastify();
 
 const storage = new FileSystemStorage(
 	join(__dirname, 'assets'),
@@ -20,16 +20,22 @@ const storage = new FileSystemStorage(
 	},
 );
 
-app.get('*', async (req, res, next) => {
-	try {
+app.route({
+	method: ['HEAD', 'GET'],
+	url: '*',
+	handler: async ({ raw: req }, { raw: res }) => {
+		if (req.url === undefined) {
+			throw new Error('url not set');
+		}
 		const result = await storage.prepareResponse(req.url, req);
 		result.send(res);
-	} catch (err: unknown) {
-		// eslint-disable-next-line node/callback-return
-		next(err);
-	}
+	},
 });
 
-app.listen(3000, () => {
-	console.info('listening on http://localhost:3000');
-});
+app.listen(3000)
+	.then(() => {
+		console.info('listening on http://localhost:3000');
+	})
+	.catch(err => {
+		console.error(err);
+	});

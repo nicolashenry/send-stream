@@ -11,6 +11,7 @@ const app = express();
 
 const storage = new FileSystemStorage(join(__dirname, 'assets'));
 
+// eslint-disable-next-line @typescript-eslint/no-misused-promises
 app.get('*', async (req, res, next) => {
 	try {
 		const result = await storage.prepareResponse(req.url, req);

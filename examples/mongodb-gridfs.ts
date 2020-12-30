@@ -5,7 +5,7 @@ import * as assert from 'assert';
 // eslint-disable-next-line node/prefer-global/url
 import { URL } from 'url';
 
-import express from 'express';
+import { fastify } from 'fastify';
 import * as mongodb from 'mongodb';
 
 import type { StorageOptions, StorageInfo, StreamRange } from '../src/send-stream';
@@ -83,7 +83,7 @@ class GridFSStorage extends Storage<string, File> {
 
 const client = new mongodb.MongoClient(uri, { useNewUrlParser: true, useUnifiedTopology: true });
 
-const app = express();
+const app = fastify();
 
 client.connect(error => {
 	assert.ifError(error);
@@ -94,16 +94,23 @@ client.connect(error => {
 
 	const storage = new GridFSStorage(bucket);
 
-	app.get('*', async (req, res, next) => {
-		try {
-			(await storage.prepareResponse(req.url, req)).send(res);
-		} catch (err: unknown) {
-			// eslint-disable-next-line node/callback-return
-			next(err);
-		}
+	app.route({
+		method: ['HEAD', 'GET'],
+		url: '*',
+		handler: async ({ raw: req }, { raw: res }) => {
+			if (req.url === undefined) {
+				throw new Error('url not set');
+			}
+			const result = await storage.prepareResponse(req.url, req);
+			result.send(res);
+		},
 	});
 
-	app.listen(3000, () => {
-		console.info('listening on http://localhost:3000');
-	});
+	app.listen(3000)
+		.then(() => {
+			console.info('listening on http://localhost:3000');
+		})
+		.catch(err => {
+			console.error(err);
+		});
 });

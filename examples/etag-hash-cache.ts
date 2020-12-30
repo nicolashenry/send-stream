@@ -4,7 +4,7 @@ import * as crypto from 'crypto';
 import * as fs from 'fs';
 import { promisify } from 'util';
 
-import express from 'express';
+import { fastify } from 'fastify';
 
 import { FileSystemStorage } from '../src/send-stream';
 import type {
@@ -15,7 +15,7 @@ import type {
 
 const readdir = promisify(fs.readdir);
 
-const app = express();
+const app = fastify();
 
 class EtagHashCacheStorage extends FileSystemStorage {
 	etagCache = new Map<string, string>();
@@ -77,22 +77,25 @@ class EtagHashCacheStorage extends FileSystemStorage {
 
 const storage = new EtagHashCacheStorage(join(__dirname, 'assets'));
 
-app.get('*', async (req, res, next) => {
-	try {
+app.route({
+	method: ['HEAD', 'GET'],
+	url: '*',
+	handler: async ({ raw: req }, { raw: res }) => {
+		if (req.url === undefined) {
+			throw new Error('url not set');
+		}
 		const result = await storage.prepareResponse(req.url, req);
 		result.send(res);
-	} catch (err: unknown) {
-		// eslint-disable-next-line node/callback-return
-		next(err);
-	}
+	},
 });
 
 storage.etagsCached
-	.then(() => {
+	.then(async () => {
 		console.info('all files have their hash etag cached');
-		app.listen(3000, () => {
-			console.info('listening on http://localhost:3000');
-		});
+		return app.listen(3000)
+			.then(() => {
+				console.info('listening on http://localhost:3000');
+			});
 	})
 	.catch(err => {
 		console.error(err);
