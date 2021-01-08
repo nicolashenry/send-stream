@@ -249,6 +249,7 @@
     ],
     "@typescript-eslint/return-await": "warn",
     "@typescript-eslint/semi": "warn",
+    "@typescript-eslint/sort-type-union-intersection-members": "off", // not needed: seems useless
     "@typescript-eslint/space-before-function-paren": [
       "warn",
       {
