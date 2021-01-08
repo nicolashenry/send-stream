@@ -65,10 +65,10 @@ const storage = new FileSystemStorage(path.join(__dirname, 'assets'), { onDirect
 app.route({
   method: ['HEAD', 'GET'],
   url: '*',
-  handler: async ({ raw: req }, { raw: res }) => {
-    const result = await storage.prepareResponse(req.url, req);
-    result.send(res);
-  }
+  handler: async (request, reply) => {
+    const result = await storage.prepareResponse(request.url, request.raw);
+    result.send(reply.raw);
+  },
 });
 
 app.listen(3000)

@@ -21,9 +21,9 @@ const storage = new FileSystemStorage(join(__dirname, 'assets'));
 app.route({
 	method: ['HEAD', 'GET'],
 	url: '*',
-	handler: async ({ raw: req }, { raw: res }) => {
-		const result = await storage.prepareResponse(req.url, req);
-		result.send(res);
+	handler: async (request, reply) => {
+		const result = await storage.prepareResponse(request.url, request.raw);
+		result.send(reply.raw);
 	},
 });
 

@@ -97,12 +97,9 @@ client.connect(error => {
 	app.route({
 		method: ['HEAD', 'GET'],
 		url: '*',
-		handler: async ({ raw: req }, { raw: res }) => {
-			if (req.url === undefined) {
-				throw new Error('url not set');
-			}
-			const result = await storage.prepareResponse(req.url, req);
-			result.send(res);
+		handler: async (request, reply) => {
+			const result = await storage.prepareResponse(request.url, request.raw);
+			result.send(reply.raw);
 		},
 	});
 
