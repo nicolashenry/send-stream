@@ -183,8 +183,7 @@ export function isRangeFresh(
 	if (!lastModified) {
 		return false;
 	}
-	const parsedLastModified = Date.parse(lastModified);
-	return parsedLastModified === Date.parse(ifRange);
+	return Date.parse(lastModified) === Date.parse(ifRange);
 }
 
 /**

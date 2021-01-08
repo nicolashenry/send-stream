@@ -2256,7 +2256,7 @@ describe('koa', () => {
 				const stats = await promisify(fs.stat)(join(__dirname, '/fixtures-koa/user.json'));
 				await request(server)
 					.get('/')
-					.set('If-Modified-Since', stats.mtime.toUTCString())
+					.set('If-Modified-Since', new Date(stats.mtimeMs).toUTCString())
 					.expect(304);
 			});
 		});
@@ -2305,7 +2305,7 @@ describe('koa', () => {
 					await request(server)
 						.get('/')
 						.set('Range', 'bytes=0-0')
-						.set('If-Range', stats.mtime.toUTCString())
+						.set('If-Range', new Date(stats.mtimeMs).toUTCString())
 						.expect(206)
 						.expect('Content-Range', 'bytes 0-0/5')
 						.expect('Content-Length', '1');
@@ -2377,7 +2377,7 @@ describe('koa', () => {
 					await request(server)
 						.get('/')
 						.set('Range', 'bytes=0-0')
-						.set('If-Range', stats.mtime.toUTCString())
+						.set('If-Range', new Date(stats.mtimeMs).toUTCString())
 						.expect(200);
 				});
 			});
