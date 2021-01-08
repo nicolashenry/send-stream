@@ -99,6 +99,10 @@ client.connect(error => {
 		url: '*',
 		handler: async (request, reply) => {
 			const result = await storage.prepareResponse(request.url, request.raw);
+			if (result.statusCode === 404) {
+				reply.callNotFound();
+				return;
+			}
 			result.send(reply.raw);
 		},
 	});

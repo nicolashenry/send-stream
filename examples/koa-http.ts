@@ -9,8 +9,13 @@ const app = new Koa();
 
 const storage = new FileSystemStorage(join(__dirname, 'assets'));
 
-app.use(async ctx => {
+app.use(async (ctx, next) => {
 	const result = await storage.prepareResponse(ctx.request.path, ctx.req);
+	if (result.statusCode === 404) {
+		// eslint-disable-next-line node/callback-return
+		await next();
+		return;
+	}
 	ctx.response.status = result.statusCode;
 	ctx.response.set(<Record<string, string>> result.headers);
 	ctx.body = result.stream;

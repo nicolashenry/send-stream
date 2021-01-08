@@ -42,6 +42,10 @@ const storage = new FileSystemStorage(path.join(__dirname, 'assets'), { onDirect
 app.get('*', async (req, res, next) => {
   try {
     let result = await storage.prepareResponse(req.url, req);
+    if (result.statusCode === 404) {
+      next(); // let express call next handlers
+      return;
+    }
     result.send(res);
   } catch (err) {
     next(err);
@@ -67,6 +71,10 @@ app.route({
   url: '*',
   handler: async (request, reply) => {
     const result = await storage.prepareResponse(request.url, request.raw);
+    if (result.statusCode === 404) {
+      reply.callNotFound(); // let fastify call next handlers
+      return;
+    }
     result.send(reply.raw);
   },
 });
@@ -84,11 +92,15 @@ const path = require('path');
 const Koa = require('koa');
 const { FileSystemStorage } = require('send-stream');
 
-const app = new Koa<object>();
+const app = new Koa();
 const storage = new FileSystemStorage(path.join(__dirname, 'assets'), { onDirectory: 'serve-index' });
 
-app.use(async ctx => {
+app.use(async (ctx, next) => {
   let result = await storage.prepareResponse(ctx.request.path, ctx.req);
+  if (result.statusCode === 404) {
+    await next(); // let koa call next handlers
+    return;
+  }
   ctx.response.status = result.statusCode;
   ctx.response.set(result.headers);
   ctx.body = result.stream;

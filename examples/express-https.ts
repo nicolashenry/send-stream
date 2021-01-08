@@ -15,6 +15,10 @@ const storage = new FileSystemStorage(join(__dirname, 'assets'));
 app.get('*', async (req, res, next) => {
 	try {
 		const result = await storage.prepareResponse(req.url, req);
+		if (result.statusCode === 404) {
+			next();
+			return;
+		}
 		result.send(res);
 	} catch (err: unknown) {
 		// eslint-disable-next-line node/callback-return
