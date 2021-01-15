@@ -712,7 +712,7 @@
     "jsdoc/check-alignment": "warn",
     "jsdoc/check-examples": "warn",
     "jsdoc/check-indentation": "warn",
-    "jsdoc/check-line-alignment": "warn",
+    "jsdoc/check-line-alignment": "off", // seems buggy
     "jsdoc/check-param-names": "warn",
     "jsdoc/check-property-names": "warn",
     "jsdoc/check-syntax": "warn",
@@ -761,6 +761,7 @@
         ]
       }
     ],
+    "unicorn/consistent-destructuring": "warn",
     "unicorn/consistent-function-scoping": "warn",
     "unicorn/custom-error-definition": "warn",
     "unicorn/empty-brace-spaces": "warn",
@@ -782,6 +783,7 @@
     "unicorn/no-keyword-prefix": "off", // not needed: seems useless
     "unicorn/no-lonely-if": "warn",
     "unicorn/no-nested-ternary": "off", // not needed: seems useless
+    "unicorn/no-new-array": "warn",
     "unicorn/no-new-buffer": "warn",
     "unicorn/no-null": "off", // not needed: seems useless
     "unicorn/no-object-as-default-parameter": "warn",
@@ -796,6 +798,7 @@
     "unicorn/prefer-add-event-listener": "warn",
     "unicorn/prefer-array-find": "warn",
     "unicorn/prefer-array-flat-map": "warn",
+    "unicorn/prefer-array-index-of": "warn",
     "unicorn/prefer-array-some": "warn",
     "unicorn/prefer-date-now": "warn",
     "unicorn/prefer-default-parameters": "warn",
@@ -812,6 +815,7 @@
     "unicorn/prefer-optional-catch-binding": "warn",
     "unicorn/prefer-query-selector": "off", // not needed: not executed in a browser
     "unicorn/prefer-reflect-apply": "warn",
+    "unicorn/prefer-regexp-test": "warn",
     "unicorn/prefer-set-has": "warn",
     "unicorn/prefer-spread": "warn",
     "unicorn/prefer-string-replace-all": "off", // too soon

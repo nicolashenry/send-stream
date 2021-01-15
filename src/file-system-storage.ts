@@ -209,9 +209,10 @@ export class FileSystemStorage extends Storage<FilePath, FileData> {
 		// trailing slash
 		if (haveTrailingSlash) {
 			const untrailedPathParts = pathParts.slice(0, -1);
-			if (this.onDirectory === 'list-files') {
+			const { onDirectory } = this;
+			if (onDirectory === 'list-files') {
 				pathParts = untrailedPathParts;
-			} else if (this.onDirectory === 'serve-index') {
+			} else if (onDirectory === 'serve-index') {
 				pathParts = [...untrailedPathParts, 'index.html'];
 				haveTrailingSlash = false;
 			} else {
@@ -290,7 +291,7 @@ export class FileSystemStorage extends Storage<FilePath, FileData> {
 				);
 			}
 			if (selectedEncodingMapping) {
-				const { encodingPreferences, identityEncodingPreference } = selectedEncodingMapping;
+				const { encodingPreferences, identityEncodingPreference, matcher } = selectedEncodingMapping;
 				// if path can have encoded version
 				vary = 'Accept-Encoding';
 				const acceptableEncodings = acceptEncodings(
@@ -300,7 +301,7 @@ export class FileSystemStorage extends Storage<FilePath, FileData> {
 				);
 				for (const [acceptableEncodingName, { path: acceptableEncodingPath }] of acceptableEncodings) {
 					const encodedPath = resolvedPath.replace(
-						selectedEncodingMapping.matcher,
+						matcher,
 						acceptableEncodingPath,
 					);
 					// eslint-disable-next-line no-await-in-loop

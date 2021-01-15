@@ -184,7 +184,7 @@ describe('http', () => {
 		});
 
 		it('should treat an ENAMETOOLONG as a 404', async () => {
-			const path = new Array(1000).join('foobar');
+			const path = Array.from({ length: 1000 }).join('foobar');
 			await request(mainApp)
 				.get(`/${ path }`)
 				.expect('X-Send-Stream-Error', 'DoesNotExistError')
@@ -465,11 +465,12 @@ describe('http', () => {
 							lastResult = response;
 							const { storageInfo } = response;
 							if (storageInfo) {
-								response.headers['X-Send-Stream-mtimeMs'] = String('mtimeMs' in storageInfo);
-								response.headers['X-Send-Stream-size'] = String('size' in storageInfo);
-								response.headers['X-Send-Stream-ctime']
+								const { headers } = response;
+								headers['X-Send-Stream-mtimeMs'] = String('mtimeMs' in storageInfo);
+								headers['X-Send-Stream-size'] = String('size' in storageInfo);
+								headers['X-Send-Stream-ctime']
 									= String('ctime' in storageInfo.attachedData.stats);
-								response.headers['X-Send-Stream-mtime']
+								headers['X-Send-Stream-mtime']
 									= String('mtime' in storageInfo.attachedData.stats);
 							}
 							response.send(res);
@@ -1790,8 +1791,8 @@ describe('http', () => {
 						// eslint-disable-next-line @typescript-eslint/no-non-null-assertion
 						const resp = await errorStorage.prepareResponse(req.url!, req);
 						lastResult = resp;
-						const { stream: { pipe: p } } = resp;
-						resp.stream.pipe = function pipe<T extends NodeJS.WritableStream>(
+						const { stream: { pipe: p }, stream } = resp;
+						stream.pipe = function pipe<T extends NodeJS.WritableStream>(
 							this: ReadableStream,
 							destination: T,
 							options?: { end?: boolean },
@@ -1850,8 +1851,8 @@ describe('http', () => {
 					(async () => {
 						const resp = await errorStorage.prepareResponse(req.url, req);
 						lastResult = resp;
-						const { stream: { pipe: p } } = resp;
-						resp.stream.pipe = function pipe<T extends NodeJS.WritableStream>(
+						const { stream: { pipe: p }, stream } = resp;
+						stream.pipe = function pipe<T extends NodeJS.WritableStream>(
 							this: ReadableStream,
 							destination: T,
 							options?: { end?: boolean },

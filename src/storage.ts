@@ -115,7 +115,8 @@ export abstract class Storage<Reference, AttachedData> {
 		if (size === undefined || mtimeMs === undefined) {
 			return false;
 		}
-		return statsToEtag(size, mtimeMs, storageInfo.contentEncoding, this.weakEtags);
+		const { contentEncoding } = storageInfo;
+		return statsToEtag(size, mtimeMs, contentEncoding, this.weakEtags);
 	}
 
 	/**
@@ -197,7 +198,8 @@ export abstract class Storage<Reference, AttachedData> {
 		if (contentDispositionFilename) {
 			return contentDispositionFilename;
 		}
-		return storageInfo.fileName;
+		const { fileName } = storageInfo;
+		return fileName;
 	}
 
 	/**
@@ -257,13 +259,13 @@ export abstract class Storage<Reference, AttachedData> {
 					storageInfo.mimeTypeCharset = mimeTypeCharset;
 				}
 			}
-			const { dynamicCompression } = this;
+			const { dynamicCompression, dynamicCompressionMinLength } = this;
 			if (
 				dynamicCompression
 				&& !storageInfo.contentEncoding
 				&& mimeType
 				&& this.mimeTypeCompressible(mimeType)
-				&& (storageInfo.size === undefined || storageInfo.size > this.dynamicCompressionMinLength)
+				&& (storageInfo.size === undefined || storageInfo.size > dynamicCompressionMinLength)
 			) {
 				storageInfo.vary = 'Accept-Encoding';
 				const [[preferedEncoding]] = acceptEncodings(

@@ -54,8 +54,8 @@ export class StreamResponse<AttachedData> extends EventEmitter {
 			}
 		};
 		if (res instanceof ServerResponse) {
-			const { socket } = res;
-			if (res.destroyed || !socket || socket.destroyed) {
+			const { socket, destroyed } = res;
+			if (destroyed || !socket || socket.destroyed) {
 				readStream.destroy();
 				this.emit('responseError', new Error('response already closed'));
 				return this;
