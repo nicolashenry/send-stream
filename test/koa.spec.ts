@@ -33,7 +33,7 @@ function brotliParser(res: request.Response, cb: (err: Error | null, body: unkno
 		chunks.push(<Buffer> chunk);
 	});
 	decompress.on('error', err => {
-		cb(err, Buffer.concat(chunks).toString());
+		cb(err, null);
 	});
 	decompress.on('end', () => {
 		cb(null, Buffer.concat(chunks).toString());
