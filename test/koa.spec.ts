@@ -754,7 +754,7 @@ describe('koa', () => {
 						assert.fail();
 					} catch {
 						await new Promise(resolve => {
-							setTimeout(resolve, 500);
+							resolve(undefined);
 						});
 					}
 				});
@@ -766,7 +766,7 @@ describe('koa', () => {
 						assert.fail();
 					} catch {
 						await new Promise(resolve => {
-							setTimeout(resolve, 500);
+							resolve(undefined);
 						});
 					}
 				});
@@ -2662,7 +2662,7 @@ describe('koa', () => {
 						assert.fail();
 					} catch {
 						await new Promise(resolve => {
-							setTimeout(resolve, 500);
+							resolve(undefined);
 						});
 					}
 				});
@@ -2713,7 +2713,7 @@ describe('koa', () => {
 						assert.fail();
 					} catch {
 						await new Promise(resolve => {
-							setTimeout(resolve, 500);
+							resolve(undefined);
 						});
 					}
 				});
@@ -2792,7 +2792,7 @@ describe('koa', () => {
 						assert.fail();
 					} catch {
 						await new Promise(resolve => {
-							setTimeout(resolve, 500);
+							resolve(undefined);
 						});
 					}
 				});

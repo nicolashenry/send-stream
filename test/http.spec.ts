@@ -374,7 +374,7 @@ describe('http', () => {
 					assert.fail();
 				} catch {
 					await new Promise(resolve => {
-						setTimeout(resolve, 500);
+						resolve(undefined);
 					});
 				}
 			});
@@ -1644,7 +1644,7 @@ describe('http', () => {
 					assert.fail();
 				} catch {
 					await new Promise(resolve => {
-						setTimeout(resolve, 500);
+						resolve(undefined);
 					});
 				}
 			});
@@ -1676,7 +1676,7 @@ describe('http', () => {
 					assert.fail();
 				} catch {
 					await new Promise(resolve => {
-						setTimeout(resolve, 500);
+						resolve(undefined);
 					});
 				}
 			});
@@ -1706,7 +1706,7 @@ describe('http', () => {
 					assert.fail();
 				} catch {
 					await new Promise(resolve => {
-						setTimeout(resolve, 500);
+						resolve(undefined);
 					});
 				}
 			});
@@ -1756,7 +1756,7 @@ describe('http', () => {
 					assert.fail();
 				} catch {
 					await new Promise(resolve => {
-						setTimeout(resolve, 500);
+						resolve(undefined);
 					});
 				}
 			});
@@ -1815,7 +1815,7 @@ describe('http', () => {
 					assert.fail();
 				} catch {
 					await new Promise(resolve => {
-						setTimeout(resolve, 500);
+						resolve(undefined);
 					});
 				}
 			});
