@@ -214,6 +214,10 @@
     "@typescript-eslint/no-use-before-define": "warn",
     "@typescript-eslint/no-useless-constructor": "warn",
     "@typescript-eslint/no-var-requires": "off", // not needed: seems useless
+    "@typescript-eslint/object-curly-spacing": [
+      "warn",
+      "always"
+    ],
     "@typescript-eslint/prefer-as-const": "warn",
     "@typescript-eslint/prefer-enum-initializers": "warn",
     "@typescript-eslint/prefer-for-of": "warn",
@@ -552,10 +556,7 @@
     "no-with": "off", // not needed: covered by typescript
     "nonblock-statement-body-position": "off", // not needed: opposite of project rules
     "object-curly-newline": "warn",
-    "object-curly-spacing": [
-      "warn",
-      "always"
-    ],
+    "object-curly-spacing": "off", // disabled by typescript-eslint
     "object-property-newline": [
       "warn",
       {
