@@ -15,6 +15,9 @@ jobs:
       matrix:
         os: [ubuntu-latest, windows-latest, macos-latest]
         node-version: [12.x, 14.x, 15.x]
+    env:
+      OS: ${{ matrix.os }}
+      NODE_VERSION: ${{ matrix.node-version }}
 
     steps:
     - uses: actions/checkout@v2
@@ -26,18 +29,9 @@ jobs:
     - run: npm run build
     - run: npm run lint
     - run: npm run test-coverage
-    - name: Coveralls Parallel
-      uses: coverallsapp/github-action@v1.1.2
+    - name: Upload coverage to Codecov
+      uses: codecov/codecov-action@v1
       with:
-        github-token: ${{ secrets.GITHUB_TOKEN }}
-        flag-name: run_${{ matrix.os }}_${{ matrix.node-version }}
-        parallel: true
-  finish:
-    needs: test
-    runs-on: ubuntu-latest
-    steps:
-    - name: Coveralls Finished
-      uses: coverallsapp/github-action@v1.1.2
-      with:
-        github-token: ${{ secrets.GITHUB_TOKEN }}
-        parallel-finished: true
+        token: ${{ secrets.CODECOV_TOKEN }}
+        env_vars: OS,NODE_VERSION
+        fail_ci_if_error: true
