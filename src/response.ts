@@ -1,18 +1,41 @@
 
-import { EventEmitter } from 'events';
 import { ServerResponse } from 'http';
 import type { ServerHttp2Stream } from 'http2';
 import { Http2ServerResponse } from 'http2';
 import type { Readable } from 'stream';
-import { pipeline } from 'stream';
+import { pipeline as streamPipeline } from 'stream';
+import { promisify, types } from 'util';
 
 import type { ResponseHeaders } from './utils';
 import type { StorageInfo, StorageError } from './storage-models';
 
+const promisifiedStreamPipeline = promisify(streamPipeline);
+
+async function pipeline(
+	readStream: Readable,
+	res: ServerResponse | ServerHttp2Stream,
+	ignorePrematureClose: boolean,
+) {
+	try {
+		await promisifiedStreamPipeline(readStream, res);
+	} catch (err: unknown) {
+		if (
+			ignorePrematureClose
+			&& types.isNativeError(err)
+			&& (<NodeJS.ErrnoException> err).code === 'ERR_STREAM_PREMATURE_CLOSE'
+		) {
+			return;
+		}
+		throw err;
+	}
+}
+
+const defaultOpts = { ignorePrematureClose: true };
+
 /**
  * Stream response
  */
-export class StreamResponse<AttachedData> extends EventEmitter {
+export class StreamResponse<AttachedData> {
 	/**
 	 * Create stream response
 	 *
@@ -28,54 +51,46 @@ export class StreamResponse<AttachedData> extends EventEmitter {
 		public stream: Readable,
 		public storageInfo?: StorageInfo<AttachedData>,
 		public error?: StorageError<unknown>,
-	) {
-		super();
-	}
+	) {}
 
 	/**
 	 * Send response to http response
 	 *
 	 * @param res - http response
-	 * @returns self
+	 * @param opts - options
+	 * @param opts.ignorePrematureClose - ignore premature close errors
+	 * @throws error when response is already closed
 	 */
-	send(res: ServerResponse | Http2ServerResponse | ServerHttp2Stream) {
+	async send(
+		res: ServerResponse | Http2ServerResponse | ServerHttp2Stream,
+		{ ignorePrematureClose } = defaultOpts,
+	) {
 		const { statusCode } = this;
 		const { headers: responseHeaders, stream: readStream } = this;
 
 		if (res.headersSent) {
 			readStream.destroy();
-			this.emit('responseError', new Error('response headers already sent'));
-			return this;
+			throw new Error('response headers already sent');
 		}
-		// eslint-disable-next-line unicorn/consistent-function-scoping
-		const pipelineEnd = (err: NodeJS.ErrnoException | null) => {
-			if (err) {
-				this.emit('readError', err);
-			}
-		};
 		if (res instanceof ServerResponse) {
 			const { socket, destroyed } = res;
 			if (destroyed || !socket || socket.destroyed) {
 				readStream.destroy();
-				this.emit('responseError', new Error('response already closed'));
-				return this;
+				return;
 			}
 			res.writeHead(statusCode, responseHeaders);
-			pipeline(readStream, res, pipelineEnd);
+			await pipeline(readStream, res, ignorePrematureClose);
 		} else {
 			const resStream = res instanceof Http2ServerResponse ? res.stream : res;
 			if (resStream.destroyed || resStream.closed) {
 				readStream.destroy();
-				this.emit('responseError', new Error('response already closed'));
-				return this;
+				return;
 			}
 			resStream.respond({
 				':status': statusCode,
 				...responseHeaders,
 			});
-			pipeline(readStream, resStream, pipelineEnd);
+			await pipeline(readStream, resStream, ignorePrematureClose);
 		}
-
-		return this;
 	}
 }

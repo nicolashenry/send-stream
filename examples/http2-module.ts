@@ -25,7 +25,7 @@ app.on('stream', (stream, headers) => {
 			throw new Error('path not set');
 		}
 		const result = await storage.prepareResponse(headers[':path'], headers);
-		result.send(stream);
+		await result.send(stream);
 	})().catch(err => {
 		console.error(err);
 		if (stream.headersSent) {

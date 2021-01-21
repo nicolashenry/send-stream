@@ -20,7 +20,7 @@ const app = https.createServer(options, (req, res) => {
 			throw new Error('url not set');
 		}
 		const result = await storage.prepareResponse(req.url, req);
-		result.send(res);
+		await result.send(res);
 	})().catch(err => {
 		console.error(err);
 		if (res.headersSent) {

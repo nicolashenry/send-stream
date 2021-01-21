@@ -54,7 +54,7 @@ describe('static', () => {
 				if (result.error) {
 					result.headers['X-Send-Stream-Error'] = result.error.name;
 				}
-				result.send(res);
+				await result.send(res);
 			})().catch(err => {
 				console.error(err);
 				if (!res.headersSent) {

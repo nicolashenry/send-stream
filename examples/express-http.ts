@@ -17,7 +17,7 @@ app.get('*', async (req, res, next) => {
 			next();
 			return;
 		}
-		result.send(res);
+		await result.send(res);
 	} catch (err: unknown) {
 		// eslint-disable-next-line node/callback-return
 		next(err);

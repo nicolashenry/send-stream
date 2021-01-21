@@ -29,33 +29,6 @@ Serve all files from a directory (also serve index.html from directories on trai
 
 See [examples](#examples) for more advanced usages.
 
-Using Express (v4.x.x):
-
-```js
-const path = require("path");
-const express = require("express");
-const { FileSystemStorage } = require('send-stream');
-
-const app = express();
-const storage = new FileSystemStorage(path.join(__dirname, 'assets'), { onDirectory: 'serve-index' });
-
-app.get('*', async (req, res, next) => {
-  try {
-    let result = await storage.prepareResponse(req.url, req);
-    if (result.statusCode === 404) {
-      next(); // let express call next handlers
-      return;
-    }
-    result.send(res);
-  } catch (err) {
-    next(err);
-  }
-});
-app.listen(3000, () => {
-  console.info('listening on http://localhost:3000');
-});
-```
-
 Using Fastify (v3.x.x):
 
 ```js
@@ -72,10 +45,12 @@ app.route({
   handler: async (request, reply) => {
     const result = await storage.prepareResponse(request.url, request.raw);
     if (result.statusCode === 404) {
-      reply.callNotFound(); // let fastify call next handlers
+      reply.callNotFound(); // let fastify handle 404
       return;
     }
-    result.send(reply.raw);
+    await reply.code(result.statusCode)
+      .headers(result.headers)
+      .send(result.stream);
   },
 });
 
@@ -98,14 +73,41 @@ const storage = new FileSystemStorage(path.join(__dirname, 'assets'), { onDirect
 app.use(async (ctx, next) => {
   let result = await storage.prepareResponse(ctx.request.path, ctx.req);
   if (result.statusCode === 404) {
-    await next(); // let koa call next handlers
+    await next(); // let koa handle 404
     return;
   }
-  ctx.response.status = result.statusCode;
-  ctx.response.set(result.headers);
+  ctx.status = result.statusCode;
+  ctx.set(result.headers);
   ctx.body = result.stream;
 });
 
+app.listen(3000, () => {
+  console.info('listening on http://localhost:3000');
+});
+```
+
+Using Express (v4.x.x):
+
+```js
+const path = require("path");
+const express = require("express");
+const { FileSystemStorage } = require('send-stream');
+
+const app = express();
+const storage = new FileSystemStorage(path.join(__dirname, 'assets'), { onDirectory: 'serve-index' });
+
+app.get('*', async (req, res, next) => {
+  try {
+    let result = await storage.prepareResponse(req.url, req);
+    if (result.statusCode === 404) {
+      next(); // let express handle 404
+      return;
+    }
+    await result.send(res);
+  } catch (err) {
+    next(err);
+  }
+});
 app.listen(3000, () => {
   console.info('listening on http://localhost:3000');
 });
@@ -630,7 +632,7 @@ const storage = new FileSystemStorage(directory);
 ...
 
 let result = await storage.prepareResponse(req.url, req);
-result.send(res);
+await result.send(res);
 ```
 
 ### Serve files with directory index.html
@@ -641,7 +643,7 @@ const storage = new FileSystemStorage(directory, { onDirectory: 'serve-index' })
 ...
 
 let result = await storage.prepareResponse(req.url, req);
-result.send(res);
+await result.send(res);
 ```
 
 ### Serve files with directory listing
@@ -652,7 +654,7 @@ const storage = new FileSystemStorage(directory, { onDirectory: 'list-files' });
 ...
 
 let result = await storage.prepareResponse(req.url, req);
-result.send(res);
+await result.send(res);
 ```
 
 ### Serve files and add CORS headers
@@ -665,7 +667,7 @@ const storage = new FileSystemStorage(directory);
 let result = await storage.prepareResponse(req.url, req);
 result.headers['Access-Control-Allow-Origin'] = '*';
 result.headers['Access-Control-Allow-Headers'] = 'Origin, X-Requested-With, Content-Type, Accept, Range';
-result.send(res);
+await result.send(res);
 ```
 
 ### Serve one file specifically
@@ -676,7 +678,7 @@ const storage = new FileSystemStorage(directory);
 ...
 
 let result = await storage.prepareResponse('/index.html', req);
-result.send(res);
+await result.send(res);
 ```
 
 ### Serve index.html instead of 404 for history.pushState applications
@@ -691,7 +693,7 @@ let result = await storage.prepareResponse(req.url, req);
 if (result.error instanceof FileSystemStorageError) {
   result = await storage.prepareResponse('/index.html', req);
 }
-result.send(res);
+await result.send(res);
 ```
 
 ### Serve files and add CSP (Content-Security-Policy) header when content is html
@@ -709,7 +711,7 @@ if (result.storageInfo?.mimeType === 'text/html') {
   // result.headers['Referrer-Policy'] = "no-referrer";
   // result.headers['Feature-Policy'] = "...";
 }
-result.send(res);
+await result.send(res);
 ```
 
 ## License

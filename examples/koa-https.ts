@@ -18,8 +18,8 @@ app.use(async (ctx, next) => {
 		await next();
 		return;
 	}
-	ctx.response.status = result.statusCode;
-	ctx.response.set(<Record<string, string>> result.headers);
+	ctx.status = result.statusCode;
+	ctx.set(<Record<string, string>> result.headers);
 	ctx.body = result.stream;
 });
 

@@ -1,4 +1,4 @@
-/* eslint-disable max-lines, max-lines-per-function, sonarjs/no-identical-functions */
+/* eslint-disable max-lines, max-lines-per-function, sonarjs/no-identical-functions, sonarjs/cognitive-complexity */
 /* eslint-env node, mocha */
 
 import * as assert from 'assert';
@@ -86,11 +86,13 @@ describe('http', () => {
 				if (response.error) {
 					response.headers['X-Send-Stream-Error'] = response.error.name;
 				}
-				response.send(res);
+				await response.send(res);
 			})().catch(err => {
 				res.statusCode = 500;
 				console.error(err);
-				res.end('Internal Error');
+				if (!res.writableEnded) {
+					res.end('Internal Error');
+				}
 			});
 		});
 	}
@@ -114,11 +116,13 @@ describe('http', () => {
 					if (response.error) {
 						response.headers['X-Send-Stream-Error'] = response.error.name;
 					}
-					response.send(res);
+					await response.send(res);
 				})().catch(err => {
 					res.statusCode = 500;
 					console.error(err);
-					res.end('Internal Error');
+					if (!res.writableEnded) {
+						res.end('Internal Error');
+					}
 				});
 			});
 		});
@@ -216,11 +220,13 @@ describe('http', () => {
 						// eslint-disable-next-line @typescript-eslint/no-non-null-assertion
 						const response = await storage.prepareResponse(req.url!, req);
 						lastResult = response;
-						response.send(res);
+						await response.send(res);
 					})().catch(err => {
 						res.statusCode = 500;
 						console.error(err);
-						res.end('Internal Error');
+						if (!res.writableEnded) {
+							res.end('Internal Error');
+						}
 					});
 				});
 			});
@@ -242,11 +248,13 @@ describe('http', () => {
 						// eslint-disable-next-line @typescript-eslint/no-non-null-assertion
 						const response = await storage.prepareResponse(req.url!, req);
 						lastResult = response;
-						response.send(res);
+						await response.send(res);
 					})().catch(err => {
 						res.statusCode = 500;
 						console.error(err);
-						res.end('Internal Error');
+						if (!res.writableEnded) {
+							res.end('Internal Error');
+						}
 					});
 				});
 			});
@@ -277,11 +285,13 @@ describe('http', () => {
 						// eslint-disable-next-line @typescript-eslint/no-non-null-assertion
 						const response = await storage.prepareResponse(req.url!, req);
 						lastResult = response;
-						response.send(res);
+						await response.send(res);
 					})().catch(err => {
 						res.statusCode = 500;
 						console.error(err);
-						res.end('Internal Error');
+						if (!res.writableEnded) {
+							res.end('Internal Error');
+						}
 					});
 				});
 			});
@@ -360,11 +370,13 @@ describe('http', () => {
 						// eslint-disable-next-line @typescript-eslint/no-non-null-assertion
 						const response = await storage.prepareResponse(req.url!, req);
 						lastResult = response;
-						response.send(res);
+						await response.send(res);
 					})().catch(err => {
 						res.statusCode = 500;
 						console.error(err);
-						res.end('Internal Error');
+						if (!res.writableEnded) {
+							res.end('Internal Error');
+						}
 					});
 				});
 			});
@@ -389,11 +401,13 @@ describe('http', () => {
 							// eslint-disable-next-line @typescript-eslint/no-non-null-assertion
 							const response = await mainStorage.prepareResponse(req.url!, req);
 							lastResult = response;
-							response.send(res);
+							await response.send(res);
 						})().catch(err => {
 							res.statusCode = 500;
 							console.error(err);
-							res.end('Internal Error');
+							if (!res.writableEnded) {
+								res.end('Internal Error');
+							}
 						});
 					});
 				});
@@ -413,11 +427,13 @@ describe('http', () => {
 							// eslint-disable-next-line @typescript-eslint/no-non-null-assertion
 							const response = await mainStorage.prepareResponse(req.url!, req);
 							lastResult = response;
-							response.send(res);
+							await response.send(res);
 						})().catch(err => {
 							res.statusCode = 500;
 							console.error(err);
-							res.end('Internal Error');
+							if (!res.writableEnded) {
+								res.end('Internal Error');
+							}
 						});
 					});
 				});
@@ -439,11 +455,13 @@ describe('http', () => {
 							lastResult = response;
 							response.headers['X-Send-Stream-Resolved-Path']
 								= response.storageInfo?.attachedData.resolvedPath;
-							response.send(res);
+							await response.send(res);
 						})().catch(err => {
 							res.statusCode = 500;
 							console.error(err);
-							res.end('Internal Error');
+							if (!res.writableEnded) {
+								res.end('Internal Error');
+							}
 						});
 					});
 				});
@@ -473,11 +491,13 @@ describe('http', () => {
 								headers['X-Send-Stream-mtime']
 									= String('mtime' in storageInfo.attachedData.stats);
 							}
-							response.send(res);
+							await response.send(res);
 						})().catch(err => {
 							res.statusCode = 500;
 							console.error(err);
-							res.end('Internal Error');
+							if (!res.writableEnded) {
+								res.end('Internal Error');
+							}
 						});
 					});
 				});
@@ -503,11 +523,13 @@ describe('http', () => {
 							result.headers['Cache-Control'] = 'no-cache';
 							result.headers['Content-Type'] = 'text/x-custom';
 							result.headers['ETag'] = 'W/"everything"';
-							result.send(res);
+							await result.send(res);
 						})().catch(err => {
 							res.statusCode = 500;
 							console.error(err);
-							res.end('Internal Error');
+							if (!res.writableEnded) {
+								res.end('Internal Error');
+							}
 						});
 					});
 				});
@@ -573,11 +595,13 @@ describe('http', () => {
 								// eslint-disable-next-line @typescript-eslint/no-non-null-assertion
 								const result = await storage.prepareResponse(req.url!, req);
 								lastResult = result;
-								result.send(res);
+								await result.send(res);
 							})().catch(err => {
 								res.statusCode = 500;
 								console.error(err);
-								res.end('Internal Error');
+								if (!res.writableEnded) {
+									res.end('Internal Error');
+								}
 							});
 						});
 					});
@@ -647,11 +671,13 @@ describe('http', () => {
 								// eslint-disable-next-line @typescript-eslint/no-non-null-assertion
 								const result = await storage.prepareResponse(req.url!, req);
 								lastResult = result;
-								result.send(res);
+								await result.send(res);
 							})().catch(err => {
 								res.statusCode = 500;
 								console.error(err);
-								res.end('Internal Error');
+								if (!res.writableEnded) {
+									res.end('Internal Error');
+								}
 							});
 						});
 					});
@@ -876,11 +902,13 @@ describe('http', () => {
 								// eslint-disable-next-line @typescript-eslint/no-non-null-assertion
 								const result = await storage.prepareResponse(req.url!, req);
 								lastResult = result;
-								result.send(res);
+								await result.send(res);
 							})().catch(err => {
 								res.statusCode = 500;
 								console.error(err);
-								res.end('Internal Error');
+								if (!res.writableEnded) {
+									res.end('Internal Error');
+								}
 							});
 						});
 					});
@@ -981,11 +1009,13 @@ describe('http', () => {
 						// eslint-disable-next-line @typescript-eslint/no-non-null-assertion
 						const result = await mainStorage.prepareResponse(req.url!, req, { etag: false });
 						lastResult = result;
-						result.send(res);
+						await result.send(res);
 					})().catch(err => {
 						res.statusCode = 500;
 						console.error(err);
-						res.end('Internal Error');
+						if (!res.writableEnded) {
+							res.end('Internal Error');
+						}
 					});
 				});
 			});
@@ -1016,11 +1046,13 @@ describe('http', () => {
 								{ cacheControl: 'public, max-age=1' },
 							);
 							lastResult = result;
-							result.send(res);
+							await result.send(res);
 						})().catch(err => {
 							res.statusCode = 500;
 							console.error(err);
-							res.end('Internal Error');
+							if (!res.writableEnded) {
+								res.end('Internal Error');
+							}
 						});
 					});
 				});
@@ -1439,11 +1471,13 @@ describe('http', () => {
 								if (response.error) {
 									response.headers['X-Send-Stream-Error'] = response.error.name;
 								}
-								response.send(res);
+								await response.send(res);
 							})().catch(err => {
 								res.statusCode = 500;
 								console.error(err);
-								res.end('Internal Error');
+								if (!res.writableEnded) {
+									res.end('Internal Error');
+								}
 							});
 						});
 					});
@@ -1506,11 +1540,13 @@ describe('http', () => {
 							if (response.error) {
 								response.headers['X-Send-Stream-Error'] = response.error.name;
 							}
-							response.send(res);
+							await response.send(res);
 						})().catch(err => {
 							res.statusCode = 500;
 							console.error(err);
-							res.end('Internal Error');
+							if (!res.writableEnded) {
+								res.end('Internal Error');
+							}
 						});
 					});
 				});
@@ -1537,11 +1573,13 @@ describe('http', () => {
 						// eslint-disable-next-line @typescript-eslint/no-non-null-assertion
 						const result = await mainStorage.prepareResponse(req.url!, req);
 						lastResult = result;
-						result.send(res);
+						await result.send(res);
 					})().catch(err => {
 						res.statusCode = 500;
 						console.error(err);
-						res.end('Internal Error');
+						if (!res.writableEnded) {
+							res.end('Internal Error');
+						}
 					});
 				});
 			});
@@ -1604,18 +1642,26 @@ describe('http', () => {
 						// eslint-disable-next-line @typescript-eslint/no-non-null-assertion
 						const result = await mainStorage.prepareResponse(req.url!, req);
 						lastResult = result;
-						result.send(res);
+						await result.send(res);
 					})().catch(err => {
 						res.statusCode = 500;
 						console.error(err);
-						res.end('Internal Error');
+						if (!res.writableEnded) {
+							res.end('Internal Error');
+						}
 					});
 				});
 			});
-			it('should ignore if headers already sent', async () => {
-				await request(app)
-					.get('/nums.txt')
-					.expect(200, 'the end');
+			it('should error if headers already sent', async () => {
+				try {
+					await request(app)
+						.get('/nums.txt');
+					assert.fail();
+				} catch {
+					await new Promise(resolve => {
+						resolve(undefined);
+					});
+				}
 			});
 		});
 
@@ -1629,15 +1675,17 @@ describe('http', () => {
 						// eslint-disable-next-line @typescript-eslint/no-non-null-assertion
 						const result = await mainStorage.prepareResponse(req.url!, req);
 						lastResult = result;
-						result.send(res);
+						await result.send(res);
 					})().catch(err => {
 						res.statusCode = 500;
 						console.error(err);
-						res.end('Internal Error');
+						if (!res.writableEnded) {
+							res.end('Internal Error');
+						}
 					});
 				});
 			});
-			it('should ignore if connection already destroyed', async () => {
+			it('should error if connection already destroyed', async () => {
 				try {
 					await request(app)
 						.get('/nums.txt');
@@ -1661,11 +1709,13 @@ describe('http', () => {
 						// eslint-disable-next-line @typescript-eslint/no-non-null-assertion
 						const result = await mainStorage.prepareResponse(req.url!, req);
 						lastResult = result;
-						result.send(res);
+						await result.send(res);
 					})().catch(err => {
 						res.statusCode = 500;
 						console.error(err);
-						res.end('Internal Error');
+						if (!res.writableEnded) {
+							res.end('Internal Error');
+						}
 					});
 				});
 			});
@@ -1690,12 +1740,14 @@ describe('http', () => {
 						// eslint-disable-next-line @typescript-eslint/no-non-null-assertion
 						const result = await mainStorage.prepareResponse(req.url!, req);
 						lastResult = result;
-						result.send(res);
+						await result.send(res);
 						res.destroy(new Error('olala'));
 					})().catch(err => {
 						res.statusCode = 500;
 						console.error(err);
-						res.end('Internal Error');
+						if (!res.writableEnded) {
+							res.end('Internal Error');
+						}
 					});
 				});
 			});
@@ -1741,11 +1793,13 @@ describe('http', () => {
 						// eslint-disable-next-line @typescript-eslint/no-non-null-assertion
 						const result = await errorStorage.prepareResponse(req.url!, req);
 						lastResult = result;
-						result.send(res);
+						await result.send(res);
 					})().catch(err => {
 						res.statusCode = 500;
 						console.error(err);
-						res.end('Internal Error');
+						if (!res.writableEnded) {
+							res.end('Internal Error');
+						}
 					});
 				});
 			});
@@ -1800,11 +1854,13 @@ describe('http', () => {
 							res.destroy();
 							return <T> p.call(this, destination, options);
 						};
-						resp.send(res);
+						await resp.send(res);
 					})().catch(err => {
 						res.statusCode = 500;
 						console.error(err);
-						res.end('Internal Error');
+						if (!res.writableEnded) {
+							res.end('Internal Error');
+						}
 					});
 				});
 			});
@@ -1860,11 +1916,13 @@ describe('http', () => {
 							res.stream.destroy();
 							return <T> p.call(this, destination, options);
 						};
-						resp.send(res);
+						await resp.send(res);
 					})().catch(err => {
 						res.statusCode = 500;
 						console.error(err);
-						res.end('Internal Error');
+						if (!res.stream.writableEnded) {
+							res.end('Internal Error');
+						}
 					});
 				});
 
@@ -1929,7 +1987,7 @@ describe('http', () => {
 							headers,
 						);
 						lastResult = result;
-						result.send(stream);
+						await result.send(stream);
 					})().catch(err => {
 						stream.respond({ ':status': 500 });
 						stream.end(String(err));
@@ -2013,11 +2071,13 @@ describe('http', () => {
 							req,
 						);
 						lastResult = result;
-						result.send(res);
+						await result.send(res);
 					})().catch(err => {
 						res.statusCode = 500;
 						console.error(err);
-						res.end('Internal Error');
+						if (!res.stream.writableEnded) {
+							res.end('Internal Error');
+						}
 					});
 				});
 
@@ -2101,11 +2161,13 @@ describe('http', () => {
 							req,
 						);
 						lastResult = result;
-						result.send(res);
+						await result.send(res);
 					})().catch(err => {
 						res.statusCode = 500;
 						console.error(err);
-						res.end('Internal Error');
+						if (!res.stream.writableEnded) {
+							res.end('Internal Error');
+						}
 					});
 				});
 
@@ -2188,7 +2250,7 @@ describe('http', () => {
 							headers,
 						);
 						lastResult = result;
-						result.send(stream);
+						await result.send(stream);
 					})().catch(err => {
 						stream.respond({ ':status': 500 });
 						stream.end(String(err));
@@ -2281,7 +2343,7 @@ describe('http', () => {
 							headers,
 						);
 						lastResult = result;
-						result.send(stream);
+						await result.send(stream);
 					})().catch(err => {
 						stream.respond({ ':status': 500 });
 						stream.end(String(err));

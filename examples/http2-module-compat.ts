@@ -18,7 +18,7 @@ const options = {
 const app = http2.createSecureServer(options, (req, res) => {
 	(async () => {
 		const result = await storage.prepareResponse(req.url, req);
-		result.send(res);
+		await result.send(res);
 	})().catch(err => {
 		console.error(err);
 		if (res.headersSent) {

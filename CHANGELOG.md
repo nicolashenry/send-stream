@@ -1,3 +1,11 @@
+2.3.0
+==================
+
+* Feature: send method is now returning a promise and is not anymore an event emitter
+* Feature: send method have a new option to ignore premature close errors (true by default)
+* Test: test all frameworks instead of only koa
+* Docs: update/fix examples
+
 2.2.0
 ==================
 
