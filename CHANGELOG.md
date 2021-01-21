@@ -1,3 +1,8 @@
+2.3.1
+==================
+
+* Fix: NodeJS 12 sometimes not destroyed
+
 2.3.0
 ==================
 
