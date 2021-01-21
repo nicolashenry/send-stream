@@ -99,7 +99,12 @@ for (const [frameworkName, frameworkServer] of frameworks) {
 	describe(frameworkName, () => {
 		const context: { lastResult: StreamResponse<unknown> | true | undefined } = { lastResult: undefined };
 
-		afterEach('destroy check', () => {
+		afterEach('destroy check', function checkDestroy() {
+			// eslint-disable-next-line @typescript-eslint/no-invalid-this
+			if (this.currentTest?.state === 'failed') {
+				context.lastResult = undefined;
+				return;
+			}
 			assert.notStrictEqual(context.lastResult, undefined);
 			if (context.lastResult && context.lastResult !== true) {
 				assert.strictEqual(context.lastResult.stream.destroyed, true);
