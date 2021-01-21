@@ -478,8 +478,8 @@ export abstract class Storage<Reference, AttachedData> {
 	// eslint-disable-next-line class-methods-use-this
 	createCompressedStream(stream: Readable, contentEncoding: string, expectedSize?: number) {
 		switch (contentEncoding) {
-		case 'br':
-			return pipeline(
+		case 'br': {
+			const res = pipeline(
 				stream,
 				zlib.createBrotliCompress({
 					params: {
@@ -494,8 +494,13 @@ export abstract class Storage<Reference, AttachedData> {
 					}
 				},
 			);
-		case 'gzip':
-			return pipeline(
+			return res.on('end', () => {
+				// force destroy on end
+				res.destroy();
+			});
+		}
+		case 'gzip': {
+			const res = pipeline(
 				stream,
 				zlib.createGzip({ level: 6 }),
 				err => {
@@ -504,6 +509,11 @@ export abstract class Storage<Reference, AttachedData> {
 					}
 				},
 			);
+			return res.on('end', () => {
+				// force destroy on end
+				res.destroy();
+			});
+		}
 		default:
 			throw new Error(`${
 				contentEncoding
