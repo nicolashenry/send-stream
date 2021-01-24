@@ -424,6 +424,7 @@ export class FileSystemStorage extends Storage<FilePath, FileData> {
 	 * Async generator method to return the directory listing as HTML
 	 *
 	 * @param storageInfo - storage information
+	 * @yields html parts
 	 */
 	async *getDirectoryListing(storageInfo: StorageInfo<FileData>) {
 		const { attachedData: { pathParts } } = storageInfo;

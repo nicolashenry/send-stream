@@ -752,6 +752,8 @@
     "jsdoc/require-returns-type": "off", // not needed: covered by typescript
     "jsdoc/require-returns": "warn",
     "jsdoc/require-throws": "warn",
+    "jsdoc/require-yields": "warn",
+    "jsdoc/require-yields-check": "warn",
     "jsdoc/valid-types": "warn",
     "unicorn/better-regex": "warn",
     "unicorn/catch-error-name": [
@@ -776,6 +778,8 @@
     "unicorn/new-for-builtins": "warn",
     "unicorn/no-abusive-eslint-disable": "warn",
     "unicorn/no-array-callback-reference": "off", // not needed: covered by typescript
+    "unicorn/no-array-for-each": "warn",
+    "unicorn/no-array-push-push": "warn",
     "unicorn/no-array-reduce": "off", // not needed: seems useless
     "unicorn/no-console-spaces": "warn",
     "unicorn/no-for-loop": "warn",
@@ -789,6 +793,7 @@
     "unicorn/no-null": "off", // not needed: seems useless
     "unicorn/no-object-as-default-parameter": "warn",
     "unicorn/no-process-exit": "warn",
+    "unicorn/no-this-assignment": "off", // not needed: covered by @typescript-eslint/no-this-alias
     "unicorn/no-unreadable-array-destructuring": "off", // too restrictive
     "unicorn/no-unsafe-regex": "off", // too restrictive
     "unicorn/no-unused-properties": "warn",
@@ -818,7 +823,7 @@
     "unicorn/prefer-reflect-apply": "warn",
     "unicorn/prefer-regexp-test": "warn",
     "unicorn/prefer-set-has": "warn",
-    "unicorn/prefer-spread": "warn",
+    "unicorn/prefer-spread": "off", // buggy: false positives
     "unicorn/prefer-string-replace-all": "off", // too soon
     "unicorn/prefer-string-slice": "warn",
     "unicorn/prefer-string-starts-ends-with": "warn",
