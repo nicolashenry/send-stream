@@ -343,7 +343,7 @@ new FileSystemStorage(directory, { fsModule: memfs })
 
 ---
 
-##### directory
+##### onDirectory
 
 Determine what should happen on directory requests (trailing slash)
 
@@ -358,7 +358,7 @@ Note that you can customize the html template used for `'list-files'` by overidi
 Example:
 
 ```js
-new FileSystemStorage(directory, { directory: 'list-files' })
+new FileSystemStorage(directory, { onDirectory: 'list-files' })
 ```
 
 ---
