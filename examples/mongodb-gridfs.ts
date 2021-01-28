@@ -8,8 +8,8 @@ import { URL } from 'url';
 import { fastify } from 'fastify';
 import * as mongodb from 'mongodb';
 
-import type { StorageOptions, StorageInfo, StreamRange } from '../src/send-stream';
-import { Storage, StorageError } from '../src/send-stream';
+import type { StorageOptions, StorageInfo, StreamRange } from '../src/send-stream.js';
+import { Storage, StorageError } from '../src/send-stream.js';
 
 const uri = 'mongodb://localhost:27017';
 const dbName = 'test';

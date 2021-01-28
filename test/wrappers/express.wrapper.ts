@@ -4,10 +4,15 @@ import { promisify } from 'util';
 
 import express from 'express';
 
-import type { Storage, FileSystemStorageOptions, PrepareResponseOptions, StreamResponse } from '../../src/send-stream';
-import { FileSystemStorage } from '../../src/send-stream';
+import type {
+	Storage,
+	FileSystemStorageOptions,
+	PrepareResponseOptions,
+	StreamResponse,
+} from '../../src/send-stream.js';
+import { FileSystemStorage } from '../../src/send-stream.js';
 
-import type { ServerWrapper } from './server.wrapper';
+import type { ServerWrapper } from './server.wrapper.js';
 
 const pipeline = promisify(streamPipeline);
 

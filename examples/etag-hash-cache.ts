@@ -1,17 +1,18 @@
 
-import { join } from 'path';
+import { dirname, join } from 'path';
 import * as crypto from 'crypto';
 import * as fs from 'fs';
 import { promisify } from 'util';
+import { fileURLToPath } from 'url';
 
 import { fastify } from 'fastify';
 
-import { FileSystemStorage } from '../src/send-stream';
+import { FileSystemStorage } from '../src/send-stream.js';
 import type {
 	FileData,
 	StorageInfo,
 	FileSystemStorageOptions,
-} from '../src/send-stream';
+} from '../src/send-stream.js';
 
 const readdir = promisify(fs.readdir);
 
@@ -75,7 +76,7 @@ class EtagHashCacheStorage extends FileSystemStorage {
 	}
 }
 
-const storage = new EtagHashCacheStorage(join(__dirname, 'assets'));
+const storage = new EtagHashCacheStorage(join(dirname(fileURLToPath(import.meta.url)), 'assets'));
 
 app.route({
 	method: ['HEAD', 'GET'],

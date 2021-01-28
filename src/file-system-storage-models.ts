@@ -1,8 +1,8 @@
 import type { Readable } from 'stream';
 import type { Dir, Stats, Dirent } from 'fs';
 
-import type { StorageOptions } from './storage-models';
-import { StorageError } from './storage-models';
+import type { StorageOptions } from './storage-models.js';
+import { StorageError } from './storage-models.js';
 
 /**
  * File data used by storage

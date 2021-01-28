@@ -10,9 +10,9 @@ import { lookup, charset } from 'mime-types';
 import parseRange from 'range-parser';
 import compressible from 'compressible';
 
-import { StreamResponse } from './response';
-import { BufferStream, MultiStream } from './streams';
-import type { ResponseHeaders, BufferOrStreamRange } from './utils';
+import { StreamResponse } from './response.js';
+import { BufferStream, MultiStream } from './streams.js';
+import type { ResponseHeaders, BufferOrStreamRange } from './utils.js';
 import {
 	millisecondsToUTCString,
 	statsToEtag,
@@ -22,14 +22,14 @@ import {
 	randomBytes,
 	StreamRange,
 	acceptEncodings,
-} from './utils';
+} from './utils.js';
 import type {
 	StorageOptions,
 	PrepareResponseOptions,
 	StorageRequestHeaders,
 	StorageInfo,
-} from './storage-models';
-import { StorageError } from './storage-models';
+} from './storage-models.js';
+import { StorageError } from './storage-models.js';
 
 const DEFAULT_ALLOWED_METHODS = <const> ['GET', 'HEAD'];
 const DEFAULT_MAX_RANGES = 200;

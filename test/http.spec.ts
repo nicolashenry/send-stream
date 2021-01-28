@@ -4,9 +4,10 @@
 import * as assert from 'assert';
 import * as http from 'http';
 import * as http2 from 'http2';
-import { normalize, join } from 'path';
+import { normalize, join, dirname } from 'path';
 import { Readable } from 'stream';
 import type { AddressInfo } from 'net';
+import { fileURLToPath } from 'url';
 
 import request from 'supertest';
 
@@ -19,8 +20,8 @@ import type {
 	FilePath,
 	StorageRequestHeaders,
 	StreamResponse,
-} from '../src/send-stream';
-import { FileSystemStorage, getFreshStatus } from '../src/send-stream';
+} from '../src/send-stream.js';
+import { FileSystemStorage, getFreshStatus } from '../src/send-stream.js';
 
 function shouldNotHaveHeader(header: string) {
 	return (res: request.Response) => {
@@ -71,7 +72,7 @@ describe('http', () => {
 	// test server
 
 	const dateRegExp = /^\w{3}, \d+ \w+ \d+ \d+:\d+:\d+ \w+$/u;
-	const fixtures = join(__dirname, 'fixtures-http');
+	const fixtures = join(dirname(fileURLToPath(import.meta.url)), 'fixtures-http');
 	const mainStorage = new FileSystemStorage(fixtures);
 
 	let lastResult: StreamResponse<unknown> | true | undefined;

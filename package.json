@@ -3,6 +3,7 @@
   "description": "Streaming file serving library with Range and conditional-GET support from file system or any streaming sources.",
   "repository": "github:nicolashenry/send-stream",
   "version": "2.3.1",
+  "type": "module",
   "keywords": [
     "static",
     "file",

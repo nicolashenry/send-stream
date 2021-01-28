@@ -1,13 +1,14 @@
 
-import { join } from 'path';
+import { dirname, join } from 'path';
+import { fileURLToPath } from 'url';
 
 import express from 'express';
 
-import { FileSystemStorage } from '../src/send-stream';
+import { FileSystemStorage } from '../src/send-stream.js';
 
 const app = express();
 
-const storage = new FileSystemStorage(join(__dirname, 'assets'));
+const storage = new FileSystemStorage(join(dirname(fileURLToPath(import.meta.url)), 'assets'));
 
 // eslint-disable-next-line @typescript-eslint/no-misused-promises
 app.get('*', async (req, res, next) => {

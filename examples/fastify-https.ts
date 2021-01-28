@@ -1,21 +1,22 @@
 
 import * as fs from 'fs';
-import { join } from 'path';
+import { dirname, join } from 'path';
+import { fileURLToPath } from 'url';
 
 import { fastify } from 'fastify';
 
-import { FileSystemStorage } from '../src/send-stream';
+import { FileSystemStorage } from '../src/send-stream.js';
 
 const app = fastify({
 	https: {
 		// eslint-disable-next-line node/no-sync
-		key: fs.readFileSync(join(__dirname, 'cert', 'localhost.key')),
+		key: fs.readFileSync(join(dirname(fileURLToPath(import.meta.url)), 'cert', 'localhost.key')),
 		// eslint-disable-next-line node/no-sync
-		cert: fs.readFileSync(join(__dirname, 'cert', 'localhost.crt')),
+		cert: fs.readFileSync(join(dirname(fileURLToPath(import.meta.url)), 'cert', 'localhost.crt')),
 	},
 });
 
-const storage = new FileSystemStorage(join(__dirname, 'assets'));
+const storage = new FileSystemStorage(join(dirname(fileURLToPath(import.meta.url)), 'assets'));
 
 app.route({
 	method: ['HEAD', 'GET'],

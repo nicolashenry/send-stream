@@ -2,10 +2,15 @@ import { Readable } from 'stream';
 import type { IncomingMessage, Server, ServerResponse } from 'http';
 import { createServer } from 'http';
 
-import type { Storage, FileSystemStorageOptions, PrepareResponseOptions, StreamResponse } from '../../src/send-stream';
-import { FileSystemStorage } from '../../src/send-stream';
+import type {
+	Storage,
+	FileSystemStorageOptions,
+	PrepareResponseOptions,
+	StreamResponse,
+} from '../../src/send-stream.js';
+import { FileSystemStorage } from '../../src/send-stream.js';
 
-import type { ServerWrapper } from './server.wrapper';
+import type { ServerWrapper } from './server.wrapper.js';
 
 export class VanillaServerWrapper implements ServerWrapper {
 	server?: Server;

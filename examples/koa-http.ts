@@ -1,13 +1,14 @@
 
-import { join } from 'path';
+import { dirname, join } from 'path';
+import { fileURLToPath } from 'url';
 
 import Koa from 'koa';
 
-import { FileSystemStorage } from '../src/send-stream';
+import { FileSystemStorage } from '../src/send-stream.js';
 
 const app = new Koa();
 
-const storage = new FileSystemStorage(join(__dirname, 'assets'));
+const storage = new FileSystemStorage(join(dirname(fileURLToPath(import.meta.url)), 'assets'));
 
 app.use(async (ctx, next) => {
 	const result = await storage.prepareResponse(ctx.request.path, ctx.req);

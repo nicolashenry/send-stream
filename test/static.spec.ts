@@ -2,12 +2,13 @@
 
 import * as assert from 'assert';
 import * as http from 'http';
-import * as path from 'path';
+import { join, dirname } from 'path';
+import { fileURLToPath } from 'url';
 
 import request from 'supertest';
 
-import type { FileSystemStorageOptions, PrepareResponseOptions, StreamResponse } from '../src/send-stream';
-import { FileSystemStorage, TrailingSlashError } from '../src/send-stream';
+import type { FileSystemStorageOptions, PrepareResponseOptions, StreamResponse } from '../src/send-stream.js';
+import { FileSystemStorage, TrailingSlashError } from '../src/send-stream.js';
 
 function shouldNotHaveHeader(header: string) {
 	return (res: request.Response) => {
@@ -21,7 +22,7 @@ function shouldNotHaveHeader(header: string) {
 }
 
 describe('static', () => {
-	const fixtures = path.join(__dirname, '/fixtures-static');
+	const fixtures = join(dirname(fileURLToPath(import.meta.url)), '/fixtures-static');
 
 	let lastResult: StreamResponse<unknown> | true | undefined;
 

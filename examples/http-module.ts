@@ -1,10 +1,11 @@
 
 import * as http from 'http';
-import { join } from 'path';
+import { dirname, join } from 'path';
+import { fileURLToPath } from 'url';
 
-import { FileSystemStorage } from '../src/send-stream';
+import { FileSystemStorage } from '../src/send-stream.js';
 
-const storage = new FileSystemStorage(join(__dirname, 'assets'));
+const storage = new FileSystemStorage(join(dirname(fileURLToPath(import.meta.url)), 'assets'));
 
 const app = http.createServer((req, res) => {
 	(async () => {

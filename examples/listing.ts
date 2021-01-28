@@ -1,13 +1,17 @@
 
-import { join } from 'path';
+import { dirname, join } from 'path';
+import { fileURLToPath } from 'url';
 
 import { fastify } from 'fastify';
 
-import { FileSystemStorage } from '../src/send-stream';
+import { FileSystemStorage } from '../src/send-stream.js';
 
 const app = fastify();
 
-const storage = new FileSystemStorage(join(__dirname, 'assets'), { onDirectory: 'list-files' });
+const storage = new FileSystemStorage(
+	join(dirname(fileURLToPath(import.meta.url)), 'assets'),
+	{ onDirectory: 'list-files' },
+);
 
 app.route({
 	method: ['HEAD', 'GET'],

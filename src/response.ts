@@ -6,8 +6,8 @@ import type { Readable } from 'stream';
 import { pipeline as streamPipeline } from 'stream';
 import { promisify, types } from 'util';
 
-import type { ResponseHeaders } from './utils';
-import type { StorageInfo, StorageError } from './storage-models';
+import type { ResponseHeaders } from './utils.js';
+import type { StorageInfo, StorageError } from './storage-models.js';
 
 const promisifiedStreamPipeline = promisify(streamPipeline);
 

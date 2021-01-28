@@ -7,18 +7,18 @@ import { promisify } from 'util';
 // eslint-disable-next-line node/prefer-global/url
 import { URL } from 'url';
 
-import { Storage } from './storage';
-import type { StorageRequestHeaders, StorageInfo } from './storage-models';
-import { StorageError } from './storage-models';
-import type { StreamRange } from './utils';
-import { acceptEncodings } from './utils';
+import { Storage } from './storage.js';
+import type { StorageRequestHeaders, StorageInfo } from './storage-models.js';
+import { StorageError } from './storage-models.js';
+import type { StreamRange } from './utils.js';
+import { acceptEncodings } from './utils.js';
 import type {
 	FilePath,
 	FileData,
 	FSModule,
 	FileSystemStorageOptions,
 	RegexpContentEncodingMapping,
-} from './file-system-storage-models';
+} from './file-system-storage-models.js';
 import {
 	MalformedPathError,
 	NotNormalizedError,
@@ -29,7 +29,7 @@ import {
 	TrailingSlashError,
 	IsDirectoryError,
 	DoesNotExistError,
-} from './file-system-storage-models';
+} from './file-system-storage-models.js';
 
 /**
  * Escape HTML in path for this library (only replace & character since ", < and > are already excluded)

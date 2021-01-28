@@ -4,9 +4,10 @@
 import * as assert from 'assert';
 import * as fs from 'fs';
 import { createBrotliDecompress } from 'zlib';
-import { join } from 'path';
+import { dirname, join } from 'path';
 import { Readable } from 'stream';
 import { promisify } from 'util';
+import { fileURLToPath } from 'url';
 
 import request from 'supertest';
 import * as memfs from 'memfs';
@@ -18,14 +19,14 @@ import type {
 	FilePath,
 	StorageRequestHeaders,
 	StreamResponse,
-} from '../src/send-stream';
-import { Storage, FileSystemStorage, BufferStream } from '../src/send-stream';
+} from '../src/send-stream.js';
+import { Storage, FileSystemStorage, BufferStream } from '../src/send-stream.js';
 
-import type { ServerWrapper } from './wrappers/server.wrapper';
-import { FastifyServerWrapper } from './wrappers/fastify.wrapper';
-import { KoaServerWrapper } from './wrappers/koa.wrapper';
-import { ExpressServerWrapper } from './wrappers/express.wrapper';
-import { VanillaServerWrapper } from './wrappers/vanilla.wrapper';
+import type { ServerWrapper } from './wrappers/server.wrapper.js';
+import { FastifyServerWrapper } from './wrappers/fastify.wrapper.js';
+import { KoaServerWrapper } from './wrappers/koa.wrapper.js';
+import { ExpressServerWrapper } from './wrappers/express.wrapper.js';
+import { VanillaServerWrapper } from './wrappers/vanilla.wrapper.js';
 
 function brotliParser(res: request.Response, cb: (err: Error | null, body: unknown) => void) {
 	const decompress = res.pipe(createBrotliDecompress());
@@ -95,6 +96,8 @@ const frameworks = <const> [
 	],
 ];
 
+const dir = dirname(fileURLToPath(import.meta.url));
+
 for (const [frameworkName, frameworkServer] of frameworks) {
 	describe(frameworkName, () => {
 		const context: { lastResult: StreamResponse<unknown> | true | undefined } = { lastResult: undefined };
@@ -119,7 +122,7 @@ for (const [frameworkName, frameworkServer] of frameworks) {
 					before(async () => {
 						app = frameworkServer(context);
 
-						app.send(__dirname, '/fixtures-frameworks/hello.txt');
+						app.send(dir, '/fixtures-frameworks/hello.txt');
 
 						await app.listen();
 					});
@@ -138,7 +141,7 @@ for (const [frameworkName, frameworkServer] of frameworks) {
 					before(async () => {
 						app = frameworkServer(context);
 
-						app.send(__dirname, '/fixtures-frameworks/world/index.html');
+						app.send(dir, '/fixtures-frameworks/world/index.html');
 
 						await app.listen();
 					});
@@ -158,7 +161,7 @@ for (const [frameworkName, frameworkServer] of frameworks) {
 					before(async () => {
 						app = frameworkServer(context);
 
-						app.send(__dirname, '/fixtures-frameworks/not-existing.txt');
+						app.send(dir, '/fixtures-frameworks/not-existing.txt');
 
 						await app.listen();
 					});
@@ -180,7 +183,7 @@ for (const [frameworkName, frameworkServer] of frameworks) {
 					before(async () => {
 						app = frameworkServer(context);
 
-						app.send(__dirname, '/../package.json');
+						app.send(dir, '/../package.json');
 
 						await app.listen();
 					});
@@ -200,7 +203,7 @@ for (const [frameworkName, frameworkServer] of frameworks) {
 						app = frameworkServer(context);
 
 						app.send(
-							join(__dirname, 'fixtures-frameworks'),
+							join(dir, 'fixtures-frameworks'),
 							'/../../test/fixtures-frameworks/world/index.html',
 						);
 
@@ -221,7 +224,7 @@ for (const [frameworkName, frameworkServer] of frameworks) {
 					before(async () => {
 						app = frameworkServer(context);
 
-						app.send(join(__dirname, 'fixtures-frameworks'), 'index.html');
+						app.send(join(dir, 'fixtures-frameworks'), 'index.html');
 
 						await app.listen();
 					});
@@ -243,7 +246,7 @@ for (const [frameworkName, frameworkServer] of frameworks) {
 					before(async () => {
 						app = frameworkServer(context);
 
-						app.send(__dirname, '/fixtures-frameworks/');
+						app.send(dir, '/fixtures-frameworks/');
 
 						await app.listen();
 					});
@@ -262,7 +265,7 @@ for (const [frameworkName, frameworkServer] of frameworks) {
 					before(async () => {
 						app = frameworkServer(context);
 
-						app.send(__dirname, '/fixtures-frameworks');
+						app.send(dir, '/fixtures-frameworks');
 
 						await app.listen();
 					});
@@ -281,7 +284,7 @@ for (const [frameworkName, frameworkServer] of frameworks) {
 					before(async () => {
 						app = frameworkServer(context);
 
-						app.send(__dirname, undefined, { onDirectory: 'list-files' });
+						app.send(dir, undefined, { onDirectory: 'list-files' });
 
 						await app.listen();
 					});
@@ -292,7 +295,7 @@ for (const [frameworkName, frameworkServer] of frameworks) {
 						await request(app.server)
 							.get('/fixtures-frameworks/')
 							.expect('Content-Type', 'text/html; charset=UTF-8')
-							.expect('X-Send-Stream-Resolved-Path', join(__dirname, 'fixtures-frameworks', ''))
+							.expect('X-Send-Stream-Resolved-Path', join(dir, 'fixtures-frameworks', ''))
 							.expect(200);
 					});
 					it('should 404 without /', async () => {
@@ -314,7 +317,7 @@ for (const [frameworkName, frameworkServer] of frameworks) {
 					before(async () => {
 						app = frameworkServer(context);
 
-						app.send(__dirname, undefined, { onDirectory: 'serve-index' });
+						app.send(dir, undefined, { onDirectory: 'serve-index' });
 
 						await app.listen();
 					});
@@ -327,7 +330,7 @@ for (const [frameworkName, frameworkServer] of frameworks) {
 							.expect('Content-Type', 'text/html; charset=UTF-8')
 							.expect(
 								'X-Send-Stream-Resolved-Path',
-								join(__dirname, 'fixtures-frameworks', 'world', 'index.html'),
+								join(dir, 'fixtures-frameworks', 'world', 'index.html'),
 							)
 							.expect(200, 'html index');
 					});
@@ -357,7 +360,7 @@ for (const [frameworkName, frameworkServer] of frameworks) {
 				before(async () => {
 					app = frameworkServer(context);
 
-					app.send(__dirname, '/%');
+					app.send(dir, '/%');
 
 					await app.listen();
 				});
@@ -378,7 +381,7 @@ for (const [frameworkName, frameworkServer] of frameworks) {
 					before(async () => {
 						app = frameworkServer(context);
 
-						app.send(__dirname, '/%00');
+						app.send(dir, '/%00');
 
 						await app.listen();
 					});
@@ -397,7 +400,7 @@ for (const [frameworkName, frameworkServer] of frameworks) {
 					before(async () => {
 						app = frameworkServer(context);
 
-						app.send(__dirname, '/%2F');
+						app.send(dir, '/%2F');
 
 						await app.listen();
 					});
@@ -416,7 +419,7 @@ for (const [frameworkName, frameworkServer] of frameworks) {
 					before(async () => {
 						app = frameworkServer(context);
 
-						app.send(__dirname, '/\\');
+						app.send(dir, '/\\');
 
 						await app.listen();
 					});
@@ -438,7 +441,7 @@ for (const [frameworkName, frameworkServer] of frameworks) {
 					before(async () => {
 						app = frameworkServer(context);
 
-						app.send(__dirname, undefined, { dynamicCompression: true });
+						app.send(dir, undefined, { dynamicCompression: true });
 
 						await app.listen();
 					});
@@ -452,7 +455,7 @@ for (const [frameworkName, frameworkServer] of frameworks) {
 							.set('Accept-Encoding', 'br, gzip, identity')
 							.expect(
 								'X-Send-Stream-Resolved-Path',
-								join(__dirname, '/fixtures-frameworks/some.path/index.json'),
+								join(dir, '/fixtures-frameworks/some.path/index.json'),
 							)
 							.expect(shouldNotHaveHeader('Content-Length'))
 							.expect('Content-Encoding', 'br')
@@ -465,7 +468,7 @@ for (const [frameworkName, frameworkServer] of frameworks) {
 							.set('Accept-Encoding', 'br;q=0.8, gzip;q=0.8, identity')
 							.expect(
 								'X-Send-Stream-Resolved-Path',
-								join(__dirname, '/fixtures-frameworks/some.path/index.json'),
+								join(dir, '/fixtures-frameworks/some.path/index.json'),
 							)
 							.expect('Content-Length', '29')
 							.expect(shouldNotHaveHeader('Content-Encoding'))
@@ -476,7 +479,7 @@ for (const [frameworkName, frameworkServer] of frameworks) {
 						await request(app.server)
 							.get('/fixtures-frameworks/user.json')
 							.set('Accept-Encoding', 'br;q=0.8, gzip;q=0.8, identity')
-							.expect('X-Send-Stream-Resolved-Path', join(__dirname, '/fixtures-frameworks/user.json'))
+							.expect('X-Send-Stream-Resolved-Path', join(dir, '/fixtures-frameworks/user.json'))
 							.expect('Content-Length', '18')
 							.expect(shouldNotHaveHeader('Content-Encoding'))
 							.expect('{ "name": "tobi" }')
@@ -486,7 +489,7 @@ for (const [frameworkName, frameworkServer] of frameworks) {
 						await request(app.server)
 							.get('/fixtures-frameworks/test.png')
 							.set('Accept-Encoding', 'br, gzip, identity')
-							.expect('X-Send-Stream-Resolved-Path', join(__dirname, '/fixtures-frameworks/test.png'))
+							.expect('X-Send-Stream-Resolved-Path', join(dir, '/fixtures-frameworks/test.png'))
 							.expect('Content-Length', '538')
 							.expect(shouldNotHaveHeader('Content-Encoding'))
 							.expect(200);
@@ -499,7 +502,7 @@ for (const [frameworkName, frameworkServer] of frameworks) {
 						app = frameworkServer(context);
 
 						app.send(
-							__dirname,
+							dir,
 							undefined,
 							{ dynamicCompression: true, dynamicCompressionMinLength: 10 },
 						);
@@ -516,7 +519,7 @@ for (const [frameworkName, frameworkServer] of frameworks) {
 							.set('Accept-Encoding', 'br, gzip, identity')
 							.expect(
 								'X-Send-Stream-Resolved-Path',
-								join(__dirname, '/fixtures-frameworks/some.path/index.json'),
+								join(dir, '/fixtures-frameworks/some.path/index.json'),
 							)
 							.expect(shouldNotHaveHeader('Content-Length'))
 							.expect('Content-Encoding', 'br')
@@ -528,7 +531,7 @@ for (const [frameworkName, frameworkServer] of frameworks) {
 							.get('/fixtures-frameworks/user.json')
 							.parse(brotliParser)
 							.set('Accept-Encoding', 'br, gzip, identity')
-							.expect('X-Send-Stream-Resolved-Path', join(__dirname, '/fixtures-frameworks/user.json'))
+							.expect('X-Send-Stream-Resolved-Path', join(dir, '/fixtures-frameworks/user.json'))
 							.expect(shouldNotHaveHeader('Content-Length'))
 							.expect('Content-Encoding', 'br')
 							.expect(200);
@@ -539,7 +542,7 @@ for (const [frameworkName, frameworkServer] of frameworks) {
 						await request(app.server)
 							.get('/fixtures-frameworks/hello.txt')
 							.set('Accept-Encoding', 'br, gzip, identity')
-							.expect('X-Send-Stream-Resolved-Path', join(__dirname, '/fixtures-frameworks/hello.txt'))
+							.expect('X-Send-Stream-Resolved-Path', join(dir, '/fixtures-frameworks/hello.txt'))
 							.expect('Content-Length', '5')
 							.expect(shouldNotHaveHeader('Content-Encoding'))
 							.expect('world')
@@ -552,7 +555,7 @@ for (const [frameworkName, frameworkServer] of frameworks) {
 					before(async () => {
 						app = frameworkServer(context);
 
-						app.send(__dirname, undefined, { dynamicCompression: true, onDirectory: 'list-files' });
+						app.send(dir, undefined, { dynamicCompression: true, onDirectory: 'list-files' });
 
 						await app.listen();
 					});
@@ -576,7 +579,7 @@ for (const [frameworkName, frameworkServer] of frameworks) {
 					before(async () => {
 						app = frameworkServer(context);
 
-						app.send(__dirname, undefined, {
+						app.send(dir, undefined, {
 							dynamicCompression: true,
 							mimeTypeCompressible: () => true,
 						});
@@ -593,7 +596,7 @@ for (const [frameworkName, frameworkServer] of frameworks) {
 							.set('Accept-Encoding', 'br, gzip, identity')
 							.expect(
 								'X-Send-Stream-Resolved-Path',
-								join(__dirname, '/fixtures-frameworks/some.path/index.json'),
+								join(dir, '/fixtures-frameworks/some.path/index.json'),
 							)
 							.expect(shouldNotHaveHeader('Content-Length'))
 							.expect('Content-Encoding', 'br')
@@ -604,7 +607,7 @@ for (const [frameworkName, frameworkServer] of frameworks) {
 						await request(app.server)
 							.get('/fixtures-frameworks/test.png')
 							.set('Accept-Encoding', 'br, gzip, identity')
-							.expect('X-Send-Stream-Resolved-Path', join(__dirname, '/fixtures-frameworks/test.png'))
+							.expect('X-Send-Stream-Resolved-Path', join(dir, '/fixtures-frameworks/test.png'))
 							.expect(shouldNotHaveHeader('Content-Length'))
 							.expect('Content-Encoding', 'br')
 							.expect(200);
@@ -616,7 +619,7 @@ for (const [frameworkName, frameworkServer] of frameworks) {
 					before(async () => {
 						app = frameworkServer(context);
 
-						app.send(__dirname, undefined, { dynamicCompression: ['gzip'] });
+						app.send(dir, undefined, { dynamicCompression: ['gzip'] });
 
 						await app.listen();
 					});
@@ -629,7 +632,7 @@ for (const [frameworkName, frameworkServer] of frameworks) {
 							.set('Accept-Encoding', 'br, gzip, identity')
 							.expect(
 								'X-Send-Stream-Resolved-Path',
-								join(__dirname, '/fixtures-frameworks/some.path/index.json'),
+								join(dir, '/fixtures-frameworks/some.path/index.json'),
 							)
 							.expect(shouldNotHaveHeader('Content-Length'))
 							.expect('Content-Encoding', 'gzip')
@@ -643,7 +646,7 @@ for (const [frameworkName, frameworkServer] of frameworks) {
 					before(async () => {
 						app = frameworkServer(context);
 
-						app.send(__dirname, undefined, { dynamicCompression: ['deflate'], noResult: true });
+						app.send(dir, undefined, { dynamicCompression: ['deflate'], noResult: true });
 
 						await app.listen();
 					});
@@ -664,7 +667,7 @@ for (const [frameworkName, frameworkServer] of frameworks) {
 					before(async () => {
 						app = frameworkServer(context);
 
-						app.sendWithError(__dirname, undefined, { dynamicCompression: true });
+						app.sendWithError(dir, undefined, { dynamicCompression: true });
 
 						await app.listen();
 					});
@@ -704,7 +707,7 @@ for (const [frameworkName, frameworkServer] of frameworks) {
 					before(async () => {
 						app = frameworkServer(context);
 
-						app.send(__dirname, '/fixtures-frameworks/user.json', {
+						app.send(dir, '/fixtures-frameworks/user.json', {
 							contentEncodingMappings: [
 								{
 									matcher: /^(?<path>.*\.json)$/u,
@@ -731,7 +734,7 @@ for (const [frameworkName, frameworkServer] of frameworks) {
 						await request(app.server)
 							.get('/')
 							.set('Accept-Encoding', 'br, gzip, identity')
-							.expect('X-Send-Stream-Resolved-Path', join(__dirname, '/fixtures-frameworks/user.json'))
+							.expect('X-Send-Stream-Resolved-Path', join(dir, '/fixtures-frameworks/user.json'))
 							.expect('Content-Length', '18')
 							.expect(shouldNotHaveHeader('Content-Encoding'))
 							.expect('{ "name": "tobi" }')
@@ -744,7 +747,7 @@ for (const [frameworkName, frameworkServer] of frameworks) {
 					before(async () => {
 						app = frameworkServer(context);
 
-						app.send(__dirname, '/fixtures-frameworks/notexisting.json', {
+						app.send(dir, '/fixtures-frameworks/notexisting.json', {
 							contentEncodingMappings: [
 								{
 									matcher: /^(?<path>.*\.json)$/u,
@@ -782,7 +785,7 @@ for (const [frameworkName, frameworkServer] of frameworks) {
 					before(async () => {
 						app = frameworkServer(context);
 
-						app.send(__dirname, '/fixtures-frameworks/hello.txt', {
+						app.send(dir, '/fixtures-frameworks/hello.txt', {
 							contentEncodingMappings: [
 								{
 									matcher: /^(?<path>.*\.txt)$/u,
@@ -820,7 +823,7 @@ for (const [frameworkName, frameworkServer] of frameworks) {
 					before(async () => {
 						app = frameworkServer(context);
 
-						app.send(__dirname, '/fixtures-frameworks/hello.txt', {
+						app.send(dir, '/fixtures-frameworks/hello.txt', {
 							contentEncodingMappings: [
 								{
 									matcher: /^(?<path>.*\.txt)$/u,
@@ -847,7 +850,7 @@ for (const [frameworkName, frameworkServer] of frameworks) {
 						await request(app.server)
 							.get('/')
 							.set('Accept-Encoding', 'br, gzip, identity')
-							.expect('X-Send-Stream-Resolved-Path', join(__dirname, '/fixtures-frameworks/hello.txt'))
+							.expect('X-Send-Stream-Resolved-Path', join(dir, '/fixtures-frameworks/hello.txt'))
 							.expect(shouldNotHaveHeader('Content-Encoding'))
 							.expect('Content-Length', '5')
 							.expect('world')
@@ -862,7 +865,7 @@ for (const [frameworkName, frameworkServer] of frameworks) {
 						before(async () => {
 							app = frameworkServer(context);
 
-							app.send(__dirname, '/fixtures-frameworks/hello.txt', {
+							app.send(dir, '/fixtures-frameworks/hello.txt', {
 								contentEncodingMappings: [
 									{
 										matcher: '^(?<path>.*\\.txt)$',
@@ -891,7 +894,7 @@ for (const [frameworkName, frameworkServer] of frameworks) {
 								.set('Accept-Encoding', 'br, gzip, identity')
 								.expect(
 									'X-Send-Stream-Resolved-Path',
-									join(__dirname, '/fixtures-frameworks/hello.txt'),
+									join(dir, '/fixtures-frameworks/hello.txt'),
 								)
 								.expect(shouldNotHaveHeader('Content-Encoding'))
 								.expect('Content-Length', '5')
@@ -908,7 +911,7 @@ for (const [frameworkName, frameworkServer] of frameworks) {
 						before(async () => {
 							app = frameworkServer(context);
 
-							app.send(__dirname, '/fixtures-frameworks/hello.txt', {
+							app.send(dir, '/fixtures-frameworks/hello.txt', {
 								contentEncodingMappings: [
 									{
 										matcher: /^(?<path>.*\.json)$/u,
@@ -939,7 +942,7 @@ for (const [frameworkName, frameworkServer] of frameworks) {
 									.set('Accept-Encoding', 'br, gzip, identity')
 									.expect(
 										'X-Send-Stream-Resolved-Path',
-										join(__dirname, '/fixtures-frameworks/hello.txt'),
+										join(dir, '/fixtures-frameworks/hello.txt'),
 									)
 									.expect(shouldNotHaveHeader('Content-Encoding'))
 									.expect('Content-Length', '5')
@@ -955,7 +958,7 @@ for (const [frameworkName, frameworkServer] of frameworks) {
 					before(async () => {
 						app = frameworkServer(context);
 
-						app.send(__dirname, '/fixtures-frameworks/gzip.json', {
+						app.send(dir, '/fixtures-frameworks/gzip.json', {
 							contentEncodingMappings: [
 								{
 									matcher: /^(?<path>.*\.json)$/u,
@@ -982,7 +985,7 @@ for (const [frameworkName, frameworkServer] of frameworks) {
 						await request(app.server)
 							.get('/')
 							.set('Accept-Encoding', 'deflate, identity')
-							.expect('X-Send-Stream-Resolved-Path', join(__dirname, '/fixtures-frameworks/gzip.json'))
+							.expect('X-Send-Stream-Resolved-Path', join(dir, '/fixtures-frameworks/gzip.json'))
 							.expect(shouldNotHaveHeader('Content-Encoding'))
 							.expect('Content-Length', '18')
 							.expect('{ "name": "tobi" }')
@@ -992,7 +995,7 @@ for (const [frameworkName, frameworkServer] of frameworks) {
 						await request(app.server)
 							.get('/')
 							.set('Accept-Encoding', '')
-							.expect('X-Send-Stream-Resolved-Path', join(__dirname, '/fixtures-frameworks/gzip.json'))
+							.expect('X-Send-Stream-Resolved-Path', join(dir, '/fixtures-frameworks/gzip.json'))
 							.expect(shouldNotHaveHeader('Content-Encoding'))
 							.expect('Content-Length', '18')
 							.expect('{ "name": "tobi" }')
@@ -1005,7 +1008,7 @@ for (const [frameworkName, frameworkServer] of frameworks) {
 					before(async () => {
 						app = frameworkServer(context);
 
-						app.send(__dirname, '/fixtures-frameworks/gzip.json', {
+						app.send(dir, '/fixtures-frameworks/gzip.json', {
 							contentEncodingMappings: [
 								{
 									matcher: /^(?<path>.*\.json)$/u,
@@ -1036,7 +1039,7 @@ for (const [frameworkName, frameworkServer] of frameworks) {
 						await request(app.server)
 							.get('/')
 							.set('Accept-Encoding', 'gzip, identity')
-							.expect('X-Send-Stream-Resolved-Path', join(__dirname, '/fixtures-frameworks/gzip.json'))
+							.expect('X-Send-Stream-Resolved-Path', join(dir, '/fixtures-frameworks/gzip.json'))
 							.expect(shouldNotHaveHeader('Content-Encoding'))
 							.expect('Content-Length', '18')
 							.expect('{ "name": "tobi" }')
@@ -1049,7 +1052,7 @@ for (const [frameworkName, frameworkServer] of frameworks) {
 					before(async () => {
 						app = frameworkServer(context);
 
-						app.send(__dirname, '/fixtures-frameworks/gzip.json', {
+						app.send(dir, '/fixtures-frameworks/gzip.json', {
 							contentEncodingMappings: [
 								{
 									matcher: /^(?<path>.*\.json)$/u,
@@ -1076,7 +1079,7 @@ for (const [frameworkName, frameworkServer] of frameworks) {
 						await request(app.server)
 							.get('/')
 							.set('Accept-Encoding', 'gzip, ùù')
-							.expect('X-Send-Stream-Resolved-Path', join(__dirname, '/fixtures-frameworks/gzip.json'))
+							.expect('X-Send-Stream-Resolved-Path', join(dir, '/fixtures-frameworks/gzip.json'))
 							.expect(shouldNotHaveHeader('Content-Encoding'))
 							.expect('Content-Length', '18')
 							.expect('{ "name": "tobi" }')
@@ -1090,7 +1093,7 @@ for (const [frameworkName, frameworkServer] of frameworks) {
 								.set('Accept-Encoding', ',')
 								.expect(
 									'X-Send-Stream-Resolved-Path',
-									join(__dirname, '/fixtures-frameworks/gzip.json'),
+									join(dir, '/fixtures-frameworks/gzip.json'),
 								)
 								.expect(shouldNotHaveHeader('Content-Encoding'))
 								.expect('Content-Length', '18')
@@ -1105,7 +1108,7 @@ for (const [frameworkName, frameworkServer] of frameworks) {
 					before(async () => {
 						app = frameworkServer(context);
 
-						app.send(__dirname, '/fixtures-frameworks/gzip.json', {
+						app.send(dir, '/fixtures-frameworks/gzip.json', {
 							contentEncodingMappings: [
 								{
 									matcher: /^(?<path>.*\.json)$/u,
@@ -1132,7 +1135,7 @@ for (const [frameworkName, frameworkServer] of frameworks) {
 						await request(app.server)
 							.get('/')
 							.set('Accept-Encoding', 'gzip, deflate, identity')
-							.expect('X-Send-Stream-Resolved-Path', join(__dirname, '/fixtures-frameworks/gzip.json.gz'))
+							.expect('X-Send-Stream-Resolved-Path', join(dir, '/fixtures-frameworks/gzip.json.gz'))
 							.expect('Content-Encoding', 'gzip')
 							.expect('Content-Disposition', 'inline; filename="gzip.json"')
 							.expect('Content-Length', '48')
@@ -1144,7 +1147,7 @@ for (const [frameworkName, frameworkServer] of frameworks) {
 						await request(app.server)
 							.get('/')
 							.set('Accept-Encoding', ', gzip')
-							.expect('X-Send-Stream-Resolved-Path', join(__dirname, '/fixtures-frameworks/gzip.json.gz'))
+							.expect('X-Send-Stream-Resolved-Path', join(dir, '/fixtures-frameworks/gzip.json.gz'))
 							.expect('Content-Encoding', 'gzip')
 							.expect('Content-Length', '48')
 							.expect('Content-Type', /^application\/json/u)
@@ -1155,7 +1158,7 @@ for (const [frameworkName, frameworkServer] of frameworks) {
 						await request(app.server)
 							.get('/')
 							.set('Accept-Encoding', ' , , gzip')
-							.expect('X-Send-Stream-Resolved-Path', join(__dirname, '/fixtures-frameworks/gzip.json.gz'))
+							.expect('X-Send-Stream-Resolved-Path', join(dir, '/fixtures-frameworks/gzip.json.gz'))
 							.expect('Content-Encoding', 'gzip')
 							.expect('Content-Length', '48')
 							.expect('Content-Type', /^application\/json/u)
@@ -1169,7 +1172,7 @@ for (const [frameworkName, frameworkServer] of frameworks) {
 					before(async () => {
 						app = frameworkServer(context);
 
-						app.send(__dirname, '/fixtures-frameworks/gzip.json', {
+						app.send(dir, '/fixtures-frameworks/gzip.json', {
 							contentEncodingMappings: [
 								{
 									matcher: /^(?<path>.*\.json)$/u,
@@ -1196,7 +1199,7 @@ for (const [frameworkName, frameworkServer] of frameworks) {
 						await request(app.server)
 							.get('/')
 							.set('Accept-Encoding', 'deflate, identity')
-							.expect('X-Send-Stream-Resolved-Path', join(__dirname, '/fixtures-frameworks/gzip.json'))
+							.expect('X-Send-Stream-Resolved-Path', join(dir, '/fixtures-frameworks/gzip.json'))
 							.expect(shouldNotHaveHeader('Content-Encoding'))
 							.expect('Content-Length', '18')
 							.expect('{ "name": "tobi" }')
@@ -1206,7 +1209,7 @@ for (const [frameworkName, frameworkServer] of frameworks) {
 						await request(app.server)
 							.get('/')
 							.set('Accept-Encoding', 'gzip;q=0,br;q=0,*')
-							.expect('X-Send-Stream-Resolved-Path', join(__dirname, '/fixtures-frameworks/gzip.json'))
+							.expect('X-Send-Stream-Resolved-Path', join(dir, '/fixtures-frameworks/gzip.json'))
 							.expect(shouldNotHaveHeader('Content-Encoding'))
 							.expect('Content-Length', '18')
 							.expect('Content-Type', /^application\/json/u)
@@ -1220,7 +1223,7 @@ for (const [frameworkName, frameworkServer] of frameworks) {
 					before(async () => {
 						app = frameworkServer(context);
 
-						app.send(__dirname, '/fixtures-frameworks/gzip.json', {
+						app.send(dir, '/fixtures-frameworks/gzip.json', {
 							contentEncodingMappings: [
 								{
 									matcher: /^(?<path>.*\.json)$/u,
@@ -1248,7 +1251,7 @@ for (const [frameworkName, frameworkServer] of frameworks) {
 							.get('/')
 							.parse(brotliParser)
 							.set('Accept-Encoding', 'br, deflate, identity')
-							.expect('X-Send-Stream-Resolved-Path', join(__dirname, '/fixtures-frameworks/gzip.json.br'))
+							.expect('X-Send-Stream-Resolved-Path', join(dir, '/fixtures-frameworks/gzip.json.br'))
 							.expect('Content-Encoding', 'br')
 							.expect('Content-Length', '22')
 							.expect('Content-Type', /^application\/json/u)
@@ -1261,7 +1264,7 @@ for (const [frameworkName, frameworkServer] of frameworks) {
 							.get('/')
 							.parse(brotliParser)
 							.set('Accept-Encoding', 'gzip;q=0,*')
-							.expect('X-Send-Stream-Resolved-Path', join(__dirname, '/fixtures-frameworks/gzip.json.br'))
+							.expect('X-Send-Stream-Resolved-Path', join(dir, '/fixtures-frameworks/gzip.json.br'))
 							.expect('Content-Encoding', 'br')
 							.expect('Content-Length', '22')
 							.expect('Content-Type', /^application\/json/u)
@@ -1275,7 +1278,7 @@ for (const [frameworkName, frameworkServer] of frameworks) {
 					before(async () => {
 						app = frameworkServer(context);
 
-						app.send(__dirname, '/fixtures-frameworks/gzip.json', {
+						app.send(dir, '/fixtures-frameworks/gzip.json', {
 							contentEncodingMappings: [
 								{
 									matcher: /^(?<path>.*\.json)$/u,
@@ -1298,7 +1301,7 @@ for (const [frameworkName, frameworkServer] of frameworks) {
 						await request(app.server)
 							.get('/')
 							.set('Accept-Encoding', 'br, gzip, deflate, identity')
-							.expect('X-Send-Stream-Resolved-Path', join(__dirname, '/fixtures-frameworks/gzip.json.gz'))
+							.expect('X-Send-Stream-Resolved-Path', join(dir, '/fixtures-frameworks/gzip.json.gz'))
 							.expect('Content-Encoding', 'gzip')
 							.expect('Content-Length', '48')
 							.expect('{ "name": "tobi" }')
@@ -1311,7 +1314,7 @@ for (const [frameworkName, frameworkServer] of frameworks) {
 					before(async () => {
 						app = frameworkServer(context);
 
-						app.send(__dirname, '/fixtures-frameworks/gzip.json', {
+						app.send(dir, '/fixtures-frameworks/gzip.json', {
 							contentEncodingMappings: [
 								{
 									matcher: /^(?<path>.*\.json)$/u,
@@ -1334,7 +1337,7 @@ for (const [frameworkName, frameworkServer] of frameworks) {
 						await request(app.server)
 							.get('/')
 							.set('Accept-Encoding', 'br;q=0.2, gzip;q=0.2, deflate;q=0.2, identity')
-							.expect('X-Send-Stream-Resolved-Path', join(__dirname, '/fixtures-frameworks/gzip.json'))
+							.expect('X-Send-Stream-Resolved-Path', join(dir, '/fixtures-frameworks/gzip.json'))
 							.expect(shouldNotHaveHeader('Content-Encoding'))
 							.expect('Content-Length', '18')
 							.expect('{ "name": "tobi" }')
@@ -1347,7 +1350,7 @@ for (const [frameworkName, frameworkServer] of frameworks) {
 					before(async () => {
 						app = frameworkServer(context);
 
-						app.send(__dirname, '/fixtures-frameworks/gzip.json', {
+						app.send(dir, '/fixtures-frameworks/gzip.json', {
 							contentEncodingMappings: [
 								{
 									matcher: /^(?<path>.*\.json)$/u,
@@ -1370,7 +1373,7 @@ for (const [frameworkName, frameworkServer] of frameworks) {
 						await request(app.server)
 							.get('/')
 							.set('Accept-Encoding', 'br;q=0.2')
-							.expect('X-Send-Stream-Resolved-Path', join(__dirname, '/fixtures-frameworks/gzip.json'))
+							.expect('X-Send-Stream-Resolved-Path', join(dir, '/fixtures-frameworks/gzip.json'))
 							.expect(shouldNotHaveHeader('Content-Encoding'))
 							.expect('Content-Length', '18')
 							.expect('{ "name": "tobi" }')
@@ -1383,7 +1386,7 @@ for (const [frameworkName, frameworkServer] of frameworks) {
 					before(async () => {
 						app = frameworkServer(context);
 
-						app.send(__dirname, '/fixtures-frameworks/gzip.json', {
+						app.send(dir, '/fixtures-frameworks/gzip.json', {
 							contentEncodingMappings: [
 								{
 									matcher: /^(?<path>.*\.json)$/u,
@@ -1406,7 +1409,7 @@ for (const [frameworkName, frameworkServer] of frameworks) {
 						await request(app.server)
 							.get('/')
 							.set('Accept-Encoding', 'x-gzip;q=0.2')
-							.expect('X-Send-Stream-Resolved-Path', join(__dirname, '/fixtures-frameworks/gzip.json.gz'))
+							.expect('X-Send-Stream-Resolved-Path', join(dir, '/fixtures-frameworks/gzip.json.gz'))
 							.expect('Content-Encoding', 'gzip')
 							.expect('Content-Length', '48')
 							.expect('{ "name": "tobi" }')
@@ -1419,7 +1422,7 @@ for (const [frameworkName, frameworkServer] of frameworks) {
 					before(async () => {
 						app = frameworkServer(context);
 
-						app.send(__dirname, '/fixtures-frameworks/gzip.json', {
+						app.send(dir, '/fixtures-frameworks/gzip.json', {
 							contentEncodingMappings: [
 								{
 									matcher: /^(?<path>.*\.json)$/u,
@@ -1442,7 +1445,7 @@ for (const [frameworkName, frameworkServer] of frameworks) {
 						await request(app.server)
 							.get('/')
 							.set('Accept-Encoding', 'x-compress;q=0.2')
-							.expect('X-Send-Stream-Resolved-Path', join(__dirname, '/fixtures-frameworks/gzip.json'))
+							.expect('X-Send-Stream-Resolved-Path', join(dir, '/fixtures-frameworks/gzip.json'))
 							.expect(shouldNotHaveHeader('Content-Encoding'))
 							.expect('Content-Length', '18')
 							.expect('{ "name": "tobi" }')
@@ -1455,7 +1458,7 @@ for (const [frameworkName, frameworkServer] of frameworks) {
 					before(async () => {
 						app = frameworkServer(context);
 
-						app.send(__dirname, '/fixtures-frameworks/gzip.json', {
+						app.send(dir, '/fixtures-frameworks/gzip.json', {
 							contentEncodingMappings: [
 								{
 									matcher: /^(?<path>.*\.json)$/u,
@@ -1482,7 +1485,7 @@ for (const [frameworkName, frameworkServer] of frameworks) {
 						await request(app.server)
 							.get('/')
 							.set('Accept-Encoding', 'br;q=0.2, *;q=0.3, deflate;q=0.2, identity;q=0.2')
-							.expect('X-Send-Stream-Resolved-Path', join(__dirname, '/fixtures-frameworks/gzip.json.gz'))
+							.expect('X-Send-Stream-Resolved-Path', join(dir, '/fixtures-frameworks/gzip.json.gz'))
 							.expect('Content-Encoding', 'gzip')
 							.expect('Content-Length', '48')
 							.expect('{ "name": "tobi" }')
@@ -1495,7 +1498,7 @@ for (const [frameworkName, frameworkServer] of frameworks) {
 					before(async () => {
 						app = frameworkServer(context);
 
-						app.send(__dirname, '/fixtures-frameworks/gzip.json', {
+						app.send(dir, '/fixtures-frameworks/gzip.json', {
 							contentEncodingMappings: [
 								{
 									matcher: /^(?<path>.*\.json)$/u,
@@ -1522,7 +1525,7 @@ for (const [frameworkName, frameworkServer] of frameworks) {
 						await request(app.server)
 							.get('/')
 							.set('Accept-Encoding', '')
-							.expect('X-Send-Stream-Resolved-Path', join(__dirname, '/fixtures-frameworks/gzip.json'))
+							.expect('X-Send-Stream-Resolved-Path', join(dir, '/fixtures-frameworks/gzip.json'))
 							.expect(shouldNotHaveHeader('Content-Encoding'))
 							.expect('Content-Length', '18')
 							.expect('{ "name": "tobi" }')
@@ -1535,7 +1538,7 @@ for (const [frameworkName, frameworkServer] of frameworks) {
 					before(async () => {
 						app = frameworkServer(context);
 
-						app.send(__dirname, '/fixtures-frameworks/gzip.json', {
+						app.send(dir, '/fixtures-frameworks/gzip.json', {
 							// hack because superagent always add accept-encoding
 							removeHeader: 'accept-encoding',
 							contentEncodingMappings: [
@@ -1563,7 +1566,7 @@ for (const [frameworkName, frameworkServer] of frameworks) {
 					it('should return path when no content-encoding', async () => {
 						await request(app.server)
 							.get('/')
-							.expect('X-Send-Stream-Resolved-Path', join(__dirname, '/fixtures-frameworks/gzip.json'))
+							.expect('X-Send-Stream-Resolved-Path', join(dir, '/fixtures-frameworks/gzip.json'))
 							.expect('Content-Length', '18')
 							.expect('{ "name": "tobi" }')
 							.expect(200);
@@ -1575,7 +1578,7 @@ for (const [frameworkName, frameworkServer] of frameworks) {
 					before(async () => {
 						app = frameworkServer(context);
 
-						app.send(__dirname, '/fixtures-frameworks/world', {
+						app.send(dir, '/fixtures-frameworks/world', {
 							contentEncodingMappings: [
 								{
 									matcher: /^(?<path>.*)$/u,
@@ -1615,7 +1618,7 @@ for (const [frameworkName, frameworkServer] of frameworks) {
 					before(async () => {
 						app = frameworkServer(context);
 
-						app.send(__dirname, '/fixtures-frameworks/user.json', { cacheControl: 'max-age=5' });
+						app.send(dir, '/fixtures-frameworks/user.json', { cacheControl: 'max-age=5' });
 
 						await app.listen();
 					});
@@ -1625,7 +1628,7 @@ for (const [frameworkName, frameworkServer] of frameworks) {
 					it('should set cache-control', async () => {
 						await request(app.server)
 							.get('/')
-							.expect('X-Send-Stream-Resolved-Path', join(__dirname, '/fixtures-frameworks/user.json'))
+							.expect('X-Send-Stream-Resolved-Path', join(dir, '/fixtures-frameworks/user.json'))
 							.expect('Cache-Control', 'max-age=5')
 							.expect(200);
 					});
@@ -1636,7 +1639,7 @@ for (const [frameworkName, frameworkServer] of frameworks) {
 					before(async () => {
 						app = frameworkServer(context);
 
-						app.send(__dirname, '/fixtures-frameworks/hello.txt', {
+						app.send(dir, '/fixtures-frameworks/hello.txt', {
 							cacheControl: false,
 						});
 
@@ -1664,7 +1667,7 @@ for (const [frameworkName, frameworkServer] of frameworks) {
 					before(async () => {
 						app = frameworkServer(context);
 
-						app.send(__dirname, '/fixtures-frameworks/user.json');
+						app.send(dir, '/fixtures-frameworks/user.json');
 
 						await app.listen();
 					});
@@ -1683,7 +1686,7 @@ for (const [frameworkName, frameworkServer] of frameworks) {
 					before(async () => {
 						app = frameworkServer(context);
 
-						app.send(__dirname, '/fixtures-frameworks/world/index.html');
+						app.send(dir, '/fixtures-frameworks/world/index.html');
 
 						await app.listen();
 					});
@@ -1704,7 +1707,7 @@ for (const [frameworkName, frameworkServer] of frameworks) {
 						before(async () => {
 							app = frameworkServer(context);
 
-							app.send(__dirname, '/fixtures-frameworks/unknown');
+							app.send(dir, '/fixtures-frameworks/unknown');
 
 							await app.listen();
 						});
@@ -1728,7 +1731,7 @@ for (const [frameworkName, frameworkServer] of frameworks) {
 					before(async () => {
 						app = frameworkServer(context);
 
-						app.send(__dirname, '/fixtures-frameworks/test.png');
+						app.send(dir, '/fixtures-frameworks/test.png');
 
 						await app.listen();
 					});
@@ -1747,7 +1750,7 @@ for (const [frameworkName, frameworkServer] of frameworks) {
 					before(async () => {
 						app = frameworkServer(context);
 
-						app.send(__dirname, '/fixtures-frameworks/user.json', { mimeType: false });
+						app.send(dir, '/fixtures-frameworks/user.json', { mimeType: false });
 
 						await app.listen();
 					});
@@ -1766,7 +1769,7 @@ for (const [frameworkName, frameworkServer] of frameworks) {
 					before(async () => {
 						app = frameworkServer(context);
 
-						app.send(__dirname, '/fixtures-frameworks/world/index.html', { mimeTypeCharset: false });
+						app.send(dir, '/fixtures-frameworks/world/index.html', { mimeTypeCharset: false });
 
 						await app.listen();
 					});
@@ -1788,7 +1791,7 @@ for (const [frameworkName, frameworkServer] of frameworks) {
 					before(async () => {
 						app = frameworkServer(context);
 
-						app.send(__dirname, '/fixtures-frameworks/unknown', { defaultMimeType: 'application/x-test' });
+						app.send(dir, '/fixtures-frameworks/unknown', { defaultMimeType: 'application/x-test' });
 
 						await app.listen();
 					});
@@ -1808,7 +1811,7 @@ for (const [frameworkName, frameworkServer] of frameworks) {
 						app = frameworkServer(context);
 
 						app.send(
-							__dirname,
+							dir,
 							'/fixtures-frameworks/user.json',
 							{ mimeTypeLookup: () => 'application/x-test' },
 						);
@@ -1831,7 +1834,7 @@ for (const [frameworkName, frameworkServer] of frameworks) {
 						app = frameworkServer(context);
 
 						app.send(
-							__dirname,
+							dir,
 							'/fixtures-frameworks/user.json',
 							{
 								noResult: true,
@@ -1859,7 +1862,7 @@ for (const [frameworkName, frameworkServer] of frameworks) {
 						app = frameworkServer(context);
 
 						app.send(
-							__dirname,
+							dir,
 							'/fixtures-frameworks/user.json',
 							{ noResult: true, mimeTypeDefaultCharset: () => 'iso-8859-1' },
 						);
@@ -1882,7 +1885,7 @@ for (const [frameworkName, frameworkServer] of frameworks) {
 						app = frameworkServer(context);
 
 						app.send(
-							__dirname,
+							dir,
 							'/fixtures-frameworks/user.json',
 							{
 								noResult: true,
@@ -1911,7 +1914,7 @@ for (const [frameworkName, frameworkServer] of frameworks) {
 					before(async () => {
 						app = frameworkServer(context);
 
-						app.send(__dirname, '/fixtures-frameworks/user.json');
+						app.send(dir, '/fixtures-frameworks/user.json');
 
 						await app.listen();
 					});
@@ -1930,7 +1933,7 @@ for (const [frameworkName, frameworkServer] of frameworks) {
 					before(async () => {
 						app = frameworkServer(context);
 
-						app.send(__dirname, '/fixtures-frameworks/user.json', {
+						app.send(dir, '/fixtures-frameworks/user.json', {
 							contentDispositionType: 'attachment',
 						});
 
@@ -1951,7 +1954,7 @@ for (const [frameworkName, frameworkServer] of frameworks) {
 					before(async () => {
 						app = frameworkServer(context);
 
-						app.send(__dirname, '/fixtures-frameworks/user.json', {
+						app.send(dir, '/fixtures-frameworks/user.json', {
 							contentDispositionType: 'attachment',
 							contentDispositionFilename: 'plop.json',
 						});
@@ -1973,7 +1976,7 @@ for (const [frameworkName, frameworkServer] of frameworks) {
 					before(async () => {
 						app = frameworkServer(context);
 
-						app.send(__dirname, '/fixtures-frameworks/user.json', {
+						app.send(dir, '/fixtures-frameworks/user.json', {
 							contentDispositionType: 'attachment',
 							contentDispositionFilename: false,
 						});
@@ -1995,7 +1998,7 @@ for (const [frameworkName, frameworkServer] of frameworks) {
 					before(async () => {
 						app = frameworkServer(context);
 
-						app.send(__dirname, '/fixtures-frameworks/user.json', {
+						app.send(dir, '/fixtures-frameworks/user.json', {
 							contentDispositionType: false,
 						});
 
@@ -2021,7 +2024,7 @@ for (const [frameworkName, frameworkServer] of frameworks) {
 				before(async () => {
 					app = frameworkServer(context);
 
-					app.send(__dirname, '/fixtures-frameworks/user.json');
+					app.send(dir, '/fixtures-frameworks/user.json');
 
 					await app.listen();
 				});
@@ -2041,7 +2044,7 @@ for (const [frameworkName, frameworkServer] of frameworks) {
 					before(async () => {
 						app = frameworkServer(context);
 
-						app.send(__dirname, '/fixtures-frameworks/user.json');
+						app.send(dir, '/fixtures-frameworks/user.json');
 
 						await app.listen();
 					});
@@ -2060,7 +2063,7 @@ for (const [frameworkName, frameworkServer] of frameworks) {
 					before(async () => {
 						app = frameworkServer(context);
 
-						app.send(__dirname, '/fixtures-frameworks/user.json', { lastModified: false });
+						app.send(dir, '/fixtures-frameworks/user.json', { lastModified: false });
 
 						await app.listen();
 					});
@@ -2084,7 +2087,7 @@ for (const [frameworkName, frameworkServer] of frameworks) {
 				before(async () => {
 					app = frameworkServer(context);
 
-					app.send(__dirname, '/fixtures-frameworks/user.json');
+					app.send(dir, '/fixtures-frameworks/user.json');
 
 					await app.listen();
 				});
@@ -2092,7 +2095,7 @@ for (const [frameworkName, frameworkServer] of frameworks) {
 					await app.close();
 				});
 				it('should answer 304 when data is fresh', async () => {
-					const stats = await promisify(fs.stat)(join(__dirname, '/fixtures-frameworks/user.json'));
+					const stats = await promisify(fs.stat)(join(dir, '/fixtures-frameworks/user.json'));
 					await request(app.server)
 						.get('/')
 						.set('If-Modified-Since', new Date(stats.mtimeMs).toUTCString())
@@ -2106,7 +2109,7 @@ for (const [frameworkName, frameworkServer] of frameworks) {
 					before(async () => {
 						app = frameworkServer(context);
 
-						app.send(__dirname, '/fixtures-frameworks/hello.txt');
+						app.send(dir, '/fixtures-frameworks/hello.txt');
 
 						await app.listen();
 					});
@@ -2128,7 +2131,7 @@ for (const [frameworkName, frameworkServer] of frameworks) {
 					before(async () => {
 						app = frameworkServer(context);
 
-						app.send(__dirname, '/fixtures-frameworks/hello.txt');
+						app.send(dir, '/fixtures-frameworks/hello.txt');
 
 						await app.listen();
 					});
@@ -2136,7 +2139,7 @@ for (const [frameworkName, frameworkServer] of frameworks) {
 						await app.close();
 					});
 					it('should respond 206 to a range request if range fresh (last modified)', async () => {
-						const stats = await promisify(fs.stat)(join(__dirname, '/fixtures-frameworks/hello.txt'));
+						const stats = await promisify(fs.stat)(join(dir, '/fixtures-frameworks/hello.txt'));
 						await request(app.server)
 							.get('/')
 							.set('Range', 'bytes=0-0')
@@ -2152,7 +2155,7 @@ for (const [frameworkName, frameworkServer] of frameworks) {
 					before(async () => {
 						app = frameworkServer(context);
 
-						app.send(__dirname, '/fixtures-frameworks/hello.txt');
+						app.send(dir, '/fixtures-frameworks/hello.txt');
 
 						await app.listen();
 					});
@@ -2173,7 +2176,7 @@ for (const [frameworkName, frameworkServer] of frameworks) {
 					before(async () => {
 						app = frameworkServer(context);
 
-						app.send(__dirname, '/fixtures-frameworks/hello.txt');
+						app.send(dir, '/fixtures-frameworks/hello.txt');
 
 						await app.listen();
 					});
@@ -2194,7 +2197,7 @@ for (const [frameworkName, frameworkServer] of frameworks) {
 					before(async () => {
 						app = frameworkServer(context);
 
-						app.send(__dirname, '/fixtures-frameworks/hello.txt', { lastModified: false });
+						app.send(dir, '/fixtures-frameworks/hello.txt', { lastModified: false });
 
 						await app.listen();
 					});
@@ -2202,7 +2205,7 @@ for (const [frameworkName, frameworkServer] of frameworks) {
 						await app.close();
 					});
 					it('should respond 206 to a range request if range fresh (empty last modified)', async () => {
-						const stats = await promisify(fs.stat)(join(__dirname, '/fixtures-frameworks/hello.txt'));
+						const stats = await promisify(fs.stat)(join(dir, '/fixtures-frameworks/hello.txt'));
 						await request(app.server)
 							.get('/')
 							.set('Range', 'bytes=0-0')
@@ -2216,7 +2219,7 @@ for (const [frameworkName, frameworkServer] of frameworks) {
 					before(async () => {
 						app = frameworkServer(context);
 
-						app.send(__dirname, '/fixtures-frameworks/hello.txt', { etag: false });
+						app.send(dir, '/fixtures-frameworks/hello.txt', { etag: false });
 
 						await app.listen();
 					});
@@ -2237,7 +2240,7 @@ for (const [frameworkName, frameworkServer] of frameworks) {
 					before(async () => {
 						app = frameworkServer(context);
 
-						app.send(__dirname, '/fixtures-frameworks/hello.txt');
+						app.send(dir, '/fixtures-frameworks/hello.txt');
 
 						await app.listen();
 					});
@@ -2268,7 +2271,7 @@ for (const [frameworkName, frameworkServer] of frameworks) {
 					before(async () => {
 						app = frameworkServer(context);
 
-						app.send(__dirname, '/fixtures-frameworks/unknown');
+						app.send(dir, '/fixtures-frameworks/unknown');
 
 						await app.listen();
 					});
@@ -2290,7 +2293,7 @@ for (const [frameworkName, frameworkServer] of frameworks) {
 					before(async () => {
 						app = frameworkServer(context);
 
-						app.send(__dirname, '/fixtures-frameworks/hello.txt');
+						app.send(dir, '/fixtures-frameworks/hello.txt');
 
 						await app.listen();
 					});
@@ -2311,7 +2314,7 @@ for (const [frameworkName, frameworkServer] of frameworks) {
 					before(async () => {
 						app = frameworkServer(context);
 
-						app.send(__dirname, '/fixtures-frameworks/hello.txt');
+						app.send(dir, '/fixtures-frameworks/hello.txt');
 
 						await app.listen();
 					});
@@ -2333,7 +2336,7 @@ for (const [frameworkName, frameworkServer] of frameworks) {
 					before(async () => {
 						app = frameworkServer(context);
 
-						app.send(__dirname, '/fixtures-frameworks/user.json');
+						app.send(dir, '/fixtures-frameworks/user.json');
 
 						await app.listen();
 					});
@@ -2352,7 +2355,7 @@ for (const [frameworkName, frameworkServer] of frameworks) {
 					before(async () => {
 						app = frameworkServer(context);
 
-						app.send(__dirname, '/fixtures-frameworks/hello.txt', {
+						app.send(dir, '/fixtures-frameworks/hello.txt', {
 							etag: false,
 						});
 
@@ -2392,7 +2395,7 @@ for (const [frameworkName, frameworkServer] of frameworks) {
 								});
 							}
 						}
-						const storage = new ErrorStorage(__dirname);
+						const storage = new ErrorStorage(dir);
 
 						app.sendStorage(storage, '/fixtures-frameworks/hello.txt');
 
@@ -2431,7 +2434,7 @@ for (const [frameworkName, frameworkServer] of frameworks) {
 								throw new Error('oops');
 							}
 						}
-						const storage = new ErrorStorage(__dirname);
+						const storage = new ErrorStorage(dir);
 
 						app.sendStorage(storage, '/fixtures-frameworks/hello.txt', { noResult: true });
 
@@ -2464,7 +2467,7 @@ for (const [frameworkName, frameworkServer] of frameworks) {
 								});
 							}
 						}
-						const storage = new ErrorStorage(__dirname);
+						const storage = new ErrorStorage(dir);
 
 						app.sendStorage(storage, '/fixtures-frameworks/hello.txt');
 
@@ -2513,7 +2516,7 @@ for (const [frameworkName, frameworkServer] of frameworks) {
 								});
 							}
 						}
-						const storage = new ErrorStorage(__dirname);
+						const storage = new ErrorStorage(dir);
 
 						app.sendStorage(storage, '/fixtures-frameworks/hello.txt');
 
@@ -2548,7 +2551,7 @@ for (const [frameworkName, frameworkServer] of frameworks) {
 								throw new Error('oops');
 							}
 						}
-						const storage = new ErrorStorage(__dirname);
+						const storage = new ErrorStorage(dir);
 
 						app.sendStorage(storage, '/fixtures-frameworks/hello.txt');
 
@@ -2588,7 +2591,7 @@ for (const [frameworkName, frameworkServer] of frameworks) {
 								throw new Error('oops');
 							}
 						}
-						const storage = new ErrorStorage(__dirname);
+						const storage = new ErrorStorage(dir);
 
 						app.sendStorage(storage, '/fixtures-frameworks/hello.txt');
 
@@ -2625,7 +2628,7 @@ for (const [frameworkName, frameworkServer] of frameworks) {
 								return res;
 							}
 						}
-						const storage = new UnknownStorage(__dirname);
+						const storage = new UnknownStorage(dir);
 
 						app.sendStorage(storage, '/fixtures-frameworks/hello.txt');
 
@@ -2790,7 +2793,7 @@ for (const [frameworkName, frameworkServer] of frameworks) {
 				before(async () => {
 					app = frameworkServer(context);
 
-					app.send(__dirname, ['', 'fixtures-frameworks', 'hello.txt']);
+					app.send(dir, ['', 'fixtures-frameworks', 'hello.txt']);
 
 					await app.listen();
 				});
