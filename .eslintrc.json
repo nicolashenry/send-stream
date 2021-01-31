@@ -727,7 +727,7 @@
     "jsdoc/no-bad-blocks": "warn",
     "jsdoc/no-defaults": "warn",
     "jsdoc/no-types": "warn",
-    "jsdoc/no-undefined-types": "off", // bug: https://github.com/gajus/eslint-plugin-jsdoc/issues/629
+    "jsdoc/no-undefined-types": "warn",
     "jsdoc/require-description-complete-sentence": "off", // not needed: seems useless
     "jsdoc/require-description": "warn",
     "jsdoc/require-example": "off", // not needed: seems useless
