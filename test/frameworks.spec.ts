@@ -76,28 +76,36 @@ function shouldNotHaveHeader(header: string) {
 	};
 }
 
+interface Context {
+	lastResult: StreamResponse<unknown> | true | undefined;
+}
+
 const frameworks = <const> [
 	[
 		'fastify',
-		(context: { lastResult: StreamResponse<unknown> | true | undefined }) => new FastifyServerWrapper(context),
+		(context: Context) => new FastifyServerWrapper(context),
 	],
 	[
 		'koa',
-		(context: { lastResult: StreamResponse<unknown> | true | undefined }) => new KoaServerWrapper(context),
+		(context: Context) => new KoaServerWrapper(context),
 	],
 	[
 		'express',
-		(context: { lastResult: StreamResponse<unknown> | true | undefined }) => new ExpressServerWrapper(context),
+		(context: Context) => new ExpressServerWrapper(context),
 	],
 	[
 		'vanilla',
-		(context: { lastResult: StreamResponse<unknown> | true | undefined }) => new VanillaServerWrapper(context),
+		(context: Context) => new VanillaServerWrapper(context),
 	],
 ];
 
 for (const [frameworkName, frameworkServer] of frameworks) {
 	describe(frameworkName, () => {
-		const context: { lastResult: StreamResponse<unknown> | true | undefined } = { lastResult: undefined };
+		const context: Context = { lastResult: undefined };
+
+		beforeEach('init check', () => {
+			context.lastResult = undefined;
+		});
 
 		afterEach('destroy check', function checkDestroy() {
 			// eslint-disable-next-line @typescript-eslint/no-invalid-this
