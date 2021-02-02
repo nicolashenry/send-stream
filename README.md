@@ -48,9 +48,7 @@ app.route({
       reply.callNotFound(); // let fastify handle 404
       return;
     }
-    await reply.code(result.statusCode)
-      .headers(result.headers)
-      .send(result.stream);
+    await result.send(reply.raw);
   },
 });
 

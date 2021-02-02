@@ -26,9 +26,7 @@ app.route({
 			reply.callNotFound();
 			return;
 		}
-		await reply.code(result.statusCode)
-			.headers(result.headers)
-			.send(result.stream);
+		await result.send(reply.raw);
 	},
 });
 

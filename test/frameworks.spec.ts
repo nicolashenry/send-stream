@@ -2410,7 +2410,11 @@ for (const [frameworkName, frameworkServer] of frameworks) {
 						await app.close();
 					});
 					it('should handle read errors to a simple request', async () => {
-						if (frameworkName === 'express' || frameworkName === 'vanilla') {
+						if (frameworkName === 'koa') {
+							await request(app.server)
+								.get('/')
+								.expect(500);
+						} else {
 							try {
 								await request(app.server)
 									.get('/');
@@ -2420,10 +2424,6 @@ for (const [frameworkName, frameworkServer] of frameworks) {
 									resolve(undefined);
 								});
 							}
-						} else {
-							await request(app.server)
-								.get('/')
-								.expect(500);
 						}
 					});
 				});
