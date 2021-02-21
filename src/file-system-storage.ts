@@ -14,10 +14,11 @@ import type { StreamRange } from './utils';
 import { acceptEncodings } from './utils';
 import type {
 	FilePath,
-	FileData,
-	FSModule,
 	FileSystemStorageOptions,
 	RegexpContentEncodingMapping,
+	GenericFileSystemStorageOptions,
+	GenericFileData,
+	GenericFSModule,
 } from './file-system-storage-models';
 import {
 	MalformedPathError,
@@ -48,26 +49,26 @@ export const FORBIDDEN_CHARACTERS = /[/?<>\\:*|":\u0000-\u001F\u0080-\u009F]/u;
 /**
  * File system storage
  */
-export class FileSystemStorage extends Storage<FilePath, FileData> {
+export class GenericFileSystemStorage<FileDescriptor> extends Storage<FilePath, GenericFileData<FileDescriptor>> {
 	readonly root: string;
 
 	readonly contentEncodingMappings: readonly RegexpContentEncodingMapping[] | false;
 
 	readonly ignorePattern: RegExp | false;
 
-	readonly fsOpen: (path: string, flags: number) => Promise<number>;
+	readonly fsOpen: (path: string, flags: number) => Promise<FileDescriptor>;
 
-	readonly fsFstat: (fd: number) => Promise<Stats>;
+	readonly fsFstat: (fd: FileDescriptor) => Promise<Stats>;
 
-	readonly fsClose: (fd: number) => Promise<void>;
+	readonly fsClose: (fd: FileDescriptor) => Promise<void>;
 
-	readonly fsCreateReadStream: FSModule['createReadStream'];
+	readonly fsCreateReadStream: GenericFSModule<FileDescriptor>['createReadStream'];
 
 	readonly fsOpendir?: (path: string) => Promise<Dir>;
 
 	readonly fsReaddir: (path: string, options: { withFileTypes: true }) => Promise<Dirent[]>;
 
-	readonly fsConstants: FSModule['constants'];
+	readonly fsConstants: GenericFSModule<FileDescriptor>['constants'];
 
 	readonly onDirectory: 'serve-index' | 'list-files' | false;
 
@@ -79,7 +80,7 @@ export class FileSystemStorage extends Storage<FilePath, FileData> {
 	 */
 	constructor(
 		root: string,
-		opts: FileSystemStorageOptions = {},
+		opts: GenericFileSystemStorageOptions<FileDescriptor>,
 	) {
 		super(opts);
 		this.root = root;
@@ -108,14 +109,13 @@ export class FileSystemStorage extends Storage<FilePath, FileData> {
 				? ignorePattern
 				: new RegExp(ignorePattern, 'u');
 		this.onDirectory = onDirectory ?? false;
-		const fsMod = fsModule ?? { open, fstat, close, createReadStream, opendir, readdir, constants };
-		this.fsOpen = promisify(fsMod.open);
-		this.fsFstat = promisify(fsMod.fstat);
-		this.fsClose = promisify(fsMod.close);
-		this.fsCreateReadStream = fsMod.createReadStream;
-		this.fsOpendir = fsMod.opendir ? promisify(fsMod.opendir) : undefined;
-		this.fsReaddir = promisify(fsMod.readdir);
-		this.fsConstants = fsMod.constants;
+		this.fsOpen = promisify(fsModule.open);
+		this.fsFstat = promisify(fsModule.fstat);
+		this.fsClose = promisify(fsModule.close);
+		this.fsCreateReadStream = fsModule.createReadStream;
+		this.fsOpendir = fsModule.opendir ? promisify(fsModule.opendir) : undefined;
+		this.fsReaddir = promisify(fsModule.readdir);
+		this.fsConstants = fsModule.constants;
 	}
 
 	/**
@@ -251,7 +251,7 @@ export class FileSystemStorage extends Storage<FilePath, FileData> {
 	 * @param _path - file path (unused but can be useful for caching on override)
 	 * @returns Stat object
 	 */
-	async stat(fd: number, _path: string) {
+	async stat(fd: FileDescriptor, _path: string) {
 		return this.fsFstat(fd);
 	}
 
@@ -262,7 +262,7 @@ export class FileSystemStorage extends Storage<FilePath, FileData> {
 	 * @param _path - file path (unused but can be useful for caching on override)
 	 * @returns Stat object
 	 */
-	async earlyClose(fd: number, _path: string) {
+	async earlyClose(fd: FileDescriptor, _path: string) {
 		return this.fsClose(fd);
 	}
 
@@ -274,8 +274,11 @@ export class FileSystemStorage extends Storage<FilePath, FileData> {
 	 * @returns StorageInfo object
 	 * @throws when the file can not be opened
 	 */
-	async open(path: FilePath, requestHeaders: StorageRequestHeaders): Promise<StorageInfo<FileData>> {
-		let fd: number | undefined;
+	async open(
+		path: FilePath,
+		requestHeaders: StorageRequestHeaders,
+	): Promise<StorageInfo<GenericFileData<FileDescriptor>>> {
+		let fd: FileDescriptor | undefined;
 		const { pathParts, haveTrailingSlash } = this.parsePath(path);
 		let resolvedPath = join(this.root, ...pathParts);
 		let stats;
@@ -426,7 +429,7 @@ export class FileSystemStorage extends Storage<FilePath, FileData> {
 	 * @param storageInfo - storage information
 	 * @yields html parts
 	 */
-	async *getDirectoryListing(storageInfo: StorageInfo<FileData>) {
+	async *getDirectoryListing(storageInfo: StorageInfo<GenericFileData<FileDescriptor>>) {
 		const { attachedData: { pathParts } } = storageInfo;
 
 		const isNotRoot = pathParts.length > 1;
@@ -465,7 +468,7 @@ export class FileSystemStorage extends Storage<FilePath, FileData> {
 	 * @param storageInfo - storage information
 	 * @returns the list of files
 	 */
-	async opendir(storageInfo: StorageInfo<FileData>) {
+	async opendir(storageInfo: StorageInfo<GenericFileData<FileDescriptor>>) {
 		return this.fsOpendir
 			? this.fsOpendir(storageInfo.attachedData.resolvedPath)
 			: this.fsReaddir(storageInfo.attachedData.resolvedPath, { withFileTypes: true });
@@ -480,7 +483,7 @@ export class FileSystemStorage extends Storage<FilePath, FileData> {
 	 * @returns readable stream
 	 */
 	createReadableStream(
-		storageInfo: StorageInfo<FileData>,
+		storageInfo: StorageInfo<GenericFileData<FileDescriptor>>,
 		range: StreamRange | undefined,
 		autoClose: boolean,
 	): Readable {
@@ -513,7 +516,19 @@ export class FileSystemStorage extends Storage<FilePath, FileData> {
 	 * @param storageInfo - storage information
 	 * @returns void
 	 */
-	async close(storageInfo: StorageInfo<FileData>): Promise<void> {
-		return this.fsClose(storageInfo.attachedData.fd);
+	async close(storageInfo: StorageInfo<GenericFileData<FileDescriptor>>): Promise<void> {
+		await this.fsClose(storageInfo.attachedData.fd);
+	}
+}
+
+export class FileSystemStorage extends GenericFileSystemStorage<number> {
+	constructor(
+		root: string,
+		opts: FileSystemStorageOptions = {},
+	) {
+		super(root, {
+			fsModule: { open, fstat, close, createReadStream, opendir, readdir, constants },
+			...opts,
+		});
 	}
 }

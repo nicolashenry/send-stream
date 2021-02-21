@@ -7,7 +7,7 @@ import { StorageError } from './storage-models';
 /**
  * File data used by storage
  */
-export interface FileData {
+export interface GenericFileData<FileDescriptor> {
 	/**
 	 * Path parts used from root
 	 */
@@ -23,13 +23,16 @@ export interface FileData {
 	/**
 	 * File descriptor
 	 */
-	fd: number;
+	fd: FileDescriptor;
 }
+
+// eslint-disable-next-line @typescript-eslint/no-type-alias
+export type FileData = GenericFileData<number>;
 
 /**
  * "fs" module like type used by this library
  */
-export interface FSModule {
+export interface GenericFSModule<FileDescriptor> {
 	constants: {
 		// eslint-disable-next-line @typescript-eslint/naming-convention
 		O_RDONLY: number;
@@ -37,14 +40,14 @@ export interface FSModule {
 	open: (
 		path: string,
 		flags: number,
-		callback: (err: NodeJS.ErrnoException | null, fd: number) => void
+		callback: (err: NodeJS.ErrnoException | null, fd: FileDescriptor) => void
 	) => void;
-	fstat: (fd: number, callback: (err: NodeJS.ErrnoException | null, stats: Stats) => void) => void;
-	close: (fd: number, callback: (err: NodeJS.ErrnoException | null) => void) => void;
+	fstat: (fd: FileDescriptor, callback: (err: NodeJS.ErrnoException | null, stats: Stats) => void) => void;
+	close: (fd: FileDescriptor, callback: (err: NodeJS.ErrnoException | null) => void) => void;
 	createReadStream: (
 		path: string,
 		options: {
-			fd: number;
+			fd?: FileDescriptor;
 			start?: number;
 			end?: number;
 			autoClose: boolean;
@@ -60,6 +63,9 @@ export interface FSModule {
 		callback: (err: NodeJS.ErrnoException | null, files: Dirent[]) => void
 	) => void;
 }
+
+// eslint-disable-next-line @typescript-eslint/no-type-alias
+export type FSModule = GenericFSModule<number>;
 
 /**
  * Content encoding path
@@ -124,7 +130,7 @@ export interface RegexpContentEncodingMapping {
 /**
  * FileSystemStorage options
  */
-export interface FileSystemStorageOptions extends StorageOptions {
+export interface GenericFileSystemStorageOptions<FileDescriptor> extends StorageOptions {
 	/**
 	 * Content encoding mapping, e.g. [{ matcher: /^(.+\\.json)$/, encodings: [{ name: 'gzip', path: '$1.gz' }] }]
 	 */
@@ -136,7 +142,7 @@ export interface FileSystemStorageOptions extends StorageOptions {
 	/**
 	 * "fs" module to use
 	 */
-	fsModule?: FSModule;
+	fsModule: GenericFSModule<FileDescriptor>;
 	/**
 	 * Determine what should happen on directory requests (trailing slash)
 	 * - `false` to return an error
@@ -147,6 +153,11 @@ export interface FileSystemStorageOptions extends StorageOptions {
 	 */
 	onDirectory?: 'serve-index' | 'list-files' | false;
 }
+
+type Optional<T, K extends keyof T> = Pick<Partial<T>, K> & Omit<T, K>;
+
+// eslint-disable-next-line @typescript-eslint/no-type-alias
+export type FileSystemStorageOptions = Optional<GenericFileSystemStorageOptions<number>, 'fsModule'>;
 
 /**
  * URL encoded path or path parts
