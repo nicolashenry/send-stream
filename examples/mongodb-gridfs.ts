@@ -1,6 +1,6 @@
 
 import type { Readable } from 'stream';
-import { relative } from 'path';
+import { posix } from 'path';
 import * as assert from 'assert';
 // eslint-disable-next-line node/prefer-global/url
 import { URL } from 'url';
@@ -34,7 +34,7 @@ class GridFSStorage extends Storage<string, File> {
 	}
 
 	async open(path: string) {
-		const filename = relative('/', decodeURIComponent(new URL(`http://localhost${ path }`).pathname));
+		const filename = posix.relative('/', decodeURIComponent(new URL(`http://localhost${ path }`).pathname));
 		const files = await (<mongodb.Cursor<File>> this.bucket.find({ filename }, { limit: 1 })).toArray();
 		if (files.length === 0) {
 			throw new StorageError(`filename ${ filename } not found`, path);
@@ -45,15 +45,10 @@ class GridFSStorage extends Storage<string, File> {
 			fileName: file.filename,
 			mtimeMs: file.uploadDate.getTime(),
 			size: file.length,
-			vary: undefined,
-			contentEncoding: undefined,
 			mimeType: file.metadata?.mimeType,
 			mimeTypeCharset: file.metadata?.mimeTypeCharset,
 			lastModified: file.metadata?.lastModified,
 			etag: file.metadata?.etag,
-			cacheControl: undefined,
-			contentDispositionType: undefined,
-			contentDispositionFilename: undefined,
 		};
 	}
 
