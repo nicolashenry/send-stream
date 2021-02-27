@@ -1,3 +1,8 @@
+2.4.0
+==================
+
+* Feature: add abstract class GenericFileSystemStorage as intermediate implementation for file system storage
+
 2.3.2
 ==================
 
