@@ -28,7 +28,7 @@
     "@types/mongodb": "~3.6.3",
     "@types/range-parser": "~1.2.3",
     "@types/supertest": "~2.0.9",
-    "@typescript-eslint/eslint-plugin": "~4.15.0",
+    "@typescript-eslint/eslint-plugin": "~4.16.0",
     "@typescript-eslint/parser": "~4.15.0",
     "codecov": "~3.8.1",
     "cross-env": "~7.0.2",
