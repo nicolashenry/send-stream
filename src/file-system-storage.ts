@@ -83,10 +83,10 @@ export class GenericFileSystemStorage<FileDescriptor> extends Storage<FilePath, 
 		opts: GenericFileSystemStorageOptions<FileDescriptor>,
 	) {
 		super(opts);
-		this.root = root;
 		const { contentEncodingMappings, ignorePattern, onDirectory, fsModule } = opts;
-		if (contentEncodingMappings) {
-			this.contentEncodingMappings = contentEncodingMappings.map(encodingConfig => {
+		this.root = root;
+		this.contentEncodingMappings = contentEncodingMappings
+			? contentEncodingMappings.map(encodingConfig => {
 				const encodingPreferences = new Map(
 					encodingConfig.encodings.map(({ name, path }, order) => [name, { path, order }]),
 				);
@@ -99,10 +99,8 @@ export class GenericFileSystemStorage<FileDescriptor> extends Storage<FilePath, 
 					? encodingConfig.matcher
 					: new RegExp(encodingConfig.matcher, 'u');
 				return { matcher, encodingPreferences, identityEncodingPreference };
-			});
-		} else {
-			this.contentEncodingMappings = false;
-		}
+			})
+			: false;
 		this.ignorePattern = ignorePattern === undefined
 			? /^\./u
 			: ignorePattern === false || ignorePattern instanceof RegExp

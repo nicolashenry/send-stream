@@ -793,6 +793,7 @@
     "unicorn/no-null": "off", // not needed: seems useless
     "unicorn/no-object-as-default-parameter": "warn",
     "unicorn/no-process-exit": "warn",
+    "unicorn/no-static-only-class": "warn",
     "unicorn/no-this-assignment": "off", // not needed: covered by @typescript-eslint/no-this-alias
     "unicorn/no-unreadable-array-destructuring": "off", // too restrictive
     "unicorn/no-unsafe-regex": "off", // too restrictive
@@ -803,6 +804,7 @@
     "unicorn/numeric-separators-style": "warn",
     "unicorn/prefer-add-event-listener": "warn",
     "unicorn/prefer-array-find": "warn",
+    "unicorn/prefer-array-flat": "warn",
     "unicorn/prefer-array-flat-map": "warn",
     "unicorn/prefer-array-index-of": "warn",
     "unicorn/prefer-array-some": "warn",
