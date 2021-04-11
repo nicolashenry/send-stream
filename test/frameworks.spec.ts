@@ -31,21 +31,30 @@ function brotliParser(res: request.Response, cb: (err: Error | null, body: unkno
 	const decompress = res.pipe(createBrotliDecompress());
 
 	const chunks: Buffer[] = [];
+	let length = 0;
 	decompress.on('data', chunk => {
-		chunks.push(<Buffer> chunk);
+		const buffer = Buffer.isBuffer(chunk) ? chunk : Buffer.from(chunk);
+		chunks.push(buffer);
+		length += buffer.length;
 	});
 	decompress.on('error', err => {
 		cb(err, null);
 	});
 	decompress.on('end', () => {
-		cb(null, Buffer.concat(chunks).toString());
+		const concatChunks = Buffer.concat(chunks, length);
+		cb(null, Buffer.isEncoding(res.charset)
+			? concatChunks.toString(res.charset)
+			: concatChunks.toString());
 	});
 }
 
 function multipartHandler(res: request.Response, cb: (err: Error | null, body: unknown) => void) {
 	const chunks: Buffer[] = [];
+	let length = 0;
 	res.on('data', chunk => {
-		chunks.push(<Buffer> chunk);
+		const buffer = Buffer.isBuffer(chunk) ? chunk : Buffer.from(chunk);
+		chunks.push(buffer);
+		length += buffer.length;
 	});
 	let end = false;
 	res.on('error', err => {
@@ -54,7 +63,10 @@ function multipartHandler(res: request.Response, cb: (err: Error | null, body: u
 	});
 	res.on('end', () => {
 		end = true;
-		res.text = Buffer.concat(chunks).toString();
+		const concatChunks = Buffer.concat(chunks, length);
+		res.text = Buffer.isEncoding(res.charset)
+			? concatChunks.toString(res.charset)
+			: concatChunks.toString();
 		cb(null, res.text);
 	});
 	res.on('close', () => {
