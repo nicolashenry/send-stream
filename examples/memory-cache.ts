@@ -55,7 +55,7 @@ class FullCacheStorage extends GenericFileSystemStorage<CachedFileDescriptor> {
 							.then(cache => {
 								callback(null, cache);
 							})
-							.catch(err => {
+							.catch((err: Error) => {
 								callback(err, Number.NaN);
 							});
 					},

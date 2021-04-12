@@ -32,7 +32,7 @@ function brotliParser(res: request.Response, cb: (err: Error | null, body: unkno
 
 	const chunks: Buffer[] = [];
 	let length = 0;
-	decompress.on('data', chunk => {
+	decompress.on('data', (chunk: Buffer | string) => {
 		const buffer = Buffer.isBuffer(chunk) ? chunk : Buffer.from(chunk);
 		chunks.push(buffer);
 		length += buffer.length;
@@ -51,13 +51,13 @@ function brotliParser(res: request.Response, cb: (err: Error | null, body: unkno
 function multipartHandler(res: request.Response, cb: (err: Error | null, body: unknown) => void) {
 	const chunks: Buffer[] = [];
 	let length = 0;
-	res.on('data', chunk => {
+	res.on('data', (chunk: Buffer | string) => {
 		const buffer = Buffer.isBuffer(chunk) ? chunk : Buffer.from(chunk);
 		chunks.push(buffer);
 		length += buffer.length;
 	});
 	let end = false;
-	res.on('error', err => {
+	res.on('error', (err: Error) => {
 		end = true;
 		cb(err, null);
 	});
