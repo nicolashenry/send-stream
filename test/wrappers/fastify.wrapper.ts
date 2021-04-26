@@ -54,9 +54,10 @@ export class FastifyServerWrapper implements ServerWrapper {
 				if (result.error) {
 					result.headers['X-Send-Stream-Error'] = result.error.name;
 				}
-				await reply.code(result.statusCode)
-					.headers(result.headers)
-					.send(result.stream);
+				if (!result.headers['Content-Type']) {
+					result.headers['Content-Type'] = 'application/octet-stream';
+				}
+				await result.send(reply.raw);
 			},
 		});
 	}
@@ -90,9 +91,10 @@ export class FastifyServerWrapper implements ServerWrapper {
 				if (result.storageInfo?.attachedData.resolvedPath) {
 					result.headers['X-Send-Stream-Resolved-Path'] = result.storageInfo.attachedData.resolvedPath;
 				}
-				await reply.code(result.statusCode)
-					.headers(result.headers)
-					.send(result.stream);
+				if (!result.headers['Content-Type']) {
+					result.headers['Content-Type'] = 'application/octet-stream';
+				}
+				await result.send(reply.raw);
 			},
 		});
 	}
@@ -134,9 +136,10 @@ export class FastifyServerWrapper implements ServerWrapper {
 				if (result.storageInfo?.attachedData.resolvedPath) {
 					result.headers['X-Send-Stream-Resolved-Path'] = result.storageInfo.attachedData.resolvedPath;
 				}
-				await reply.code(result.statusCode)
-					.headers(result.headers)
-					.send(result.stream);
+				if (!result.headers['Content-Type']) {
+					result.headers['Content-Type'] = 'application/octet-stream';
+				}
+				await result.send(reply.raw);
 			},
 		});
 	}

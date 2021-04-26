@@ -32,30 +32,42 @@ function brotliParser(res: request.Response, cb: (err: Error | null, body: unkno
 	const decompress = res.pipe(createBrotliDecompress());
 
 	const chunks: Buffer[] = [];
-	decompress.on('data', chunk => {
-		chunks.push(<Buffer> chunk);
+	let length = 0;
+	decompress.on('data', (chunk: Buffer | string) => {
+		const buffer = Buffer.isBuffer(chunk) ? chunk : Buffer.from(chunk);
+		chunks.push(buffer);
+		length += buffer.length;
 	});
 	decompress.on('error', err => {
 		cb(err, null);
 	});
 	decompress.on('end', () => {
-		cb(null, Buffer.concat(chunks).toString());
+		const concatChunks = Buffer.concat(chunks, length);
+		cb(null, Buffer.isEncoding(res.charset)
+			? concatChunks.toString(res.charset)
+			: concatChunks.toString());
 	});
 }
 
 function multipartHandler(res: request.Response, cb: (err: Error | null, body: unknown) => void) {
 	const chunks: Buffer[] = [];
-	res.on('data', chunk => {
-		chunks.push(<Buffer> chunk);
+	let length = 0;
+	res.on('data', (chunk: Buffer | string) => {
+		const buffer = Buffer.isBuffer(chunk) ? chunk : Buffer.from(chunk);
+		chunks.push(buffer);
+		length += buffer.length;
 	});
 	let end = false;
-	res.on('error', err => {
+	res.on('error', (err: Error) => {
 		end = true;
 		cb(err, null);
 	});
 	res.on('end', () => {
 		end = true;
-		res.text = Buffer.concat(chunks).toString();
+		const concatChunks = Buffer.concat(chunks, length);
+		res.text = Buffer.isEncoding(res.charset)
+			? concatChunks.toString(res.charset)
+			: concatChunks.toString();
 		cb(null, res.text);
 	});
 	res.on('close', () => {
@@ -77,22 +89,26 @@ function shouldNotHaveHeader(header: string) {
 	};
 }
 
+interface Context {
+	lastResult: StreamResponse<unknown> | true | undefined;
+}
+
 const frameworks = <const> [
 	[
 		'fastify',
-		(context: { lastResult: StreamResponse<unknown> | true | undefined }) => new FastifyServerWrapper(context),
+		(context: Context) => new FastifyServerWrapper(context),
 	],
 	[
 		'koa',
-		(context: { lastResult: StreamResponse<unknown> | true | undefined }) => new KoaServerWrapper(context),
+		(context: Context) => new KoaServerWrapper(context),
 	],
 	[
 		'express',
-		(context: { lastResult: StreamResponse<unknown> | true | undefined }) => new ExpressServerWrapper(context),
+		(context: Context) => new ExpressServerWrapper(context),
 	],
 	[
 		'vanilla',
-		(context: { lastResult: StreamResponse<unknown> | true | undefined }) => new VanillaServerWrapper(context),
+		(context: Context) => new VanillaServerWrapper(context),
 	],
 ];
 
@@ -100,7 +116,11 @@ const dir = dirname(fileURLToPath(import.meta.url));
 
 for (const [frameworkName, frameworkServer] of frameworks) {
 	describe(frameworkName, () => {
-		const context: { lastResult: StreamResponse<unknown> | true | undefined } = { lastResult: undefined };
+		const context: Context = { lastResult: undefined };
+
+		beforeEach('init check', () => {
+			context.lastResult = undefined;
+		});
 
 		afterEach('destroy check', function checkDestroy() {
 			// eslint-disable-next-line @typescript-eslint/no-invalid-this
@@ -2405,7 +2425,11 @@ for (const [frameworkName, frameworkServer] of frameworks) {
 						await app.close();
 					});
 					it('should handle read errors to a simple request', async () => {
-						if (frameworkName === 'express' || frameworkName === 'vanilla') {
+						if (frameworkName === 'koa') {
+							await request(app.server)
+								.get('/')
+								.expect(500);
+						} else {
 							try {
 								await request(app.server)
 									.get('/');
@@ -2415,10 +2439,6 @@ for (const [frameworkName, frameworkServer] of frameworks) {
 									resolve(undefined);
 								});
 							}
-						} else {
-							await request(app.server)
-								.get('/')
-								.expect(500);
 						}
 					});
 				});

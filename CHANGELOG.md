@@ -1,3 +1,14 @@
+2.4.0
+==================
+
+* Feature: add abstract class GenericFileSystemStorage as intermediate implementation for file system storage
+
+2.3.2
+==================
+
+* Docs: Revert use of fastify send in example (not safe to use)
+* Docs: Fix onDirectory parameter documentation
+
 2.3.1
 ==================
 

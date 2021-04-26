@@ -5,7 +5,7 @@
 [![Build Status](https://github.com/nicolashenry/send-stream/workflows/CI/badge.svg?branch=master)](https://github.com/nicolashenry/send-stream/actions?query=workflow%3ACI+branch%3Amaster)
 [![Coverage Status](https://codecov.io/gh/nicolashenry/send-stream/branch/master/graph/badge.svg?token=qR0aX2U7oM)](https://codecov.io/gh/nicolashenry/send-stream)
 
-`send-stream` is a library for streaming files from the file system or any other source.
+`send-stream` is a library for streaming files from the [file system](#getting-start) or any [other source of data](#other-source-of-data).
 
 It supports partial responses (Ranges including multipart), conditional-GET negotiation (If-Match, If-Unmodified-Since, If-None-Match, If-Modified-Since) and precompressed content
 encoding negociation.
@@ -48,9 +48,7 @@ app.route({
       reply.callNotFound(); // let fastify handle 404
       return;
     }
-    await reply.code(result.statusCode)
-      .headers(result.headers)
-      .send(result.stream);
+    await result.send(reply.raw);
   },
 });
 
@@ -617,6 +615,16 @@ When the file can not be found.
 The following additional property is available:
 
 - `resolvedPath`: the resolved file system path
+
+---
+
+## Other source of data
+
+You can extend the class `Storage` if you want to stream files from something else than the file system.
+Take a look at [this MongoDB/GridFS storage example](./examples/mongodb-gridfs.ts) to have an example.
+
+If you want to implement something nearer from file system you can also take a look at the `GenericFileSystemStorage`
+class. Take a look at [this memory cache storage example](./examples/memory-cache.ts) to have an example.
 
 ---
 
