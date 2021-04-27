@@ -1,14 +1,14 @@
 {
-	"files": [],
-	"references": [
-		{
-			"path": "./src"
-		},
-		{
-			"path": "./test"
-		},
-		{
-			"path": "./examples"
-		}
-	]
+  "files": [],
+  "references": [
+    {
+      "path": "./src"
+    },
+    {
+      "path": "./test"
+    },
+    {
+      "path": "./examples"
+    }
+  ]
 }

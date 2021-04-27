@@ -56,7 +56,7 @@
   },
   "license": "MIT",
   "dependencies": {
-    "@types/node": ">=12",
+    "@types/node": ">=14",
     "compressible": "^2.0.18",
     "content-disposition": "^0.5.3",
     "mime-types": "^2.1.28",
@@ -83,6 +83,6 @@
     "dist/src/*.d.ts"
   ],
   "engines": {
-    "node": ">=12.13.0"
+    "node": ">=14.15.0"
   }
 }
