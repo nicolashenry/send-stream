@@ -5,9 +5,9 @@
     "outDir": "../dist/test",
     "types": ["node", "mocha"]
   },
-	"references": [
-		{
-			"path": "../src"
-		}
-	]
+  "references": [
+    {
+      "path": "../src"
+    }
+  ]
 }
