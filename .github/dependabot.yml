@@ -1,0 +1,39 @@
+version: 2
+updates:
+- package-ecosystem: npm
+  directory: "/"
+  schedule:
+    interval: daily
+  open-pull-requests-limit: 99
+  ignore:
+  - dependency-name: eslint-plugin-unicorn
+    versions:
+    - 29.0.0
+    - 30.0.0
+    - 31.0.0
+  - dependency-name: eslint
+    versions:
+    - 7.24.0
+    - 7.25.0
+  - dependency-name: "@typescript-eslint/parser"
+    versions:
+    - 4.16.0
+    - 4.21.0
+  - dependency-name: "@typescript-eslint/eslint-plugin"
+    versions:
+    - 4.16.0
+    - 4.21.0
+  - dependency-name: eslint-plugin-jsdoc
+    versions:
+    - 32.0.3
+  - dependency-name: "@types/mongodb"
+    versions:
+    - 3.6.12
+    - 3.6.4
+  - dependency-name: "@types/node"
+    versions:
+    - 14.14.39
+  commit-message:
+    prefix: fix
+    prefix-development: chore
+    include: scope
