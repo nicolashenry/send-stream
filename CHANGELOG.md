@@ -3,7 +3,9 @@
 
 * Feature: add send method in Storage to send directly a file without having to prepare the response before
 * Feature: add dispose method in StreamResponse to dispose stream response resources
-* Docs: Add better path example
+* Docs: add better path example
+* Docs: add missing ignorePrematureClose documentation
+* Docs: enhance doc display
 
 2.4.0
 ==================
