@@ -5,6 +5,7 @@
 * Feature: add dispose method in StreamResponse to dispose stream response resources
 * Docs: add better path example
 * Docs: add missing ignorePrematureClose documentation
+* Docs: add missing jsdoc for createCompressedStream
 * Docs: enhance doc display
 
 2.4.0

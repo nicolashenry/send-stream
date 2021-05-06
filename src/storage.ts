@@ -499,6 +499,16 @@ export abstract class Storage<Reference, AttachedData> {
 		}
 	}
 
+	/**
+	 * Create compressed stream
+	 * (for gzip / brotli encodings only but this method can be overidden to eventually implement other encodings)
+	 *
+	 * @param stream - stream to compress
+	 * @param contentEncoding - 'br' for brotli encoding or 'gzip' for gzip encoding, other values are not supported
+	 * @param expectedSize - expected stream size
+	 * @returns compressed stream
+	 * @throws if content encoding is not supported
+	 */
 	// eslint-disable-next-line class-methods-use-this
 	createCompressedStream(stream: Readable, contentEncoding: string, expectedSize?: number) {
 		switch (contentEncoding) {
