@@ -1,8 +1,10 @@
 
 export * from './utils';
 export * from './streams';
-export * from './storage-models';
+export * from './types';
+export * from './error';
 export * from './response';
 export * from './storage';
-export * from './file-system-storage-models';
+export * from './file-system-types';
+export * from './file-system-errors';
 export * from './file-system-storage';

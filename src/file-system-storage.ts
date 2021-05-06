@@ -8,8 +8,8 @@ import { promisify } from 'util';
 import { URL } from 'url';
 
 import { Storage } from './storage';
-import type { StorageRequestHeaders, StorageInfo } from './storage-models';
-import { StorageError } from './storage-models';
+import type { StorageRequestHeaders, StorageInfo } from './types';
+import { StorageError } from './error';
 import type { StreamRange } from './utils';
 import { acceptEncodings } from './utils';
 import type {
@@ -19,7 +19,7 @@ import type {
 	GenericFileSystemStorageOptions,
 	GenericFileData,
 	GenericFSModule,
-} from './file-system-storage-models';
+} from './file-system-types';
 import {
 	MalformedPathError,
 	NotNormalizedError,
@@ -30,7 +30,7 @@ import {
 	TrailingSlashError,
 	IsDirectoryError,
 	DoesNotExistError,
-} from './file-system-storage-models';
+} from './file-system-errors';
 
 /**
  * Escape HTML in path for this library (only replace & character since ", < and > are already excluded)

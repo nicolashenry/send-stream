@@ -111,7 +111,7 @@ describe('http', () => {
 		lastResult = undefined;
 	});
 
-	describe('send(file).pipe(res)', () => {
+	describe('prepare response and send', () => {
 		let mainApp: http.Server;
 		before(() => {
 			mainApp = http.createServer((req, res) => {
@@ -1119,6 +1119,66 @@ describe('http', () => {
 					.expect('X-Send-Stream-Error', 'NotNormalizedError')
 					.expect(404);
 			});
+		});
+	});
+
+	describe('prepare response and send (+dispose)', () => {
+		let mainApp: http.Server;
+		before(() => {
+			mainApp = http.createServer((req, res) => {
+				(async () => {
+					// eslint-disable-next-line @typescript-eslint/no-non-null-assertion
+					const response = await mainStorage.prepareResponse(req.url!, req);
+					try {
+						lastResult = response;
+						if (response.error) {
+							response.headers['X-Send-Stream-Error'] = response.error.name;
+						}
+						await response.send(res);
+					} finally {
+						response.dispose();
+					}
+				})().catch(err => {
+					res.statusCode = 500;
+					console.error(err);
+					if (!res.writableEnded) {
+						res.end('Internal Error');
+					}
+				});
+			});
+		});
+
+		it('should stream the file contents', async () => {
+			await request(mainApp)
+				.get('/name.txt')
+				.expect('Content-Length', '4')
+				.expect(200, 'tobi');
+		});
+	});
+
+	describe('direct send', () => {
+		let mainApp: http.Server;
+		before(() => {
+			mainApp = http.createServer((req, res) => {
+				(async () => {
+					// eslint-disable-next-line @typescript-eslint/no-non-null-assertion
+					await mainStorage.send(req.url!, req, res);
+					lastResult = true;
+				})().catch(err => {
+					res.statusCode = 500;
+					console.error(err);
+					if (!res.writableEnded) {
+						res.end('Internal Error');
+					}
+				});
+			});
+		});
+
+		it('should stream the file contents', async () => {
+			await request(mainApp)
+				.get('/name.txt')
+				.expect('Content-Length', '4')
+				.expect(200, 'tobi');
 		});
 	});
 

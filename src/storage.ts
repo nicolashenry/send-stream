@@ -28,8 +28,9 @@ import type {
 	PrepareResponseOptions,
 	StorageRequestHeaders,
 	StorageInfo,
-} from './storage-models';
-import { StorageError } from './storage-models';
+	StorageSendOptions,
+} from './types';
+import { StorageError } from './error';
 
 const DEFAULT_ALLOWED_METHODS = <const> ['GET', 'HEAD'];
 const DEFAULT_MAX_RANGES = 200;
@@ -472,6 +473,29 @@ export abstract class Storage<Reference, AttachedData> {
 			if (earlyClose) {
 				await this.close(storageInfo);
 			}
+		}
+	}
+
+	/**
+	 * Send file directly to response
+	 *
+	 * @param reference - file reference
+	 * @param req - request headers or request objects
+	 * @param res - http response
+	 * @param [opts] - options
+	 * @throws when method is incorrect or when storage can not create the storage stream
+	 */
+	async send(
+		reference: Reference,
+		req: http.IncomingMessage | http2.Http2ServerRequest | http2.IncomingHttpHeaders,
+		res: http.ServerResponse | http2.Http2ServerResponse | http2.ServerHttp2Stream,
+		opts: StorageSendOptions = {},
+	) {
+		const response = await this.prepareResponse(reference, req, opts);
+		try {
+			await response.send(res, opts);
+		} finally {
+			response.dispose();
 		}
 	}
 
