@@ -367,9 +367,9 @@ Create asynchronously a new `StreamResponse` for the given path relative to root
 
 The **`path`** parameter is a urlencoded path (urlencoded) or an array of path parts (should always start with '').
 
-For example, `'/my%20directory/index.html'` is the equivalent of `['', 'my directory', 'index.html']`.
-
 Query params will be ignored if present.
+
+For example, `'/my%20directory/index.html?param=value'` is the equivalent of `['', 'my directory', 'index.html']`.
 
 The **`req`** is the related request, it can be a `http.IncomingMessage` or a `http2.Http2ServerRequest` or a `http2.IncomingHttpHeaders`.
 

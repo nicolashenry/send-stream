@@ -3,6 +3,7 @@
 
 * Feature: add send method in Storage to send directly a file without having to prepare the response before
 * Feature: add dispose method in StreamResponse to dispose stream response resources
+* Docs: Add better path example
 
 2.4.0
 ==================
