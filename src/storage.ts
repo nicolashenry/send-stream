@@ -12,7 +12,7 @@ import compressible from 'compressible';
 
 import { StreamResponse } from './response';
 import { BufferStream, MultiStream } from './streams';
-import type { ResponseHeaders, BufferOrStreamRange } from './utils';
+import type { ResponseHeaders, Uint8ArrayOrStreamRange } from './utils';
 import {
 	millisecondsToUTCString,
 	statsToEtag,
@@ -39,18 +39,47 @@ const DEFAULT_MAX_RANGES = 200;
  * send-stream storage base class
  */
 export abstract class Storage<Reference, AttachedData> {
+	/**
+	 * Default mime type or false
+	 */
 	readonly defaultMimeType: string | false;
 
+	/**
+	 * Max ranges for multiple range GET requests
+	 */
 	readonly maxRanges: number;
 
+	/**
+	 * Produces week tags when true
+	 */
 	readonly weakEtags: boolean;
+
+	/**
+	 * Mime type lookup function
+	 */
 	readonly mimeTypeLookup: NonNullable<StorageOptions['mimeTypeLookup']>;
+
+	/**
+	 * Mime type default charset function
+	 */
 	readonly mimeTypeDefaultCharset: NonNullable<StorageOptions['mimeTypeDefaultCharset']>;
+
+	/**
+	 * Dynamic compression preferences or false
+	 */
 	readonly dynamicCompression: {
 		encodingPreferences: ReadonlyMap<string, { order: number }>;
 		identityEncodingPreference: { order: number };
 	} | false;
+
+	/**
+	 * Mime type compressible function
+	 */
 	readonly mimeTypeCompressible: NonNullable<StorageOptions['mimeTypeCompressible']>;
+
+	/**
+	 * Minimum length to produce compressed content
+	 */
 	readonly dynamicCompressionMinLength: number;
 
 	/**
@@ -359,7 +388,7 @@ export abstract class Storage<Reference, AttachedData> {
 
 			let statusCode = opts.statusCode ?? 200;
 			const { size } = storageInfo;
-			let rangeToUse: StreamRange | BufferOrStreamRange[] | undefined;
+			let rangeToUse: StreamRange | Uint8ArrayOrStreamRange[] | undefined;
 			if (size === undefined) {
 				responseHeaders['Accept-Ranges'] = 'none';
 				rangeToUse = undefined;

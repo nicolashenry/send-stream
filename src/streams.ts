@@ -1,6 +1,6 @@
 import { Readable, PassThrough } from 'stream';
 
-import type { BufferOrStreamRange } from './utils';
+import type { Uint8ArrayOrStreamRange } from './utils';
 
 /**
  * Single buffer stream
@@ -18,6 +18,9 @@ export class BufferStream extends Readable {
 		this.buffer = buffer;
 	}
 
+	/**
+	 * Read implementation
+	 */
 	_read() {
 		const { buffer } = this;
 		if (buffer) {
@@ -27,8 +30,16 @@ export class BufferStream extends Readable {
 		this.push(null);
 	}
 
-	_destroy() {
+	/**
+	 * Destroy implementation
+	 *
+	 * @param error - error or null
+	 * @param callback - callback to be called after destroy
+	 */
+	_destroy(error: Error | null, callback: (err?: Error | null) => void) {
 		this.buffer = undefined;
+		// eslint-disable-next-line no-underscore-dangle
+		super._destroy(error, callback);
 	}
 }
 
@@ -44,8 +55,8 @@ export class MultiStream extends PassThrough {
 	 * @param onDestroy - function called on close to release resources
 	 */
 	constructor(
-		private readonly ranges: BufferOrStreamRange[],
-		private readonly onNextStream: (range: BufferOrStreamRange) => Readable,
+		private readonly ranges: Uint8ArrayOrStreamRange[],
+		private readonly onNextStream: (range: Uint8ArrayOrStreamRange) => Readable,
 		private readonly onDestroy: () => Promise<void>,
 	) {
 		super({ allowHalfOpen: false });
@@ -53,6 +64,12 @@ export class MultiStream extends PassThrough {
 		this.sendNextRange();
 	}
 
+	/**
+	 * Destroy implementation
+	 *
+	 * @param error - error or null
+	 * @param callback - callback to be called after destroy
+	 */
 	_destroy(error: Error | null, callback: (err: Error | null) => void) {
 		this.onDestroy()
 			.then(() => {

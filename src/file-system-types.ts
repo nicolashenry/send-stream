@@ -4,7 +4,7 @@ import type { Dir, Stats, Dirent } from 'fs';
 import type { StorageOptions } from './types';
 
 /**
- * File data used by storage
+ * File data with generic file descriptor used by file storage
  */
 export interface GenericFileData<FileDescriptor> {
 	/**
@@ -25,11 +25,14 @@ export interface GenericFileData<FileDescriptor> {
 	fd: FileDescriptor;
 }
 
+/**
+ * File data used by file storage
+ */
 // eslint-disable-next-line @typescript-eslint/no-type-alias
 export type FileData = GenericFileData<number>;
 
 /**
- * "fs" module like type used by this library
+ * "fs" module like type with generic file descriptor used by this library
  */
 export interface GenericFSModule<FileDescriptor> {
 	constants: {
@@ -63,6 +66,9 @@ export interface GenericFSModule<FileDescriptor> {
 	) => void;
 }
 
+/**
+ * "fs" module like type used by this library
+ */
 // eslint-disable-next-line @typescript-eslint/no-type-alias
 export type FSModule = GenericFSModule<number>;
 
@@ -127,7 +133,7 @@ export interface RegexpContentEncodingMapping {
 }
 
 /**
- * FileSystemStorage options
+ * FileSystemStorage options with generic file descriptor
  */
 export interface GenericFileSystemStorageOptions<FileDescriptor> extends StorageOptions {
 	/**
@@ -155,6 +161,9 @@ export interface GenericFileSystemStorageOptions<FileDescriptor> extends Storage
 
 type Optional<T, K extends keyof T> = Pick<Partial<T>, K> & Omit<T, K>;
 
+/**
+ * FileSystemStorage options
+ */
 // eslint-disable-next-line @typescript-eslint/no-type-alias
 export type FileSystemStorageOptions = Optional<GenericFileSystemStorageOptions<number>, 'fsModule'>;
 

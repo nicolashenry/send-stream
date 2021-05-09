@@ -3,9 +3,11 @@
 
 * Feature: add send method in Storage to send directly a file without having to prepare the response before
 * Feature: add dispose method in StreamResponse to dispose stream response resources
+* Refactor: rename BufferOrStreamRange as Uint8ArrayOrStreamRange
+* Fix: call super._destroy in BufferStream._destroy
 * Docs: add better path example
 * Docs: add missing ignorePrematureClose documentation
-* Docs: add missing jsdoc for createCompressedStream
+* Docs: add some missing jsdocs
 * Docs: enhance doc display
 
 2.4.0

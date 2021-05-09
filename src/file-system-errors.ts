@@ -5,6 +5,9 @@ import type { FilePath } from './file-system-types';
  * File system storage error
  */
 export class FileSystemStorageError extends StorageError<FilePath> {
+	/**
+	 * Path parts
+	 */
 	readonly pathParts: readonly string[];
 
 	/**
@@ -42,6 +45,9 @@ export class MalformedPathError extends FileSystemStorageError {
  * File system storage error
  */
 export class NotNormalizedError extends FileSystemStorageError {
+	/**
+	 * Normalized path
+	 */
 	normalizedPath: string;
 	/**
 	 * Create file system storage error
@@ -130,6 +136,9 @@ export class ForbiddenCharacterError extends FileSystemStorageError {
  * File system storage error
  */
 export class TrailingSlashError extends FileSystemStorageError {
+	/**
+	 * Path parts (without trailing slash)
+	 */
 	untrailedPathParts: readonly string[];
 	/**
 	 * Create file system storage error
