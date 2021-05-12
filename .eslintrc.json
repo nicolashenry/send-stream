@@ -783,6 +783,7 @@
     "unicorn/no-array-push-push": "warn",
     "unicorn/no-array-reduce": "off", // not needed: seems useless
     "unicorn/no-console-spaces": "warn",
+    "unicorn/no-document-cookie": "off", // not needed: not executed in a browser
     "unicorn/no-for-loop": "warn",
     "unicorn/no-instanceof-array": "warn",
     "unicorn/no-hex-escape": "warn",
