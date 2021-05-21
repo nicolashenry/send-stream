@@ -724,9 +724,11 @@
     "jsdoc/empty-tags": "warn",
     "jsdoc/implements-on-classes": "warn",
     "jsdoc/match-description": "off", // not needed: seems useless
+    "jsdoc/multiline-blocks": "warn",
     "jsdoc/newline-after-description": "warn",
     "jsdoc/no-bad-blocks": "warn",
     "jsdoc/no-defaults": "warn",
+    "jsdoc/no-multi-asterisks": "warn",
     "jsdoc/no-types": "warn",
     "jsdoc/no-undefined-types": "warn",
     "jsdoc/require-description-complete-sentence": "off", // not needed: seems useless
@@ -755,6 +757,7 @@
     "jsdoc/require-throws": "warn",
     "jsdoc/require-yields": "warn",
     "jsdoc/require-yields-check": "warn",
+    "jsdoc/tag-lines": "warn",
     "jsdoc/valid-types": "warn",
     "unicorn/better-regex": "warn",
     "unicorn/catch-error-name": [
