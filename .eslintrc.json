@@ -680,6 +680,7 @@
         ]
       }
     ],
+    "import/no-import-module-exports": "warn",
     "import/no-internal-modules": "off", // not needed: seems useless
     "import/no-mutable-exports": "warn",
     "import/no-named-as-default-member": "warn",
@@ -688,6 +689,7 @@
     "import/no-named-export": "off", // not needed: opposite of project rules
     "import/no-namespace": "off", // too restrictive
     "import/no-nodejs-modules": "off", // not needed: opposite of project rules
+    "import/no-relative-packages": "warn",
     "import/no-relative-parent-imports": "off", // not needed: opposite of project rules
     "import/no-restricted-paths": "off", // not needed: not any path to exclude
     "import/no-self-import": "warn",
