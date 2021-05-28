@@ -161,7 +161,7 @@ class FullCacheStorage extends GenericFileSystemStorage<CachedFileDescriptor> {
 		});
 	}
 
-	createEtag(storageInfo: StorageInfo<GenericFileData<CachedFileDescriptor>>) {
+	override createEtag(storageInfo: StorageInfo<GenericFileData<CachedFileDescriptor>>) {
 		const { attachedData: { fd } } = storageInfo;
 		if (typeof fd === 'number') {
 			return super.createEtag(storageInfo);

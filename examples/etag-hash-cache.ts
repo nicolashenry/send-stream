@@ -65,7 +65,7 @@ class EtagHashCacheStorage extends FileSystemStorage {
 		});
 	}
 
-	createEtag(storageInfo: StorageInfo<FileData>) {
+	override createEtag(storageInfo: StorageInfo<FileData>) {
 		const cached = this.etagCache.get(storageInfo.attachedData.resolvedPath);
 		// recalculate hash if file seems to have been modified
 		if (cached) {

@@ -275,7 +275,10 @@ describe('http', () => {
 			let app: http.Server;
 			before(() => {
 				class CustomFileSystemStorage extends FileSystemStorage {
-					async open(path: FilePath, requestHeaders: StorageRequestHeaders): Promise<StorageInfo<FileData>> {
+					override async open(
+						path: FilePath,
+						requestHeaders: StorageRequestHeaders,
+					): Promise<StorageInfo<FileData>> {
 						const res = await super.open(path, requestHeaders);
 						res.etag = '"123"';
 						res.lastModified = 'Thu, 04 Jun 2020 01:53:53 GMT';
@@ -359,7 +362,7 @@ describe('http', () => {
 			let app: http.Server;
 			class ErrorStorage extends FileSystemStorage {
 				// eslint-disable-next-line class-methods-use-this
-				createReadableStream() {
+				override createReadableStream() {
 					return new Readable({
 						read() {
 							process.nextTick(() => {
@@ -1834,17 +1837,20 @@ describe('http', () => {
 			let app: http.Server;
 			before(() => {
 				class ErrorStorage extends FileSystemStorage {
-					createReadableStream(si: StorageInfo<FileData>): Readable {
+					override createReadableStream(si: StorageInfo<FileData>): Readable {
 						// eslint-disable-next-line @typescript-eslint/no-this-alias
 						const st = this;
 						return new class extends Readable {
-							pipe<T extends NodeJS.WritableStream>(destination: T, options?: { end?: boolean }): T {
+							override pipe<T extends NodeJS.WritableStream>(
+								destination: T,
+								options?: { end?: boolean },
+							): T {
 								this.destroy(new Error('oops'));
 								return super.pipe(destination, options);
 							}
 
 							// eslint-disable-next-line class-methods-use-this
-							async _destroy(error: Error | null, callback: (err?: Error | null) => void) {
+							override async _destroy(error: Error | null, callback: (err?: Error | null) => void) {
 								await st.close(si);
 								callback(error);
 							}
@@ -1886,17 +1892,20 @@ describe('http', () => {
 			let app: http.Server;
 			before(() => {
 				class ErrorStorage extends FileSystemStorage {
-					createReadableStream(si: StorageInfo<FileData>): Readable {
+					override createReadableStream(si: StorageInfo<FileData>): Readable {
 						// eslint-disable-next-line @typescript-eslint/no-this-alias
 						const st = this;
 						return new class extends Readable {
-							pipe<T extends NodeJS.WritableStream>(destination: T, options?: { end?: boolean }): T {
+							override pipe<T extends NodeJS.WritableStream>(
+								destination: T,
+								options?: { end?: boolean },
+							): T {
 								this.destroy(new Error('oops'));
 								return super.pipe(destination, options);
 							}
 
 							// eslint-disable-next-line class-methods-use-this
-							async _destroy(error: Error | null, callback: (err?: Error | null) => void) {
+							override async _destroy(error: Error | null, callback: (err?: Error | null) => void) {
 								await st.close(si);
 								callback(error);
 							}
@@ -1949,17 +1958,20 @@ describe('http', () => {
 			const sessions: http2.ServerHttp2Session[] = [];
 			before(done => {
 				class ErrorStorage extends FileSystemStorage {
-					createReadableStream(si: StorageInfo<FileData>): Readable {
+					override createReadableStream(si: StorageInfo<FileData>): Readable {
 						// eslint-disable-next-line @typescript-eslint/no-this-alias
 						const st = this;
 						return new class extends Readable {
-							pipe<T extends NodeJS.WritableStream>(destination: T, options?: { end?: boolean }): T {
+							override pipe<T extends NodeJS.WritableStream>(
+								destination: T,
+								options?: { end?: boolean },
+							): T {
 								this.destroy(new Error('oops'));
 								return super.pipe(destination, options);
 							}
 
 							// eslint-disable-next-line class-methods-use-this
-							async _destroy(error: Error | null, callback: (err?: Error | null) => void) {
+							override async _destroy(error: Error | null, callback: (err?: Error | null) => void) {
 								await st.close(si);
 								callback(error);
 							}
@@ -2290,7 +2302,7 @@ describe('http', () => {
 			before(done => {
 				class ErrorStorage extends FileSystemStorage {
 					// eslint-disable-next-line class-methods-use-this
-					createReadableStream(
+					override createReadableStream(
 						_si: StorageInfo<FileData>,
 						_range: StreamRange | undefined,
 						autoclose: boolean,

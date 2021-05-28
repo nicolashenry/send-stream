@@ -11,6 +11,7 @@
     "isolatedModules": true,
     "importHelpers": true,
     "composite": true,
+    "noImplicitOverride": true,
     "typeRoots": ["./node_modules/@types/"]
   }
 }
