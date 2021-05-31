@@ -5,13 +5,9 @@ import type { Readable } from 'stream';
 import { pipeline } from 'stream';
 import * as zlib from 'zlib';
 
-// eslint-disable-next-line import/no-extraneous-dependencies
 import contentDisposition from 'content-disposition';
-// eslint-disable-next-line import/no-extraneous-dependencies
 import { lookup, charset } from 'mime-types';
-// eslint-disable-next-line import/no-extraneous-dependencies
 import parseRange from 'range-parser';
-// eslint-disable-next-line import/no-extraneous-dependencies
 import compressible from 'compressible';
 
 import { StreamResponse } from './response';
