@@ -82,6 +82,8 @@ export abstract class Storage<Reference, AttachedData> {
 	 */
 	readonly dynamicCompressionMinLength: number;
 
+	private readonly console: NonNullable<StorageOptions['console']>;
+
 	/**
 	 * Create storage
 	 *
@@ -109,6 +111,7 @@ export abstract class Storage<Reference, AttachedData> {
 		this.defaultMimeType = opts.defaultMimeType ?? false;
 		this.maxRanges = opts.maxRanges ?? DEFAULT_MAX_RANGES;
 		this.weakEtags = opts.weakEtags === true;
+		this.console = opts.console ?? global.console;
 	}
 
 	/**
@@ -553,7 +556,7 @@ export abstract class Storage<Reference, AttachedData> {
 				}),
 				err => {
 					if (err) {
-						console.error('Broti compress failed.', err);
+						this.console.error('Broti compress failed.', err);
 					}
 				},
 			);
@@ -568,7 +571,7 @@ export abstract class Storage<Reference, AttachedData> {
 				zlib.createGzip({ level: 6 }),
 				err => {
 					if (err) {
-						console.error('Gzip failed.', err);
+						this.console.error('Gzip failed.', err);
 					}
 				},
 			);

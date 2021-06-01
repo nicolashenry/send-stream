@@ -156,9 +156,15 @@ export interface StorageOptions {
 	/**
 	 * Sets the minimum length of a response that will be dynamically compressed (only when the length is known)
 	 *
-	 * Default to 20
+	 * Defaults to 20
 	 */
 	dynamicCompressionMinLength?: number;
+	/**
+	 * Console object to use for logging
+	 * 
+	 * Defaults to global.console
+	 */
+	console?: Partial<Console> & { error: Console['error'] };
 }
 
 /**
