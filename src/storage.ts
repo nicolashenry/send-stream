@@ -551,10 +551,8 @@ export abstract class Storage<Reference, AttachedData> {
 						[zlib.constants.BROTLI_PARAM_SIZE_HINT]: expectedSize ?? 0,
 					},
 				}),
-				err => {
-					if (err) {
-						console.error('Broti compress failed.', err);
-					}
+				_err => {
+					// noop
 				},
 			);
 			return res.on('end', () => {
@@ -566,10 +564,8 @@ export abstract class Storage<Reference, AttachedData> {
 			const res = pipeline(
 				stream,
 				zlib.createGzip({ level: 6 }),
-				err => {
-					if (err) {
-						console.error('Gzip failed.', err);
-					}
+				_err => {
+					// noop
 				},
 			);
 			return res.on('end', () => {
