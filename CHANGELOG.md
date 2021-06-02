@@ -1,5 +1,12 @@
-2.5.0
-==================
+# Changelog
+
+## 2.5.1
+
+* Fix: do not log errors coming from dynamic compression pipeline (errors should be managed by the stream itself)
+* Bump typescript from 4.2.x to 4.3.x
+* Use typescript override keyword and incremental option
+
+## 2.5.0
 
 * Feature: add send method in Storage to send directly a file without having to prepare the response before
 * Feature: add dispose method in StreamResponse to dispose stream response resources
@@ -10,46 +17,39 @@
 * Docs: add some missing jsdocs
 * Docs: enhance doc display
 
-2.4.0
-==================
+## 2.4.0
 
 * Feature: add abstract class GenericFileSystemStorage as intermediate implementation for file system storage
 
-2.3.2
-==================
+## 2.3.2
 
 * Docs: Revert use of fastify send in example (not safe to use)
 * Docs: Fix onDirectory parameter documentation
 
-2.3.1
-==================
+## 2.3.1
 
 * Fix: NodeJS 12 sometimes not destroyed
 
-2.3.0
-==================
+## 2.3.0
 
 * Feature: send method is now returning a promise and is not anymore an event emitter
 * Feature: send method have a new option to ignore premature close errors (true by default)
 * Test: test all frameworks instead of only koa
 * Docs: update/fix examples
 
-2.2.0
-==================
+## 2.2.0
 
 * Fix: node 15.x on dynamic compression error
 * Fix: remove useless destroyed checks
 * Refactor: merge EmptyStream into BufferStream
 * Refactor: add/update lint rules
 
-2.1.0
-==================
+## 2.1.0
 
 * Feature: Add dynamicCompressionMinLength option
 * Fix: Add missing documentation on `dynamicCompression` and `mimeTypeCompressible`
 
-2.0.0
-==================
+## 2.0.0
 
 * Breaking change: rename `contentType` prepare option to `mimeType` and `contentTypeCharset` to `mimeTypeCharset`
 * Breaking change: rename storage option `defaultContentType` to `defaultMimeType`
@@ -63,13 +63,11 @@
 * Use typescript project references
 * Bump typescript from 3.9.x to 4.0.x
 
-1.1.0
-==================
+## 1.1.0
 
 * Feature: Add a way to define ETag and Last-Modified headers directly from the storage
 
-1.0.0
-==================
+## 1.0.0
 
 * Breaking change: Each error now have a specific class instead of a code
 * Breaking change: Encoded path must start with / now
@@ -80,8 +78,7 @@
 * Feature: add onDirectory option
 * Feature: storages can now emit contentType/contentTypeCharset values directly
 
-0.4.0
-==================
+## 0.4.0
 
 * Enhance CI ans tests
 * Replace `tslint` with `eslint`
@@ -94,21 +91,18 @@
 * Drop `responseClose` event
 * Add textual regexp support in options
 
-0.3.0
-==================
+## 0.3.0
 
 * Fix multi-range streams on error
 * Create multi-range streams when needed only
 * Fix mongodb example
 * Update dependencies
 
-0.2.1
-==================
+## 0.2.1
 
 * Remove node 10 support
 
-0.2.0
-==================
+## 0.2.0
 
 * Breaking change: storage now takes a range object (which can be undefined) instead of start/end parameter
 * File size/modification date/name are now optional in storage result
@@ -116,79 +110,66 @@
 * All file opening errors are now 404
 * A parameter have been added to allow http methods different than GET and HEAD
 
-0.1.1
-==================
+## 0.1.1
 
 * Add new linting rules
 * Update dependencies
 
-0.1.0
-==================
+## 0.1.0
 
 * Remove 1 minute freshness condition
 * Add badges in documentation
 
-0.0.11
-==================
+## 0.0.11
 
 * Fix some examples
 * Enhance code coverage
 * Fix minor issues
 
-0.0.10
-==================
+## 0.0.10
 
 * Remove max-age on error
 * Enhance examples
 
-0.0.9
-==================
+## 0.0.9
 
 * Add some documentation on response and errors
 
-0.0.8
-==================
+## 0.0.8
 
 * Change fullReponse option to statusCode option
 * Add clarification on query params in path
 * Enhance mongodb/gridfs example
 
-0.0.7
-==================
+## 0.0.7
 
 * Change default charset from utf-8 to UTF-8
 * Add public in cache control by default
 * Remove options method handling
 
-0.0.6
-==================
+## 0.0.6
 
 * Add weakEtags option
 * Add path parts documentation
 * Add pre compressed example
 
-0.0.5
-==================
+## 0.0.5
 
- * Fix content-encoding when pre-compressed files do not exist
- * Fix crypto warning
+* Fix content-encoding when pre-compressed files do not exist
+* Fix crypto warning
 
-0.0.4
-==================
+## 0.0.4
 
- * Keep compatibility with disabled allowSyntheticDefaultImports
+* Keep compatibility with disabled allowSyntheticDefaultImports
 
-0.0.3
-==================
+## 0.0.3
 
- * Relax StreamResponse typings
+* Relax StreamResponse typings
 
-0.0.2
-==================
+## 0.0.2
 
- * Add fullResponse option
+* Add fullResponse option
 
-0.0.1
-==================
+## 0.0.1
 
- * First release
+* First release
