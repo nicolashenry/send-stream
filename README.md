@@ -212,7 +212,7 @@ new FileSystemStorage(
 
 Sets the minimum length of a response that will be dynamically compressed (only when the length is known)
 
-Default to 20
+Defaults to 20
 
 Example:
 
@@ -325,7 +325,7 @@ Determine what should happen on directory requests (trailing slash)
 - `'list-files'` to list the files of directories
 - `'serve-index'` to serve the index.html file of directories
 
-Default to false
+Defaults to false
 
 Note that you can customize the html template used for `'list-files'` by overiding `getDirectoryListing` method.
 

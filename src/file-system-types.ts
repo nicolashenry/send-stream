@@ -154,7 +154,7 @@ export interface GenericFileSystemStorageOptions<FileDescriptor> extends Storage
 	 * - `'list-files'` to list the files of directories
 	 * - `'serve-index'` to serve the index.html file of directories
 	 *
-	 * Default to false
+	 * Defaults to false
 	 */
 	onDirectory?: 'serve-index' | 'list-files' | false;
 }
