@@ -1773,7 +1773,6 @@ describe('http', () => {
 				app = http.createServer((req, res) => {
 					(async () => {
 						res.destroy();
-						res.socket = null;
 						lastResult = true;
 						// eslint-disable-next-line @typescript-eslint/no-non-null-assertion
 						const result = await mainStorage.prepareResponse(req.url!, req);
