@@ -12,7 +12,7 @@ import compressible from 'compressible';
 
 import { StreamResponse } from './response.js';
 import { BufferStream, MultiStream } from './streams.js';
-import type { ResponseHeaders, BufferOrStreamRange } from './utils.js';
+import type { ResponseHeaders, Uint8ArrayOrStreamRange } from './utils.js';
 import {
 	millisecondsToUTCString,
 	statsToEtag,
@@ -28,8 +28,9 @@ import type {
 	PrepareResponseOptions,
 	StorageRequestHeaders,
 	StorageInfo,
-} from './storage-models.js';
-import { StorageError } from './storage-models.js';
+	StorageSendOptions,
+} from './types.js';
+import { StorageError } from './error.js';
 
 const DEFAULT_ALLOWED_METHODS = <const> ['GET', 'HEAD'];
 const DEFAULT_MAX_RANGES = 200;
@@ -38,18 +39,47 @@ const DEFAULT_MAX_RANGES = 200;
  * send-stream storage base class
  */
 export abstract class Storage<Reference, AttachedData> {
+	/**
+	 * Default mime type or false
+	 */
 	readonly defaultMimeType: string | false;
 
+	/**
+	 * Max ranges for multiple range GET requests
+	 */
 	readonly maxRanges: number;
 
+	/**
+	 * Produces week tags when true
+	 */
 	readonly weakEtags: boolean;
+
+	/**
+	 * Mime type lookup function
+	 */
 	readonly mimeTypeLookup: NonNullable<StorageOptions['mimeTypeLookup']>;
+
+	/**
+	 * Mime type default charset function
+	 */
 	readonly mimeTypeDefaultCharset: NonNullable<StorageOptions['mimeTypeDefaultCharset']>;
+
+	/**
+	 * Dynamic compression preferences or false
+	 */
 	readonly dynamicCompression: {
 		encodingPreferences: ReadonlyMap<string, { order: number }>;
 		identityEncodingPreference: { order: number };
 	} | false;
+
+	/**
+	 * Mime type compressible function
+	 */
 	readonly mimeTypeCompressible: NonNullable<StorageOptions['mimeTypeCompressible']>;
+
+	/**
+	 * Minimum length to produce compressed content
+	 */
 	readonly dynamicCompressionMinLength: number;
 
 	/**
@@ -358,7 +388,7 @@ export abstract class Storage<Reference, AttachedData> {
 
 			let statusCode = opts.statusCode ?? 200;
 			const { size } = storageInfo;
-			let rangeToUse: StreamRange | BufferOrStreamRange[] | undefined;
+			let rangeToUse: StreamRange | Uint8ArrayOrStreamRange[] | undefined;
 			if (size === undefined) {
 				responseHeaders['Accept-Ranges'] = 'none';
 				rangeToUse = undefined;
@@ -475,6 +505,39 @@ export abstract class Storage<Reference, AttachedData> {
 		}
 	}
 
+	/**
+	 * Send file directly to response
+	 *
+	 * @param reference - file reference
+	 * @param req - request headers or request objects
+	 * @param res - http response
+	 * @param [opts] - options
+	 * @throws when method is incorrect or when storage can not create the storage stream
+	 */
+	async send(
+		reference: Reference,
+		req: http.IncomingMessage | http2.Http2ServerRequest | http2.IncomingHttpHeaders,
+		res: http.ServerResponse | http2.Http2ServerResponse | http2.ServerHttp2Stream,
+		opts: StorageSendOptions = {},
+	) {
+		const response = await this.prepareResponse(reference, req, opts);
+		try {
+			await response.send(res, opts);
+		} finally {
+			response.dispose();
+		}
+	}
+
+	/**
+	 * Create compressed stream
+	 * (for gzip / brotli encodings only but this method can be overidden to eventually implement other encodings)
+	 *
+	 * @param stream - stream to compress
+	 * @param contentEncoding - 'br' for brotli encoding or 'gzip' for gzip encoding, other values are not supported
+	 * @param expectedSize - expected stream size
+	 * @returns compressed stream
+	 * @throws if content encoding is not supported
+	 */
 	// eslint-disable-next-line class-methods-use-this
 	createCompressedStream(stream: Readable, contentEncoding: string, expectedSize?: number) {
 		switch (contentEncoding) {
@@ -488,10 +551,8 @@ export abstract class Storage<Reference, AttachedData> {
 						[zlib.constants.BROTLI_PARAM_SIZE_HINT]: expectedSize ?? 0,
 					},
 				}),
-				err => {
-					if (err) {
-						console.error('Broti compress failed.', err);
-					}
+				_err => {
+					// noop
 				},
 			);
 			return res.on('end', () => {
@@ -503,10 +564,8 @@ export abstract class Storage<Reference, AttachedData> {
 			const res = pipeline(
 				stream,
 				zlib.createGzip({ level: 6 }),
-				err => {
-					if (err) {
-						console.error('Gzip failed.', err);
-					}
+				_err => {
+					// noop
 				},
 			);
 			return res.on('end', () => {

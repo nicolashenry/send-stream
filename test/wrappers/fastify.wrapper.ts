@@ -113,7 +113,7 @@ export class FastifyServerWrapper implements ServerWrapper {
 				}
 				class FileSystemStorageWithError extends FileSystemStorage {
 					// eslint-disable-next-line class-methods-use-this
-					createReadableStream() {
+					override createReadableStream() {
 						return new Readable({
 							read() {
 								process.nextTick(() => {

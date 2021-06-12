@@ -4,8 +4,8 @@
 import * as assert from 'assert';
 import * as fs from 'fs';
 import { createBrotliDecompress } from 'zlib';
-import { dirname, join } from 'path';
-import { Readable } from 'stream';
+import { join, dirname } from 'path';
+import { Readable, pipeline } from 'stream';
 import { promisify } from 'util';
 import { fileURLToPath } from 'url';
 
@@ -29,7 +29,12 @@ import { ExpressServerWrapper } from './wrappers/express.wrapper.js';
 import { VanillaServerWrapper } from './wrappers/vanilla.wrapper.js';
 
 function brotliParser(res: request.Response, cb: (err: Error | null, body: unknown) => void) {
-	const decompress = res.pipe(createBrotliDecompress());
+	const decompress = pipeline(res, createBrotliDecompress(), err => {
+		if (!err) {
+			return;
+		}
+		cb(err, null);
+	});
 
 	const chunks: Buffer[] = [];
 	let length = 0;
@@ -2405,7 +2410,7 @@ for (const [frameworkName, frameworkServer] of frameworks) {
 
 						class ErrorStorage extends FileSystemStorage {
 							// eslint-disable-next-line class-methods-use-this
-							createReadableStream() {
+							override createReadableStream() {
 								return new Readable({
 									read() {
 										process.nextTick(() => {
@@ -2450,7 +2455,7 @@ for (const [frameworkName, frameworkServer] of frameworks) {
 
 						class ErrorStorage extends FileSystemStorage {
 							// eslint-disable-next-line class-methods-use-this
-							createReadableStream(): Readable {
+							override createReadableStream(): Readable {
 								throw new Error('oops');
 							}
 						}
@@ -2477,7 +2482,7 @@ for (const [frameworkName, frameworkServer] of frameworks) {
 
 						class ErrorStorage extends FileSystemStorage {
 							// eslint-disable-next-line class-methods-use-this
-							createReadableStream() {
+							override createReadableStream() {
 								return new Readable({
 									read() {
 										process.nextTick(() => {
@@ -2518,7 +2523,7 @@ for (const [frameworkName, frameworkServer] of frameworks) {
 
 						let first = true;
 						class ErrorStorage extends FileSystemStorage {
-							createReadableStream(
+							override createReadableStream(
 								si: StorageInfo<FileData>,
 								range: StreamRange | undefined,
 								autoclose: boolean,
@@ -2567,7 +2572,7 @@ for (const [frameworkName, frameworkServer] of frameworks) {
 
 						class ErrorStorage extends FileSystemStorage {
 							// eslint-disable-next-line @typescript-eslint/require-await,class-methods-use-this
-							async close() {
+							override async close() {
 								throw new Error('oops');
 							}
 						}
@@ -2596,7 +2601,7 @@ for (const [frameworkName, frameworkServer] of frameworks) {
 
 						class ErrorStorage extends FileSystemStorage {
 							// eslint-disable-next-line class-methods-use-this
-							createReadableStream() {
+							override createReadableStream() {
 								return new Readable({
 									read() {
 										process.nextTick(() => {
@@ -2607,7 +2612,7 @@ for (const [frameworkName, frameworkServer] of frameworks) {
 							}
 
 							// eslint-disable-next-line @typescript-eslint/require-await,class-methods-use-this
-							async close() {
+							override async close() {
 								throw new Error('oops');
 							}
 						}
@@ -2640,7 +2645,7 @@ for (const [frameworkName, frameworkServer] of frameworks) {
 					before(async () => {
 						app = frameworkServer(context);
 						class UnknownStorage extends FileSystemStorage {
-							async open(path: FilePath, requestHeaders: StorageRequestHeaders) {
+							override async open(path: FilePath, requestHeaders: StorageRequestHeaders) {
 								const res = await super.open(path, requestHeaders);
 								res.size = undefined;
 								res.fileName = undefined;

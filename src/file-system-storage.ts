@@ -8,8 +8,8 @@ import { promisify } from 'util';
 import { URL } from 'url';
 
 import { Storage } from './storage.js';
-import type { StorageRequestHeaders, StorageInfo } from './storage-models.js';
-import { StorageError } from './storage-models.js';
+import type { StorageRequestHeaders, StorageInfo } from './types.js';
+import { StorageError } from './error.js';
 import type { StreamRange } from './utils.js';
 import { acceptEncodings } from './utils.js';
 import type {
@@ -19,7 +19,7 @@ import type {
 	GenericFileSystemStorageOptions,
 	GenericFileData,
 	GenericFSModule,
-} from './file-system-storage-models.js';
+} from './file-system-types.js';
 import {
 	MalformedPathError,
 	NotNormalizedError,
@@ -30,7 +30,7 @@ import {
 	TrailingSlashError,
 	IsDirectoryError,
 	DoesNotExistError,
-} from './file-system-storage-models.js';
+} from './file-system-errors.js';
 
 /**
  * Escape HTML in path for this library (only replace & character since ", < and > are already excluded)
@@ -50,27 +50,64 @@ export const FORBIDDEN_CHARACTERS = /[/?<>\\:*|":\u0000-\u001F\u0080-\u009F]/u;
  * File system storage
  */
 export class GenericFileSystemStorage<FileDescriptor> extends Storage<FilePath, GenericFileData<FileDescriptor>> {
+	/**
+	 * Root directory
+	 */
 	readonly root: string;
 
+	/**
+	 * Content encoding mappings array (or false if disabled)
+	 */
 	readonly contentEncodingMappings: readonly RegexpContentEncodingMapping[] | false;
 
+	/**
+	 * Ignore pattern (or false if disabled)
+	 */
 	readonly ignorePattern: RegExp | false;
 
+	/**
+	 * On directory action
+	 *
+	 * - 'serve-index' to serve directory's index.html
+	 * - 'list-files' to list directory files
+	 * - (or false if disabled)
+	 */
+	readonly onDirectory: 'serve-index' | 'list-files' | false;
+
+	/**
+	 * fs.open function
+	 */
 	readonly fsOpen: (path: string, flags: number) => Promise<FileDescriptor>;
 
+	/**
+	 * fs.fstat function
+	 */
 	readonly fsFstat: (fd: FileDescriptor) => Promise<Stats>;
 
+	/**
+	 * fs.close function
+	 */
 	readonly fsClose: (fd: FileDescriptor) => Promise<void>;
 
+	/**
+	 * fs.createReadStream function
+	 */
 	readonly fsCreateReadStream: GenericFSModule<FileDescriptor>['createReadStream'];
 
+	/**
+	 * fs.opendir function
+	 */
 	readonly fsOpendir?: (path: string) => Promise<Dir>;
 
+	/**
+	 * fs.readdir function
+	 */
 	readonly fsReaddir: (path: string, options: { withFileTypes: true }) => Promise<Dirent[]>;
 
+	/**
+	 * fs.constants constants
+	 */
 	readonly fsConstants: GenericFSModule<FileDescriptor>['constants'];
-
-	readonly onDirectory: 'serve-index' | 'list-files' | false;
 
 	/**
 	 * Create file system storage

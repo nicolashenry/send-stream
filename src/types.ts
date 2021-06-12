@@ -1,6 +1,6 @@
 
-import type { IncomingHttpHeaders as HttpIncomingHttpHeaders } from 'http';
-import type { IncomingHttpHeaders as Http2IncomingHttpHeaders } from 'http2';
+import type * as http from 'http';
+import type * as http2 from 'http2';
 
 /**
  * Charset mapping
@@ -77,6 +77,23 @@ export interface PrepareResponseOptions {
 	allowedMethods?: readonly string[];
 }
 
+/**
+ * StreamResponse.send options
+ */
+export interface SendOptions {
+	/**
+	 * Ignore premature close errors
+	 *
+	 * Defaults to true
+	 */
+	ignorePrematureClose?: boolean;
+}
+
+/**
+ * Storage.send options
+ */
+export type StorageSendOptions = PrepareResponseOptions & SendOptions;
+
 interface AcceptEncodingHeader {
 	'accept-encoding'?: string;
 }
@@ -84,7 +101,7 @@ interface AcceptEncodingHeader {
 /**
  * Request headers
  */
-export type StorageRequestHeaders = (HttpIncomingHttpHeaders | Http2IncomingHttpHeaders) & AcceptEncodingHeader;
+export type StorageRequestHeaders = (http.IncomingHttpHeaders | http2.IncomingHttpHeaders) & AcceptEncodingHeader;
 
 /**
  * Storage options
@@ -139,7 +156,7 @@ export interface StorageOptions {
 	/**
 	 * Sets the minimum length of a response that will be dynamically compressed (only when the length is known)
 	 *
-	 * Default to 20
+	 * Defaults to 20
 	 */
 	dynamicCompressionMinLength?: number;
 }
@@ -201,26 +218,4 @@ export interface StorageInfo<AttachedData> {
 	 * Content-Disposition header filename (filename by default)
 	 */
 	contentDispositionFilename?: string;
-}
-
-/**
- * Storage error
- */
-export class StorageError<T> extends Error {
-	/**
-	 * Storage reference
-	 */
-	readonly reference: T;
-
-	/**
-	 * Create a storage error
-	 *
-	 * @param message - error message
-	 * @param reference - error storage reference
-	 */
-	constructor(message: string, reference: T) {
-		super(message);
-		this.name = 'StorageError';
-		this.reference = reference;
-	}
 }

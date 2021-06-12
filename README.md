@@ -117,13 +117,11 @@ app.listen(3000, () => {
 
 Create a new `FileSystemStorage` which is a stream storage giving access to the files inside the given root folder.
 
-The **`root`** parameter is a the absolute path from which the storage takes the files.
+- The **`root`** parameter is a the absolute path from which the storage takes the files.
 
-The **`options`** parameter let you add some addition options.
+- The **`options`** parameter let you add some addition options:
 
-#### constructor options
-
-##### mimeTypeLookup
+#### **mimeTypeLookup**
 
 In order to return the content type, the storage will try to guess the mime type thanks to the `mime-types` module
 (see [mime-types module documentation](https://github.com/broofa/node-mime)).
@@ -145,9 +143,7 @@ new FileSystemStorage(
 )
 ```
 
----
-
-##### mimeTypeDefaultCharset
+#### **mimeTypeDefaultCharset**
 
 In order to return the content type, the storage will try to guess the mime type charset thanks to the `mime-types`
 module (see [mime-types module documentation](https://github.com/broofa/node-mime)).
@@ -169,9 +165,7 @@ new FileSystemStorage(
 )
 ```
 
----
-
-##### dynamicCompression
+#### **dynamicCompression**
 
 Enable dynamic compression of file content.
 This can be a boolean or a list of encodings ordered by priority, `['br', 'gzip']` if `true` is used.
@@ -197,9 +191,7 @@ new FileSystemStorage(
 )
 ```
 
----
-
-##### mimeTypeCompressible
+#### **mimeTypeCompressible**
 
 Function used to determine if a type is compressible (for dynamic compression only)
 `compressible` module will be used by default
@@ -216,13 +208,11 @@ new FileSystemStorage(
 )
 ```
 
----
-
-##### dynamicCompressionMinLength
+#### **dynamicCompressionMinLength**
 
 Sets the minimum length of a response that will be dynamically compressed (only when the length is known)
 
-Default to 20
+Defaults to 20
 
 Example:
 
@@ -236,9 +226,7 @@ new FileSystemStorage(
 )
 ```
 
----
-
-##### defaultMimeType
+#### **defaultMimeType**
 
 Configures the default content type (without charset) that will be used if the content type is unknown.
 
@@ -250,9 +238,7 @@ Example:
 new FileSystemStorage(directory, { defaultMimeType: 'application/octet-stream' })
 ```
 
----
-
-##### maxRanges
+#### **maxRanges**
 
 Configure how many ranges can be accessed in one request.
 
@@ -268,9 +254,7 @@ Example:
 new FileSystemStorage(directory, { maxRanges: 10 })
 ```
 
----
-
-##### weakEtags
+#### **weakEtags**
 
 The storage will generate strong etags by default, when set to true the storage will generate weak etags instead.
 
@@ -282,9 +266,7 @@ Example:
 new FileSystemStorage(directory, { weakEtags: true })
 ```
 
----
-
-##### contentEncodingMappings
+#### **contentEncodingMappings**
 
 Configure content encoding file mappings.
 
@@ -309,9 +291,7 @@ new FileSystemStorage(
 )
 ```
 
----
-
-##### ignorePattern
+#### **ignorePattern**
 
 The storage will ignore files which have any parts of the path matching this pattern.
 
@@ -325,9 +305,7 @@ Example:
 new FileSystemStorage(directory, { ignorePattern: /^myPrivateFolder$/ })
 ```
 
----
-
-##### fsModule
+#### **fsModule**
 
 Let you override the `fs` module that will be used to retrieve files.
 
@@ -339,9 +317,7 @@ memfs.fs.writeFileSync('/hello.txt', 'world');
 new FileSystemStorage(directory, { fsModule: memfs })
 ```
 
----
-
-##### onDirectory
+#### **onDirectory**
 
 Determine what should happen on directory requests (trailing slash)
 
@@ -349,7 +325,7 @@ Determine what should happen on directory requests (trailing slash)
 - `'list-files'` to list the files of directories
 - `'serve-index'` to serve the index.html file of directories
 
-Default to false
+Defaults to false
 
 Note that you can customize the html template used for `'list-files'` by overiding `getDirectoryListing` method.
 
@@ -365,19 +341,19 @@ new FileSystemStorage(directory, { onDirectory: 'list-files' })
 
 Create asynchronously a new `StreamResponse` for the given path relative to root ready to be sent to a server response.
 
-The **`path`** parameter is a urlencoded path (urlencoded) or an array of path parts (should always start with '').
+Note that you can use `storage.send(path, req, res, [options])` instead if you don't need to treat the response before sending.
 
-For example, `'/my%20directory/index.html'` is the equivalent of `['', 'my directory', 'index.html']`.
+- The **`path`** parameter is a urlencoded path (urlencoded) or an array of path parts (should always start with '').
 
-Query params will be ignored if present.
+  Query params will be ignored if present.
 
-The **`req`** is the related request, it can be a `http.IncomingMessage` or a `http2.Http2ServerRequest` or a `http2.IncomingHttpHeaders`.
+  For example, `'/my%20directory/index.html?param=value'` is the equivalent of `['', 'my directory', 'index.html']`.
 
-The **`options`** parameter let you add some addition options.
+- The **`req`** is the related request, it can be a `http.IncomingMessage` or a `http2.Http2ServerRequest` or a `http2.IncomingHttpHeaders`.
 
-#### prepareResponse options
+- The **`options`** parameter let you add some addition options:
 
-##### cacheControl
+#### **cacheControl**
 
 Custom cache-control header value, overrides storage value (`public, max-age=0` by default)
 
@@ -389,9 +365,7 @@ Example:
 await storage.prepareResponse(req.url, req, { cacheControl: 'public, max-age=31536000' })
 ```
 
----
-
-##### lastModified
+#### **lastModified**
 
 Custom last-modified header value, overrides storage value (defaults to mtimeMs converted to UTC)
 
@@ -403,9 +377,7 @@ Example:
 await storage.prepareResponse(req.url, req, { lastModified: 'Wed, 21 Oct 2015 07:28:00 GMT' })
 ```
 
----
-
-##### etag
+#### **etag**
 
 Custom etag header value, overrides storage value (defaults to size + mtimeMs + content encoding)
 
@@ -417,9 +389,7 @@ Example:
 await storage.prepareResponse(req.url, req, { etag: '"123"' })
 ```
 
----
-
-##### mimeType
+#### **mimeType**
 
 Custom mime type for content-type header value, overrides storage value (defaults to storage content type)
 
@@ -431,9 +401,7 @@ Example:
 await storage.prepareResponse(req.url, req, { mimeType: 'text/plain' })
 ```
 
----
-
-##### mimeTypeCharset
+#### **mimeTypeCharset**
 
 Custom content-type charset value, overrides storage value (defaults to storage content type charset mapping)
 
@@ -445,9 +413,7 @@ Example:
 await storage.prepareResponse(req.url, req, { mimeTypeCharset: 'UTF-8' })
 ```
 
----
-
-##### contentDispositionType
+#### **contentDispositionType**
 
 Custom content-disposition header type value, overrides storage value
 
@@ -459,9 +425,7 @@ Example:
 await storage.prepareResponse(req.url, req, { contentDispositionType: 'attachment' })
 ```
 
----
-
-##### contentDispositionFilename
+#### **contentDispositionFilename**
 
 Custom content-disposition header filename value, overrides storage value
 
@@ -473,9 +437,7 @@ Example:
 await storage.prepareResponse(req.url, req, { contentDispositionFilename: 'file.txt' })
 ```
 
----
-
-##### statusCode
+#### **statusCode**
 
 Defines the statusCode that will be used in response (instead of 200/206)
 Setting this will disable conditional GET and partial responses
@@ -488,9 +450,7 @@ Example:
 await storage.prepareResponse(req.url, req, { statusCode: 404 })
 ```
 
----
-
-##### allowedMethods
+#### **allowedMethods**
 
 By default GET and HEAD are the only allowed http methods, set this parameter to change allowed methods
 
@@ -501,6 +461,15 @@ Example:
 ```js
 await storage.prepareResponse(req.url, req, { allowedMethods: ['POST'] })
 ```
+
+---
+
+### `storage.send(path, req, res, [options])`
+
+The parameters are the same as for `storage.prepareResponse(path, req, [options])` and `streamResponse.send(res, [options])`
+and the result is the same as if you call the two methods consecutively.
+
+You may prefer to use this method if you don't need to use the stream response.
 
 ---
 
@@ -526,15 +495,27 @@ which have been returned by the storage. See [errors](#errors)
 
 ---
 
-### `streamResponse.send(res)`
+### `streamResponse.send(res, [options])`
 
 Send the current response through the response in parameter
 
-The `res` is the related response, it can be a `http.ServerResponse` or a `http2.Http2ServerResponse` or a `http2.ServerHttp2Stream`.
+- The **`res`** parameter is the related response, it can be a `http.ServerResponse` or a `http2.Http2ServerResponse` or a `http2.ServerHttp2Stream`.
 
-## Errors
+- The **`options`** parameter let you add some addition options:
+
+#### **ignorePrematureClose**
+
+Ignore premature close errors
 
 ---
+
+### `streamResponse.dispose()`
+
+Disposes of resources within the stream response object
+
+---
+
+## Errors
 
 ### `StorageError`
 

@@ -7,7 +7,8 @@ import { pipeline as streamPipeline } from 'stream';
 import { promisify, types } from 'util';
 
 import type { ResponseHeaders } from './utils.js';
-import type { StorageInfo, StorageError } from './storage-models.js';
+import type { StorageInfo, SendOptions } from './types.js';
+import type { StorageError } from './error.js';
 
 const promisifiedStreamPipeline = promisify(streamPipeline);
 
@@ -29,8 +30,6 @@ async function pipeline(
 		throw err;
 	}
 }
-
-const defaultOpts = { ignorePrematureClose: true };
 
 /**
  * Stream response
@@ -63,7 +62,7 @@ export class StreamResponse<AttachedData> {
 	 */
 	async send(
 		res: ServerResponse | Http2ServerResponse | ServerHttp2Stream,
-		{ ignorePrematureClose } = defaultOpts,
+		{ ignorePrematureClose = true }: SendOptions = { ignorePrematureClose: true },
 	) {
 		const { statusCode } = this;
 		const { headers: responseHeaders, stream: readStream } = this;
@@ -92,5 +91,12 @@ export class StreamResponse<AttachedData> {
 			});
 			await pipeline(readStream, resStream, ignorePrematureClose);
 		}
+	}
+
+	/**
+	 * Disposes of resources within the stream response object
+	 */
+	dispose() {
+		this.stream.destroy();
 	}
 }
