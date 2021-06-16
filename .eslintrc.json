@@ -726,6 +726,7 @@
     "jsdoc/empty-tags": "warn",
     "jsdoc/implements-on-classes": "warn",
     "jsdoc/match-description": "off", // not needed: seems useless
+    "jsdoc/match-name": "off", // not needed: seems useless
     "jsdoc/multiline-blocks": "warn",
     "jsdoc/newline-after-description": "warn",
     "jsdoc/no-bad-blocks": "warn",
