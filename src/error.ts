@@ -1,7 +1,6 @@
 /**
  * Storage error
  */
-
 export class StorageError<T> extends Error {
 	/**
 	 * Storage reference
