@@ -11,7 +11,7 @@ It supports partial responses (Ranges including multipart), conditional-GET nego
 encoding negociation.
 
 It also have high test coverage, typescript typings
-and has [multiple examples](examples/) using Express, Koa, Fastify or pure NodeJS http/http2 modules.
+and has [multiple examples](examples/) using Fastify, Koa, Express or pure NodeJS http/http2 modules.
 
 ## Installation
 
@@ -36,20 +36,16 @@ const path = require('path');
 const fastify = require('fastify');
 const { FileSystemStorage } = require('send-stream');
 
-const app = fastify();
+const app = fastify({ exposeHeadRoutes: true });
 const storage = new FileSystemStorage(path.join(__dirname, 'assets'), { onDirectory: 'serve-index' });
 
-app.route({
-  method: ['HEAD', 'GET'],
-  url: '*',
-  handler: async (request, reply) => {
-    const result = await storage.prepareResponse(request.url, request.raw);
-    if (result.statusCode === 404) {
-      reply.callNotFound(); // let fastify handle 404
-      return;
-    }
-    await result.send(reply.raw);
-  },
+app.get('*', async (request, reply) => {
+  const result = await storage.prepareResponse(request.url, request.raw);
+  if (result.statusCode === 404) {
+    reply.callNotFound(); // let fastify handle 404
+    return;
+  }
+  await result.send(reply.raw);
 });
 
 app.listen(3000)

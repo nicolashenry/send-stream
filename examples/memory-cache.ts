@@ -14,7 +14,7 @@ import { GenericFileSystemStorage } from '../src/send-stream';
 const open = promisify(openFn);
 const opendir = promisify(opendirFn);
 
-const app = fastify();
+const app = fastify({ exposeHeadRoutes: true });
 
 interface CachedFile {
 	etag: string;
@@ -172,17 +172,13 @@ class FullCacheStorage extends GenericFileSystemStorage<CachedFileDescriptor> {
 
 const storage = new FullCacheStorage(join(__dirname, 'assets'));
 
-app.route({
-	method: ['HEAD', 'GET'],
-	url: '*',
-	handler: async (request, reply) => {
-		const result = await storage.prepareResponse(request.url, request.raw);
-		if (result.statusCode === 404) {
-			reply.callNotFound();
-			return;
-		}
-		await result.send(reply.raw);
-	},
+app.get('*', async (request, reply) => {
+	const result = await storage.prepareResponse(request.url, request.raw);
+	if (result.statusCode === 404) {
+		reply.callNotFound();
+		return;
+	}
+	await result.send(reply.raw);
 });
 
 storage.cached
