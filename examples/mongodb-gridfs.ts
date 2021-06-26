@@ -70,7 +70,6 @@ class GridFSStorage extends Storage<string, File> {
 		return result;
 	}
 
-	// eslint-disable-next-line class-methods-use-this
 	async close() {
 		// noop
 	}

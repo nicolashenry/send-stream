@@ -108,7 +108,6 @@ export class KoaServerWrapper implements ServerWrapper {
 				this.context.lastResult = true;
 			}
 			class FileSystemStorageWithError extends FileSystemStorage {
-				// eslint-disable-next-line class-methods-use-this
 				override createReadableStream() {
 					return new Readable({
 						read() {

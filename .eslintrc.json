@@ -296,7 +296,7 @@
     "brace-style": "off", // disabled by typescript-eslint
     "camelcase": "off", // not needed: covered by @typescript-eslint/naming-convention
     "capitalized-comments": "off", // not needed: seems useless
-    "class-methods-use-this": "warn",
+    "class-methods-use-this": "off", // not needed: annoying
     "comma-dangle": "off", // disabled by typescript-eslint
     "comma-spacing": "off", // disabled by typescript-eslint
     "comma-style": "warn",

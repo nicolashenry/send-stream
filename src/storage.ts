@@ -117,7 +117,6 @@ export abstract class Storage<Reference, AttachedData> {
 	 * @param storageInfo - storage information
 	 * @returns last-mofified header
 	 */
-	// eslint-disable-next-line class-methods-use-this
 	createLastModified(storageInfo: StorageInfo<AttachedData>): string | false {
 		const { lastModified } = storageInfo;
 		if (lastModified) {
@@ -155,7 +154,6 @@ export abstract class Storage<Reference, AttachedData> {
 	 * @param storageInfo - storage information
 	 * @returns cache-control header
 	 */
-	// eslint-disable-next-line class-methods-use-this
 	createCacheControl(storageInfo: StorageInfo<AttachedData>): string | false {
 		const { cacheControl } = storageInfo;
 		if (cacheControl) {
@@ -206,7 +204,6 @@ export abstract class Storage<Reference, AttachedData> {
 	 * @param storageInfo - storage information (unused unless overriden)
 	 * @returns content-disposition header type
 	 */
-	// eslint-disable-next-line class-methods-use-this
 	createContentDispositionType(storageInfo: StorageInfo<AttachedData>): 'inline' | 'attachment' | undefined {
 		const { contentDispositionType } = storageInfo;
 		if (contentDispositionType) {
@@ -222,7 +219,6 @@ export abstract class Storage<Reference, AttachedData> {
 	 * @param storageInfo - storage information
 	 * @returns content-disposition header filename
 	 */
-	// eslint-disable-next-line class-methods-use-this
 	createContentDispositionFilename(storageInfo: StorageInfo<AttachedData>): string | undefined {
 		const { contentDispositionFilename } = storageInfo;
 		if (contentDispositionFilename) {
@@ -538,7 +534,6 @@ export abstract class Storage<Reference, AttachedData> {
 	 * @returns compressed stream
 	 * @throws if content encoding is not supported
 	 */
-	// eslint-disable-next-line class-methods-use-this
 	createCompressedStream(stream: Readable, contentEncoding: string, expectedSize?: number) {
 		switch (contentEncoding) {
 		case 'br': {
@@ -587,7 +582,6 @@ export abstract class Storage<Reference, AttachedData> {
 	 * @param allowedMethods - allowed methods for Allow header
 	 * @returns Method Not Allowed response
 	 */
-	// eslint-disable-next-line class-methods-use-this
 	createMethodNotAllowedError(isHeadMethod: boolean, allowedMethods: readonly string[]) {
 		// Method Not Allowed
 		// eslint-disable-next-line @typescript-eslint/no-non-null-assertion
@@ -615,7 +609,6 @@ export abstract class Storage<Reference, AttachedData> {
 	 * @param error - the error causing this response
 	 * @returns the error response
 	 */
-	// eslint-disable-next-line class-methods-use-this
 	createStorageError(isHeadMethod: boolean, error: unknown) {
 		// Not Found
 		// eslint-disable-next-line @typescript-eslint/no-non-null-assertion
@@ -643,7 +636,6 @@ export abstract class Storage<Reference, AttachedData> {
 	 * @param storageInfo - the current storage info
 	 * @returns the Not Modified response
 	 */
-	// eslint-disable-next-line class-methods-use-this
 	createNotModifiedResponse(
 		responseHeaders: ResponseHeaders,
 		storageInfo: StorageInfo<AttachedData>,
@@ -659,7 +651,6 @@ export abstract class Storage<Reference, AttachedData> {
 	 * @param storageInfo - the current storage info
 	 * @returns the Precondition Failed error response
 	 */
-	// eslint-disable-next-line class-methods-use-this
 	createPreconditionFailedError(isHeadMethod: boolean, storageInfo: StorageInfo<AttachedData>) {
 		// Precondition Failed
 		// eslint-disable-next-line @typescript-eslint/no-non-null-assertion
@@ -687,7 +678,6 @@ export abstract class Storage<Reference, AttachedData> {
 	 * @param storageInfo - the current storage info
 	 * @returns the Range Not Satisfiable error response
 	 */
-	// eslint-disable-next-line class-methods-use-this
 	createRangeNotSatisfiableError(isHeadMethod: boolean, size: number, storageInfo: StorageInfo<AttachedData>) {
 		// Range Not Satisfiable
 		// eslint-disable-next-line @typescript-eslint/no-non-null-assertion
@@ -719,7 +709,6 @@ export abstract class Storage<Reference, AttachedData> {
 	 * @param storageInfo - the current storage info
 	 * @returns the successful response
 	 */
-	// eslint-disable-next-line class-methods-use-this
 	createSuccessfulResponse(
 		statusCode: number,
 		responseHeaders: ResponseHeaders,
