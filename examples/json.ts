@@ -8,12 +8,16 @@ import { Storage } from '../src/send-stream';
 
 const app = fastify({ exposeHeadRoutes: true });
 
-class BufferStorage extends Storage<StorageInfo<Buffer>, Buffer> {
+class JSONStorage extends Storage<StorageInfo<unknown>, Buffer> {
 	// eslint-disable-next-line @typescript-eslint/require-await
-	async open(data: StorageInfo<Buffer>) {
+	async open(data: StorageInfo<unknown>) {
+		const buffer = Buffer.from(JSON.stringify(data.attachedData), 'utf8');
 		return {
 			...data,
-			size: data.attachedData.byteLength,
+			attachedData: buffer,
+			size: buffer.byteLength,
+			mimeType: 'application/json',
+			mimeTypeCharset: 'UTF-8',
 		};
 	}
 	createReadableStream(
@@ -37,18 +41,13 @@ class BufferStorage extends Storage<StorageInfo<Buffer>, Buffer> {
 	}
 }
 
-const storage = new BufferStorage();
-
-const buf = Buffer.from('data i want to serve', 'utf8');
-const mtimeMs = Date.now();
+const storage = new JSONStorage({ dynamicCompression: true });
 
 app.get('*', async (request, reply) => {
 	await storage.send(
 		{
-			attachedData: buf,
-			mtimeMs,
-			mimeType: 'text/plain',
-			mimeTypeCharset: 'UTF-8',
+			attachedData: { mydata: 'mydata' },
+			mtimeMs: Date.now(),
 		},
 		request.raw,
 		reply.raw,
