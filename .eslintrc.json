@@ -792,6 +792,7 @@
     "unicorn/no-abusive-eslint-disable": "warn",
     "unicorn/no-array-callback-reference": "off", // not needed: covered by typescript
     "unicorn/no-array-for-each": "warn",
+    "unicorn/no-array-method-this-argument": "warn",
     "unicorn/no-array-push-push": "warn",
     "unicorn/no-array-reduce": "off", // not needed: seems useless
     "unicorn/no-console-spaces": "warn",
@@ -822,6 +823,7 @@
     "unicorn/prefer-array-flat-map": "warn",
     "unicorn/prefer-array-index-of": "warn",
     "unicorn/prefer-array-some": "warn",
+    "unicorn/prefer-at": "off", // too soon
     "unicorn/prefer-date-now": "warn",
     "unicorn/prefer-default-parameters": "warn",
     "unicorn/prefer-dom-node-append": "off", // not needed: not executed in a browser
@@ -850,10 +852,12 @@
     "unicorn/prefer-string-trim-start-end": "warn",
     "unicorn/prefer-switch": "warn",
     "unicorn/prefer-ternary": "warn",
+    "unicorn/prefer-top-level-await": "off", // too soon
     "unicorn/prefer-type-error": "warn",
     "unicorn/prevent-abbreviations": "off", // too restrictive
     "unicorn/require-array-join-separator": "warn",
     "unicorn/require-number-to-fixed-digits-argument": "warn",
+    "unicorn/require-post-message-target-origin": "off", // not needed: not executed in a browser
     "unicorn/string-content": "off", // not needed: seems useless
     "unicorn/throw-new-error": "warn",
     "node/callback-return": "warn",
