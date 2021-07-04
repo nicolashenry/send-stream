@@ -6,6 +6,7 @@
 * Docs: add LICENCE and CODE_OF_CONDUCT.md file
 * Docs: simplify fastify examples
 * Docs: add json and buffer examples
+* Docs: enhance contentEncodingMappings documentation
 
 ## 2.5.1
 
