@@ -15,7 +15,7 @@ function handleEvent(resolve: () => void, reject: (err: any) => void) {
 	};
 }
 
-async function gzipBrotliFn(directoryPath: string) {
+async function precompressWithGzipAndBrotli(directoryPath: string) {
 	const directoryFiles = await fs.promises.readdir(directoryPath, { withFileTypes: true });
 	await Promise.all(directoryFiles.map(async filename => {
 		const filepath = join(directoryPath, filename.name);
@@ -55,7 +55,7 @@ async function gzipBrotliFn(directoryPath: string) {
 	}));
 }
 
-gzipBrotliFn(join(__dirname, 'assets'))
+precompressWithGzipAndBrotli(join(__dirname, 'assets'))
 	.then(() => {
 		console.info('files have been precompressed');
 	})
