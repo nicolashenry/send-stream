@@ -67,7 +67,7 @@
     "build": "tsc -b",
     "clean-build": "npm run clean && npm run build",
     "watch": "tsc -b -w",
-    "prepublishOnly": "npm run test",
+    "prepublishOnly": "npm run test && npm run lint",
     "prepack": "npm run clean-build",
     "lint": "eslint . --ext .ts --max-warnings 0 --report-unused-disable-directives",
     "test-no-coverage": "cross-env TS_NODE_PROJECT=test/tsconfig.json mocha test/*.spec.ts",
