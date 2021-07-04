@@ -1,4 +1,3 @@
-// eslint-disable-next-line import/no-unused-modules
 import fs from 'fs';
 import zlib from 'zlib';
 import stream from 'stream';
