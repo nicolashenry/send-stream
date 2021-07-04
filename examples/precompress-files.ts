@@ -22,6 +22,7 @@ async function precompressWithGzipAndBrotli(directoryPath: string) {
 		const stat = await fs.promises.stat(filepath);
 		if (stat.isDirectory()) {
 			await precompressWithGzipAndBrotli(filepath);
+			return;
 		}
 		if (
 			!stat.isFile()
