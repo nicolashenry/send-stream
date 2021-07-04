@@ -169,7 +169,7 @@ Activating this option will automatically compress content as brotli or gzip
 if the content is detected as compressible and supported by the client.
 
 Note that this is highly recommended to use this option only if you can not use pre-compressed options
-like the 'contentEncodingMappings' option from FileSystemStorage.
+like the [contentEncodingMappings](#contentencodingmappings) option from FileSystemStorage.
 
 Also when dynamic compression is active, `Content-Length` header will be removed
 and range requests will be disabled as content length is unknown
@@ -571,7 +571,7 @@ Storages refuse pathes like `'/dir/'` because it is probably pointing to a direc
 
 ### `IgnoredFileError` (extends FileSystemStorageError)
 
-Storages can ignore some files/folders composing the path (see [ignorePattern](#ignorePattern)).
+Storages can ignore some files/folders composing the path (see [ignorePattern](#ignorepattern)).
 
 ---
 
