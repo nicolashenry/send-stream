@@ -85,8 +85,15 @@ class FullCacheStorage extends GenericFileSystemStorage<CachedFileDescriptor> {
 							autoClose: boolean;
 						},
 					) => {
-						if (!fd || typeof fd === 'number') {
-							return createReadStream(path, { fd, start, end, autoClose });
+						if (!fd) {
+							return start !== undefined && end !== undefined
+								? createReadStream(path, { start, end, autoClose })
+								: createReadStream(path, { autoClose });
+						}
+						if (typeof fd === 'number') {
+							return start !== undefined && end !== undefined
+								? createReadStream(path, { fd, start, end, autoClose })
+								: createReadStream(path, { fd, autoClose });
 						}
 						const rangeStart = start ?? 0;
 						const rangeEnd = end ?? fd.size - 1;

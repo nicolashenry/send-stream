@@ -8,9 +8,9 @@ import { FileSystemStorage } from '../../src/send-stream';
 import type { ServerWrapper } from './server.wrapper';
 
 export class VanillaServerWrapper implements ServerWrapper {
-	server?: Server;
+	server: Server | undefined;
 	context: { lastResult?: StreamResponse<unknown> | true | undefined };
-	listener?: (req: IncomingMessage, res: ServerResponse) => Promise<void>;
+	listener: ((req: IncomingMessage, res: ServerResponse) => Promise<void>) | undefined;
 
 	constructor(context: { lastResult?: StreamResponse<unknown> | true | undefined }) {
 		this.server = createServer((req, res) => {

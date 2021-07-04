@@ -10,7 +10,7 @@ import { FileSystemStorage } from '../../src/send-stream';
 import type { ServerWrapper } from './server.wrapper';
 
 export class FastifyServerWrapper implements ServerWrapper {
-	server?: Server;
+	server: Server | undefined;
 	context: { lastResult?: StreamResponse<unknown> | true | undefined };
 	app: FastifyInstance;
 

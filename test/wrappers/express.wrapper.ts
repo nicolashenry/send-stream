@@ -12,7 +12,7 @@ import type { ServerWrapper } from './server.wrapper';
 const pipeline = promisify(streamPipeline);
 
 export class ExpressServerWrapper implements ServerWrapper {
-	server?: Server;
+	server: Server | undefined;
 	context: { lastResult?: StreamResponse<unknown> | true | undefined };
 	app: express.Express;
 

@@ -6,7 +6,7 @@ import type { Uint8ArrayOrStreamRange } from './utils';
  * Single buffer stream
  */
 export class BufferStream extends Readable {
-	private buffer?: Uint8Array;
+	private buffer: Uint8Array | undefined;
 
 	/**
 	 * Create a single buffer stream

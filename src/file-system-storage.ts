@@ -97,7 +97,7 @@ export class GenericFileSystemStorage<FileDescriptor> extends Storage<FilePath, 
 	/**
 	 * fs.opendir function
 	 */
-	readonly fsOpendir?: (path: string) => Promise<Dir>;
+	readonly fsOpendir: ((path: string) => Promise<Dir>) | undefined;
 
 	/**
 	 * fs.readdir function

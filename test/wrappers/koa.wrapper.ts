@@ -10,7 +10,7 @@ import type { ServerWrapper } from './server.wrapper';
 
 export class KoaServerWrapper implements ServerWrapper {
 	app: Koa<Koa.DefaultState, Koa.DefaultContext>;
-	server?: Server;
+	server: Server | undefined;
 	context: { lastResult?: StreamResponse<unknown> | true | undefined };
 
 	constructor(context: { lastResult?: StreamResponse<unknown> | true | undefined }) {
