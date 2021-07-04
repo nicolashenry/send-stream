@@ -73,8 +73,8 @@
     "test-no-coverage": "cross-env TS_NODE_PROJECT=test/tsconfig.json mocha test/*.spec.ts",
     "test-coverage": "cross-env TS_NODE_PROJECT=test/tsconfig.json nyc mocha test/*.spec.ts",
     "test": "npm run test-coverage",
-    "build-lint-test": "npm run build && npm run lint && npm run test",
-    "clean-build-lint-test": "npm run clean && npm run build && npm run lint && npm run test"
+    "ci": "npm run build && npm run test && npm run lint",
+    "clean-ci": "npm run clean && npm run build && npm run test && npm run lint"
   },
   "main": "dist/src/send-stream.js",
   "typings": "dist/src/send-stream.d.ts",
