@@ -19,14 +19,20 @@ async function precompressWithGzipAndBrotli(directoryPath: string) {
 	const directoryFiles = await fs.promises.readdir(directoryPath, { withFileTypes: true });
 	await Promise.all(directoryFiles.map(async filename => {
 		const filepath = join(directoryPath, filename.name);
+		const stat = await fs.promises.stat(filepath);
+		if (stat.isDirectory()) {
+			await precompressWithGzipAndBrotli(filepath);
+		}
 		if (
-			!filename.name.endsWith('.js')
-			&& !filename.name.endsWith('.css')
-			&& !filename.name.endsWith('.html')
+			!stat.isFile()
+			|| (
+				!filename.name.endsWith('.js')
+				&& !filename.name.endsWith('.css')
+				&& !filename.name.endsWith('.html')
+			)
 		) {
 			return;
 		}
-		const stat = await fs.promises.stat(filepath);
 		const fileContents = fs.createReadStream(filepath);
 		const zip = zlib.createGzip({
 			level: zlib.constants.Z_BEST_COMPRESSION,
