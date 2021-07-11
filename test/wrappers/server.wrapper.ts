@@ -3,7 +3,7 @@ import type { Server } from 'http';
 import type { Storage, FileSystemStorageOptions, PrepareResponseOptions } from '../../src/send-stream.js';
 
 export interface ServerWrapper {
-	server?: Server;
+	server: Server | undefined;
 
 	listen(): Promise<void>;
 

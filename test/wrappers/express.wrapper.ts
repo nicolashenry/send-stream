@@ -17,7 +17,7 @@ import type { ServerWrapper } from './server.wrapper.js';
 const pipeline = promisify(streamPipeline);
 
 export class ExpressServerWrapper implements ServerWrapper {
-	server?: Server;
+	server: Server | undefined;
 	context: { lastResult?: StreamResponse<unknown> | true | undefined };
 	app: express.Express;
 
@@ -136,7 +136,6 @@ export class ExpressServerWrapper implements ServerWrapper {
 					this.context.lastResult = true;
 				}
 				class FileSystemStorageWithError extends FileSystemStorage {
-					// eslint-disable-next-line class-methods-use-this
 					override createReadableStream() {
 						return new Readable({
 							read() {

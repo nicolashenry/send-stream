@@ -2409,7 +2409,6 @@ for (const [frameworkName, frameworkServer] of frameworks) {
 						app = frameworkServer(context);
 
 						class ErrorStorage extends FileSystemStorage {
-							// eslint-disable-next-line class-methods-use-this
 							override createReadableStream() {
 								return new Readable({
 									read() {
@@ -2454,7 +2453,6 @@ for (const [frameworkName, frameworkServer] of frameworks) {
 						app = frameworkServer(context);
 
 						class ErrorStorage extends FileSystemStorage {
-							// eslint-disable-next-line class-methods-use-this
 							override createReadableStream(): Readable {
 								throw new Error('oops');
 							}
@@ -2481,7 +2479,6 @@ for (const [frameworkName, frameworkServer] of frameworks) {
 						app = frameworkServer(context);
 
 						class ErrorStorage extends FileSystemStorage {
-							// eslint-disable-next-line class-methods-use-this
 							override createReadableStream() {
 								return new Readable({
 									read() {
@@ -2571,7 +2568,7 @@ for (const [frameworkName, frameworkServer] of frameworks) {
 						app = frameworkServer(context);
 
 						class ErrorStorage extends FileSystemStorage {
-							// eslint-disable-next-line @typescript-eslint/require-await,class-methods-use-this
+							// eslint-disable-next-line @typescript-eslint/require-await
 							override async close() {
 								throw new Error('oops');
 							}
@@ -2600,7 +2597,6 @@ for (const [frameworkName, frameworkServer] of frameworks) {
 						app = frameworkServer(context);
 
 						class ErrorStorage extends FileSystemStorage {
-							// eslint-disable-next-line class-methods-use-this
 							override createReadableStream() {
 								return new Readable({
 									read() {
@@ -2611,7 +2607,7 @@ for (const [frameworkName, frameworkServer] of frameworks) {
 								});
 							}
 
-							// eslint-disable-next-line @typescript-eslint/require-await,class-methods-use-this
+							// eslint-disable-next-line @typescript-eslint/require-await
 							override async close() {
 								throw new Error('oops');
 							}
@@ -2686,19 +2682,17 @@ for (const [frameworkName, frameworkServer] of frameworks) {
 					before(async () => {
 						app = frameworkServer(context);
 						class CustomStorage extends Storage<undefined, undefined> {
-							// eslint-disable-next-line @typescript-eslint/require-await,class-methods-use-this
+							// eslint-disable-next-line @typescript-eslint/require-await
 							async open() {
 								return {
 									attachedData: undefined,
 								};
 							}
 
-							// eslint-disable-next-line class-methods-use-this
 							createReadableStream() {
 								return new BufferStream(Buffer.from('hello world'));
 							}
 
-							// eslint-disable-next-line class-methods-use-this
 							async close() {
 								// noop
 							}
@@ -2737,18 +2731,16 @@ for (const [frameworkName, frameworkServer] of frameworks) {
 					before(async () => {
 						app = frameworkServer(context);
 						class CustomStorage extends Storage<undefined, undefined> {
-							// eslint-disable-next-line @typescript-eslint/require-await,class-methods-use-this
+							// eslint-disable-next-line @typescript-eslint/require-await
 							async open():
 							Promise<StorageInfo<undefined>> {
 								throw new Error('oops');
 							}
 
-							// eslint-disable-next-line class-methods-use-this
 							createReadableStream() {
 								return new BufferStream(Buffer.from('hello world'));
 							}
 
-							// eslint-disable-next-line class-methods-use-this
 							async close() {
 								// noop
 							}

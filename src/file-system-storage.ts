@@ -97,7 +97,7 @@ export class GenericFileSystemStorage<FileDescriptor> extends Storage<FilePath, 
 	/**
 	 * fs.opendir function
 	 */
-	readonly fsOpendir?: (path: string) => Promise<Dir>;
+	readonly fsOpendir: ((path: string) => Promise<Dir>) | undefined;
 
 	/**
 	 * fs.readdir function
@@ -197,10 +197,9 @@ export class GenericFileSystemStorage<FileDescriptor> extends Storage<FilePath, 
 				|| pathParts[0] !== ''
 				|| pathParts.findIndex(part => /^\.\.?$/u.test(part)) !== -1
 			) {
+				const pathArray = String(path.map(v => `'${ v }'`).join(', '));
 				throw new InvalidPathError(
-					`[${
-						String(path.map(v => `'${ v }'`).join(', '))
-					}] is not a valid path array (should start with '' and not contain '..' or '.')`,
+					`[${ pathArray }] is not a valid path array (should start with '' and not contain '..' or '.')`,
 					path,
 					pathParts,
 				);

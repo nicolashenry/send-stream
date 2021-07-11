@@ -70,7 +70,6 @@ class GridFSStorage extends Storage<string, File> {
 		return result;
 	}
 
-	// eslint-disable-next-line class-methods-use-this
 	async close() {
 		// noop
 	}
@@ -78,7 +77,7 @@ class GridFSStorage extends Storage<string, File> {
 
 const client = new mongodb.MongoClient(uri, { useNewUrlParser: true, useUnifiedTopology: true });
 
-const app = fastify();
+const app = fastify({ exposeHeadRoutes: true });
 
 client.connect(error => {
 	assert.ifError(error);
@@ -89,17 +88,13 @@ client.connect(error => {
 
 	const storage = new GridFSStorage(bucket);
 
-	app.route({
-		method: ['HEAD', 'GET'],
-		url: '*',
-		handler: async (request, reply) => {
-			const result = await storage.prepareResponse(request.url, request.raw);
-			if (result.statusCode === 404) {
-				reply.callNotFound();
-				return;
-			}
-			await result.send(reply.raw);
-		},
+	app.get('*', async (request, reply) => {
+		const result = await storage.prepareResponse(request.url, request.raw);
+		if (result.statusCode === 404) {
+			reply.callNotFound();
+			return;
+		}
+		await result.send(reply.raw);
 	});
 
 	app.listen(3000)

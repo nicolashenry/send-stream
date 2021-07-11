@@ -1,5 +1,13 @@
 # Changelog
 
+## 2.5.2
+
+* Fix: differentiate optional properties and undefined properties
+* Docs: add LICENCE and CODE_OF_CONDUCT.md file
+* Docs: simplify fastify examples
+* Docs: add json and buffer examples
+* Docs: enhance contentEncodingMappings documentation
+
 ## 2.5.1
 
 * Fix: do not log errors coming from dynamic compression pipeline (errors should be managed by the stream itself)

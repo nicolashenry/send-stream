@@ -362,7 +362,6 @@ describe('http', () => {
 		describe('should hang up on file stream error', () => {
 			let app: http.Server;
 			class ErrorStorage extends FileSystemStorage {
-				// eslint-disable-next-line class-methods-use-this
 				override createReadableStream() {
 					return new Readable({
 						read() {
@@ -1849,7 +1848,6 @@ describe('http', () => {
 								return super.pipe(destination, options);
 							}
 
-							// eslint-disable-next-line class-methods-use-this
 							override async _destroy(error: Error | null, callback: (err?: Error | null) => void) {
 								await st.close(si);
 								callback(error);
@@ -1904,7 +1902,6 @@ describe('http', () => {
 								return super.pipe(destination, options);
 							}
 
-							// eslint-disable-next-line class-methods-use-this
 							override async _destroy(error: Error | null, callback: (err?: Error | null) => void) {
 								await st.close(si);
 								callback(error);
@@ -1970,7 +1967,6 @@ describe('http', () => {
 								return super.pipe(destination, options);
 							}
 
-							// eslint-disable-next-line class-methods-use-this
 							override async _destroy(error: Error | null, callback: (err?: Error | null) => void) {
 								await st.close(si);
 								callback(error);
@@ -2301,7 +2297,6 @@ describe('http', () => {
 			const sessions: http2.ServerHttp2Session[] = [];
 			before(done => {
 				class ErrorStorage extends FileSystemStorage {
-					// eslint-disable-next-line class-methods-use-this
 					override createReadableStream(
 						_si: StorageInfo<FileData>,
 						_range: StreamRange | undefined,

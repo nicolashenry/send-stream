@@ -16,7 +16,7 @@ import { GenericFileSystemStorage } from '../src/send-stream';
 const open = promisify(openFn);
 const opendir = promisify(opendirFn);
 
-const app = fastify();
+const app = fastify({ exposeHeadRoutes: true });
 
 interface CachedFile {
 	etag: string;
@@ -87,8 +87,15 @@ class FullCacheStorage extends GenericFileSystemStorage<CachedFileDescriptor> {
 							autoClose: boolean;
 						},
 					) => {
-						if (!fd || typeof fd === 'number') {
-							return createReadStream(path, { fd, start, end, autoClose });
+						if (!fd) {
+							return start !== undefined && end !== undefined
+								? createReadStream(path, { start, end, autoClose })
+								: createReadStream(path, { autoClose });
+						}
+						if (typeof fd === 'number') {
+							return start !== undefined && end !== undefined
+								? createReadStream(path, { fd, start, end, autoClose })
+								: createReadStream(path, { fd, autoClose });
 						}
 						const rangeStart = start ?? 0;
 						const rangeEnd = end ?? fd.size - 1;
@@ -174,17 +181,13 @@ class FullCacheStorage extends GenericFileSystemStorage<CachedFileDescriptor> {
 
 const storage = new FullCacheStorage(join(dirname(fileURLToPath(import.meta.url)), 'assets'));
 
-app.route({
-	method: ['HEAD', 'GET'],
-	url: '*',
-	handler: async (request, reply) => {
-		const result = await storage.prepareResponse(request.url, request.raw);
-		if (result.statusCode === 404) {
-			reply.callNotFound();
-			return;
-		}
-		await result.send(reply.raw);
-	},
+app.get('*', async (request, reply) => {
+	const result = await storage.prepareResponse(request.url, request.raw);
+	if (result.statusCode === 404) {
+		reply.callNotFound();
+		return;
+	}
+	await result.send(reply.raw);
 });
 
 storage.cached

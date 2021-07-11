@@ -173,49 +173,49 @@ export interface StorageInfo<AttachedData> {
 	/**
 	 * File name
 	 */
-	fileName?: string;
+	fileName?: string | undefined;
 	/**
 	 * File last modification time in milliseconds
 	 */
-	mtimeMs?: number;
+	mtimeMs?: number | undefined;
 	/**
 	 * File size
 	 */
-	size?: number;
+	size?: number | undefined;
 	/**
 	 * Vary header
 	 */
-	vary?: string;
+	vary?: string | undefined;
 	/**
 	 * Content encoding (undefined when `identity` is used)
 	 */
-	contentEncoding?: string;
+	contentEncoding?: string | undefined;
 	/**
 	 * Mime type
 	 */
-	mimeType?: string;
+	mimeType?: string | undefined;
 	/**
 	 * Mime type charset
 	 */
-	mimeTypeCharset?: string;
+	mimeTypeCharset?: string | undefined;
 	/**
 	 * Last-Modified header
 	 */
-	lastModified?: string;
+	lastModified?: string | undefined;
 	/**
 	 * ETag header
 	 */
-	etag?: string;
+	etag?: string | undefined;
 	/**
 	 * Cache-Control header ('public, max-age=0' by default)
 	 */
-	cacheControl?: string;
+	cacheControl?: string | undefined;
 	/**
 	 * Content-Disposition header type ('inline' by default)
 	 */
-	contentDispositionType?: 'inline' | 'attachment';
+	contentDispositionType?: 'inline' | 'attachment' | undefined;
 	/**
 	 * Content-Disposition header filename (filename by default)
 	 */
-	contentDispositionFilename?: string;
+	contentDispositionFilename?: string | undefined;
 }

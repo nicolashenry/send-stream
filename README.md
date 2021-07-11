@@ -11,7 +11,7 @@ It supports partial responses (Ranges including multipart), conditional-GET nego
 encoding negociation.
 
 It also have high test coverage, typescript typings
-and has [multiple examples](examples/) using Express, Koa, Fastify or pure NodeJS http/http2 modules.
+and has [multiple examples](examples/) using Fastify, Koa, Express or pure NodeJS http/http2 modules.
 
 ## Installation
 
@@ -36,20 +36,16 @@ const path = require('path');
 const fastify = require('fastify');
 const { FileSystemStorage } = require('send-stream');
 
-const app = fastify();
+const app = fastify({ exposeHeadRoutes: true });
 const storage = new FileSystemStorage(path.join(__dirname, 'assets'), { onDirectory: 'serve-index' });
 
-app.route({
-  method: ['HEAD', 'GET'],
-  url: '*',
-  handler: async (request, reply) => {
-    const result = await storage.prepareResponse(request.url, request.raw);
-    if (result.statusCode === 404) {
-      reply.callNotFound(); // let fastify handle 404
-      return;
-    }
-    await result.send(reply.raw);
-  },
+app.get('*', async (request, reply) => {
+  const result = await storage.prepareResponse(request.url, request.raw);
+  if (result.statusCode === 404) {
+    reply.callNotFound(); // let fastify handle 404
+    return;
+  }
+  await result.send(reply.raw);
 });
 
 app.listen(3000)
@@ -172,8 +168,8 @@ This can be a boolean or a list of encodings ordered by priority, `['br', 'gzip'
 Activating this option will automatically compress content as brotli or gzip
 if the content is detected as compressible and supported by the client.
 
-Note that this is highly recommended to use this option only if you can not use pre-compressed options
-like the 'contentEncodingMappings' option from FileSystemStorage.
+Note that this is highly recommended to use this option only if you can not use pre-compressed files with
+the [contentEncodingMappings](#contentencodingmappings) option.
 
 Also when dynamic compression is active, `Content-Length` header will be removed
 and range requests will be disabled as content length is unknown
@@ -269,6 +265,15 @@ new FileSystemStorage(directory, { weakEtags: true })
 #### **contentEncodingMappings**
 
 Configure content encoding file mappings.
+
+You can use this option to serve pre-compressed files.
+(see this [this example](./examples/precompress-files.ts) to precompress files with NodeJS)
+
+This is a list of objects containing the following properties:
+- `matcher`: a regular expression used to detect which files have a pre-compressed version
+- `encodings`: a list of objets with a `name` property which is the encoding name and `path` property
+which is a string (or function returning a string) containing the path of the compressed file 
+(the regular expression groups from `matcher` will be replaced in the string).
 
 `undefined` by default
 
@@ -575,7 +580,7 @@ Storages refuse pathes like `'/dir/'` because it is probably pointing to a direc
 
 ### `IgnoredFileError` (extends FileSystemStorageError)
 
-Storages can ignore some files/folders composing the path (see [ignorePattern](#ignorePattern)).
+Storages can ignore some files/folders composing the path (see [ignorePattern](#ignorepattern)).
 
 ---
 

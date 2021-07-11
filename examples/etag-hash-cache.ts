@@ -16,7 +16,7 @@ import type {
 
 const readdir = promisify(fs.readdir);
 
-const app = fastify();
+const app = fastify({ exposeHeadRoutes: true });
 
 class EtagHashCacheStorage extends FileSystemStorage {
 	etagCache = new Map<string, string>();
@@ -78,17 +78,13 @@ class EtagHashCacheStorage extends FileSystemStorage {
 
 const storage = new EtagHashCacheStorage(join(dirname(fileURLToPath(import.meta.url)), 'assets'));
 
-app.route({
-	method: ['HEAD', 'GET'],
-	url: '*',
-	handler: async (request, reply) => {
-		const result = await storage.prepareResponse(request.url, request.raw);
-		if (result.statusCode === 404) {
-			reply.callNotFound();
-			return;
-		}
-		await result.send(reply.raw);
-	},
+app.get('*', async (request, reply) => {
+	const result = await storage.prepareResponse(request.url, request.raw);
+	if (result.statusCode === 404) {
+		reply.callNotFound();
+		return;
+	}
+	await result.send(reply.raw);
 });
 
 storage.etagsCached

@@ -13,9 +13,9 @@ import { FileSystemStorage } from '../../src/send-stream.js';
 import type { ServerWrapper } from './server.wrapper.js';
 
 export class VanillaServerWrapper implements ServerWrapper {
-	server?: Server;
+	server: Server | undefined;
 	context: { lastResult?: StreamResponse<unknown> | true | undefined };
-	listener?: (req: IncomingMessage, res: ServerResponse) => Promise<void>;
+	listener: ((req: IncomingMessage, res: ServerResponse) => Promise<void>) | undefined;
 
 	constructor(context: { lastResult?: StreamResponse<unknown> | true | undefined }) {
 		this.server = createServer((req, res) => {
@@ -137,7 +137,6 @@ export class VanillaServerWrapper implements ServerWrapper {
 				this.context.lastResult = true;
 			}
 			class FileSystemStorageWithError extends FileSystemStorage {
-				// eslint-disable-next-line class-methods-use-this
 				override createReadableStream() {
 					return new Readable({
 						read() {

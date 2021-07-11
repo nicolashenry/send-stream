@@ -296,7 +296,7 @@
     "brace-style": "off", // disabled by typescript-eslint
     "camelcase": "off", // not needed: covered by @typescript-eslint/naming-convention
     "capitalized-comments": "off", // not needed: seems useless
-    "class-methods-use-this": "warn",
+    "class-methods-use-this": "off", // not needed: annoying
     "comma-dangle": "off", // disabled by typescript-eslint
     "comma-spacing": "off", // disabled by typescript-eslint
     "comma-style": "warn",
@@ -732,6 +732,7 @@
     "jsdoc/empty-tags": "warn",
     "jsdoc/implements-on-classes": "warn",
     "jsdoc/match-description": "off", // not needed: seems useless
+    "jsdoc/match-name": "off", // not needed: seems useless
     "jsdoc/multiline-blocks": "warn",
     "jsdoc/newline-after-description": "warn",
     "jsdoc/no-bad-blocks": "warn",
@@ -791,6 +792,7 @@
     "unicorn/no-abusive-eslint-disable": "warn",
     "unicorn/no-array-callback-reference": "off", // not needed: covered by typescript
     "unicorn/no-array-for-each": "warn",
+    "unicorn/no-array-method-this-argument": "warn",
     "unicorn/no-array-push-push": "warn",
     "unicorn/no-array-reduce": "off", // not needed: seems useless
     "unicorn/no-console-spaces": "warn",
@@ -821,6 +823,7 @@
     "unicorn/prefer-array-flat-map": "warn",
     "unicorn/prefer-array-index-of": "warn",
     "unicorn/prefer-array-some": "warn",
+    "unicorn/prefer-at": "off", // too soon
     "unicorn/prefer-date-now": "warn",
     "unicorn/prefer-default-parameters": "warn",
     "unicorn/prefer-dom-node-append": "off", // not needed: not executed in a browser
@@ -849,10 +852,12 @@
     "unicorn/prefer-string-trim-start-end": "warn",
     "unicorn/prefer-switch": "warn",
     "unicorn/prefer-ternary": "warn",
+    "unicorn/prefer-top-level-await": "off", // too soon
     "unicorn/prefer-type-error": "warn",
     "unicorn/prevent-abbreviations": "off", // too restrictive
     "unicorn/require-array-join-separator": "warn",
     "unicorn/require-number-to-fixed-digits-argument": "warn",
+    "unicorn/require-post-message-target-origin": "off", // not needed: not executed in a browser
     "unicorn/string-content": "off", // not needed: seems useless
     "unicorn/throw-new-error": "warn",
     "node/callback-return": "warn",
@@ -900,6 +905,7 @@
     "node/process-exit-as-throw": "warn",
     "node/shebang": "warn",
     "sonarjs/cognitive-complexity": ["warn", 140],
+    "sonarjs/elseif-without-else": "off", // not needed: seems useless
     "sonarjs/max-switch-cases": "warn",
     "sonarjs/no-all-duplicated-branches": "warn",
     "sonarjs/no-collapsible-if": "warn",
@@ -907,11 +913,16 @@
     "sonarjs/no-duplicate-string": "off", // too restrictive
     "sonarjs/no-duplicated-branches": "warn",
     "sonarjs/no-element-overwrite": "warn",
+    "sonarjs/no-empty-collection": "warn",
     "sonarjs/no-extra-arguments": "off", // not needed: covered by typescript
     "sonarjs/no-identical-conditions": "warn",
+    "sonarjs/no-gratuitous-expressions": "warn",
     "sonarjs/no-identical-functions": "warn",
     "sonarjs/no-identical-expressions": "warn",
+    "sonarjs/no-ignored-return": "warn",
     "sonarjs/no-inverted-boolean-check": "warn",
+    "sonarjs/no-nested-template-literals": "warn",
+    "sonarjs/no-nested-switch": "warn",
     "sonarjs/no-one-iteration-loop": "warn",
     "sonarjs/no-redundant-boolean": "warn",
     "sonarjs/no-redundant-jump": "warn",
@@ -920,6 +931,7 @@
     "sonarjs/no-unused-collection": "warn",
     "sonarjs/no-use-of-empty-return-value": "off", // not needed: covered by typescript
     "sonarjs/no-useless-catch": "warn",
+    "sonarjs/non-existent-operator": "warn",
     "sonarjs/prefer-immediate-return": "warn",
     "sonarjs/prefer-object-literal": "warn",
     "sonarjs/prefer-single-boolean-return": "warn",

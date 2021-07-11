@@ -8,6 +8,7 @@ import { fastify } from 'fastify';
 import { FileSystemStorage } from '../src/send-stream.js';
 
 const app = fastify({
+	exposeHeadRoutes: true,
 	http2: true,
 	https: {
 		// eslint-disable-next-line node/no-sync
@@ -19,17 +20,13 @@ const app = fastify({
 
 const storage = new FileSystemStorage(join(dirname(fileURLToPath(import.meta.url)), 'assets'));
 
-app.route({
-	method: ['HEAD', 'GET'],
-	url: '*',
-	handler: async (request, reply) => {
-		const result = await storage.prepareResponse(request.url, request.raw);
-		if (result.statusCode === 404) {
-			reply.callNotFound();
-			return;
-		}
-		await result.send(reply.raw);
-	},
+app.get('*', async (request, reply) => {
+	const result = await storage.prepareResponse(request.url, request.raw);
+	if (result.statusCode === 404) {
+		reply.callNotFound();
+		return;
+	}
+	await result.send(reply.raw);
 });
 
 app.listen(3001)
