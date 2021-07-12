@@ -1,7 +1,8 @@
 import fs from 'fs';
 import zlib from 'zlib';
 import stream from 'stream';
-import { join } from 'path';
+import { join, dirname } from 'path';
+import { fileURLToPath } from 'url';
 
 // eslint-disable-next-line @typescript-eslint/no-explicit-any
 function handleEvent(resolve: () => void, reject: (err: any) => void) {
@@ -62,7 +63,7 @@ async function precompressWithGzipAndBrotli(directoryPath: string) {
 	}));
 }
 
-precompressWithGzipAndBrotli(join(__dirname, 'assets'))
+precompressWithGzipAndBrotli(join(dirname(fileURLToPath(import.meta.url)), 'assets'))
 	.then(() => {
 		console.info('files have been precompressed');
 	})
