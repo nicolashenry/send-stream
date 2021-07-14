@@ -1,3 +1,6 @@
+/**
+ * This example shows how to use this library with vanilla NodeJS http module
+ */
 
 import * as http from 'http';
 import { join } from 'path';

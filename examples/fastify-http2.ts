@@ -1,3 +1,6 @@
+/**
+ * This example shows how to use this library with Fastify using HTTP 2
+ */
 
 import * as fs from 'fs';
 import { join } from 'path';

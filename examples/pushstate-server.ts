@@ -1,3 +1,6 @@
+/**
+ * This example shows how to implement a server that works with HTML5 PushState for Single Page Applications
+ */
 
 import { join } from 'path';
 

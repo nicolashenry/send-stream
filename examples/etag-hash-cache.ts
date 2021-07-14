@@ -1,3 +1,6 @@
+/**
+ * This example shows how to extend FileSystemStorage to add SHA1 ETag cache
+ */
 
 import { join } from 'path';
 import * as crypto from 'crypto';

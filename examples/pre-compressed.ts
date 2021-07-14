@@ -1,3 +1,8 @@
+/**
+ * This example shows how to use contentEncodingMappings option to serve pre-compressed files
+ *
+ * See ./pre-compressed-util.ts to have an example of file pre-compressing
+ */
 
 import { join } from 'path';
 
