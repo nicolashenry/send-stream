@@ -267,7 +267,7 @@ new FileSystemStorage(directory, { weakEtags: true })
 Configure content encoding file mappings.
 
 You can use this option to serve pre-compressed files.
-(see this [this example](./examples/precompress-files.ts) to precompress files with NodeJS)
+(see this [this example](./examples/pre-compressed.ts) to precompress files with NodeJS)
 
 This is a list of objects containing the following properties:
 - `matcher`: a regular expression used to detect which files have a pre-compressed version
