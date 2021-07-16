@@ -16,6 +16,7 @@
     "buffer",
     "range"
   ],
+  "author": "Nicolas HENRY",
   "devDependencies": {
     "@istanbuljs/nyc-config-typescript": "~1.0.1",
     "@regru/eslint-plugin-prefer-early-return": "~1.0.0",
