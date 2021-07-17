@@ -609,6 +609,9 @@ The following additional property is available:
 You can extend the class `Storage` if you want to stream files from something else than the file system.
 Take a look at [this MongoDB/GridFS storage example](./examples/mongodb-gridfs.ts) to have an example.
 
+You can also take a look to this [this Buffer storage example](./examples/buffer.ts) or
+[this JSON storage example](./examples/json.ts) to serve data directly from your current route.
+
 If you want to implement something nearer from file system you can also take a look at the `GenericFileSystemStorage`
 class. Take a look at [this memory cache storage example](./examples/memory-cache.ts) to have an example.
 
