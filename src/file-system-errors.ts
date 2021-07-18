@@ -1,4 +1,4 @@
-import { StorageError } from './error';
+import { StorageError } from './errors';
 import type { FilePath } from './file-system-types';
 
 /**

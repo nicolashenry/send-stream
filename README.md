@@ -532,6 +532,24 @@ The following property is available:
 
 ---
 
+### `MethodNotAllowedStorageError` (extends StorageError)
+
+The HTTP method is not allowed (405 HTTP code)
+
+---
+
+### `PreconditionFailedStorageError` (extends StorageError)
+
+The precondition set in headers have failed (412 HTTP code)
+
+---
+
+### `RangeNotSatisfiableStorageError` (extends StorageError)
+
+The ranges set in headers are not statisfiable (416 HTTP code)
+
+---
+
 ### `FileSystemStorageError` (extends StorageError)
 
 All errors from FileSystemStorage inherits from this one.
@@ -701,7 +719,7 @@ const storage = new FileSystemStorage(directory);
 ...
 
 let result = await storage.prepareResponse(req.url, req);
-if (result.storageInfo?.mimeType === 'text/html') {
+if (!result.error && result.storageInfo?.mimeType === 'text/html') {
   result.headers['Content-Security-Policy'] = "script-src 'self'";
   // you can also add some other security headers:
   // result.headers['X-Frame-Options'] = "SAMEORIGIN";

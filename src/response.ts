@@ -8,7 +8,7 @@ import { promisify, types } from 'util';
 
 import type { ResponseHeaders } from './utils';
 import type { StorageInfo, SendOptions } from './types';
-import type { StorageError } from './error';
+import type { StorageError } from './errors';
 
 const promisifiedStreamPipeline = promisify(streamPipeline);
 

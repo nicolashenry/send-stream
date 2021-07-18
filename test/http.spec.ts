@@ -584,6 +584,7 @@ describe('http', () => {
 					await request(mainApp)
 						.get('/name.txt')
 						.set('If-Match', ' "foo", "bar" ')
+						.expect('X-Send-Stream-Error', 'PreconditionFailedStorageError')
 						.expect(412);
 				});
 
@@ -591,6 +592,7 @@ describe('http', () => {
 					await request(mainApp)
 						.head('/name.txt')
 						.set('If-Match', ' "foo", "bar" ')
+						.expect('X-Send-Stream-Error', 'PreconditionFailedStorageError')
 						.expect(412);
 				});
 
@@ -603,6 +605,9 @@ describe('http', () => {
 								// eslint-disable-next-line @typescript-eslint/no-non-null-assertion
 								const result = await storage.prepareResponse(req.url!, req);
 								lastResult = result;
+								if (result.error) {
+									result.headers['X-Send-Stream-Error'] = result.error.name;
+								}
 								await result.send(res);
 							})().catch(err => {
 								res.statusCode = 500;
@@ -620,6 +625,7 @@ describe('http', () => {
 						await request(app)
 							.get('/name.txt')
 							.set('If-Match', `"foo", "bar", ${ (<Record<string, string>> res.header).etag }`)
+							.expect('X-Send-Stream-Error', 'PreconditionFailedStorageError')
 							.expect(412);
 					});
 				});
@@ -734,6 +740,7 @@ describe('http', () => {
 					await request(mainApp)
 						.get('/name.txt')
 						.set('If-Unmodified-Since', date)
+						.expect('X-Send-Stream-Error', 'PreconditionFailedStorageError')
 						.expect(412);
 				});
 
@@ -850,6 +857,7 @@ describe('http', () => {
 						.get('/nums.txt')
 						.set('Range', 'bytes=9-50')
 						.expect('Content-Range', 'bytes */9')
+						.expect('X-Send-Stream-Error', 'RangeNotSatisfiableStorageError')
 						.expect(416);
 				});
 
@@ -858,6 +866,7 @@ describe('http', () => {
 						.head('/nums.txt')
 						.set('Range', 'bytes=9-50')
 						.expect('Content-Range', 'bytes */9')
+						.expect('X-Send-Stream-Error', 'RangeNotSatisfiableStorageError')
 						.expect(416);
 				});
 			});
@@ -1641,6 +1650,9 @@ describe('http', () => {
 						// eslint-disable-next-line @typescript-eslint/no-non-null-assertion
 						const result = await mainStorage.prepareResponse(req.url!, req);
 						lastResult = result;
+						if (result.error) {
+							result.headers['X-Send-Stream-Error'] = result.error.name;
+						}
 						await result.send(res);
 					})().catch(err => {
 						res.statusCode = 500;
@@ -1656,6 +1668,7 @@ describe('http', () => {
 				await request(mainApp)
 					.options('/name.txt')
 					.expect('Allow', 'GET, HEAD')
+					.expect('X-Send-Stream-Error', 'MethodNotAllowedStorageError')
 					.expect(405);
 			});
 
@@ -1663,6 +1676,7 @@ describe('http', () => {
 				await request(mainApp)
 					.post('/name.txt')
 					.expect('Allow', 'GET, HEAD')
+					.expect('X-Send-Stream-Error', 'MethodNotAllowedStorageError')
 					.expect(405);
 			});
 
@@ -1679,6 +1693,7 @@ describe('http', () => {
 				it('should 405 on not head allowed', async () => {
 					await request(server)
 						.head('/name.txt')
+						.expect('X-Send-Stream-Error', 'MethodNotAllowedStorageError')
 						.expect(405);
 				});
 			});
@@ -1692,6 +1707,7 @@ describe('http', () => {
 					await request(server)
 						.post('/name.txt')
 						.expect('Allow', 'GET')
+						.expect('X-Send-Stream-Error', 'MethodNotAllowedStorageError')
 						.expect(405);
 				});
 			});
