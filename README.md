@@ -621,7 +621,7 @@ class. Take a look at [this memory cache storage example](./examples/memory-cach
 
 See [examples](./examples) folder in this repository for full examples
 
-### Serve files
+### [Serve files](./examples/fastify-http.ts)
 
 ```js
 const storage = new FileSystemStorage(directory);
@@ -632,7 +632,7 @@ let result = await storage.prepareResponse(req.url, req);
 await result.send(res);
 ```
 
-### Serve files with directory index.html
+### [Serve files with directory index.html](./examples/serve-indexes.ts)
 
 ```js
 const storage = new FileSystemStorage(directory, { onDirectory: 'serve-index' });
@@ -643,7 +643,7 @@ let result = await storage.prepareResponse(req.url, req);
 await result.send(res);
 ```
 
-### Serve files with directory listing
+### [Serve files with directory listing](./examples/directory-listing.ts)
 
 ```js
 const storage = new FileSystemStorage(directory, { onDirectory: 'list-files' });
@@ -678,7 +678,7 @@ let result = await storage.prepareResponse('/index.html', req);
 await result.send(res);
 ```
 
-### Serve index.html instead of 404 for history.pushState applications
+### [Serve index.html instead of 404 for history.pushState applications](./examples/pushstate-server.ts)
 
 ```js
 const storage = new FileSystemStorage(directory);
