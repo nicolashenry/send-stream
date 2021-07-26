@@ -1,3 +1,6 @@
+/**
+ * This example shows how to use this library with vanilla NodeJS https module
+ */
 
 import * as fs from 'fs';
 import * as https from 'https';

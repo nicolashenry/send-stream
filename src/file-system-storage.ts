@@ -9,7 +9,7 @@ import { URL } from 'url';
 
 import { Storage } from './storage';
 import type { StorageRequestHeaders, StorageInfo } from './types';
-import { StorageError } from './error';
+import { StorageError } from './errors';
 import type { StreamRange } from './utils';
 import { acceptEncodings } from './utils';
 import type {

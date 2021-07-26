@@ -9,5 +9,5 @@
 
 ## Reporting a Vulnerability
 
-Just open an issue on this repository.
+Just send an email to <icewil@gmail.com>.
 I will try to fix it as soon as possible.

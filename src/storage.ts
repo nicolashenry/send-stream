@@ -30,7 +30,12 @@ import type {
 	StorageInfo,
 	StorageSendOptions,
 } from './types';
-import { StorageError } from './error';
+import {
+	MethodNotAllowedStorageError,
+	PreconditionFailedStorageError,
+	RangeNotSatisfiableStorageError,
+	StorageError,
+} from './errors';
 
 const DEFAULT_ALLOWED_METHODS = <const> ['GET', 'HEAD'];
 const DEFAULT_MAX_RANGES = 200;
@@ -599,6 +604,8 @@ export abstract class Storage<Reference, AttachedData> {
 				Allow: allowedMethods.join(', '),
 			},
 			isHeadMethod ? new BufferStream() : new BufferStream(statusMessageBuffer),
+			undefined,
+			new MethodNotAllowedStorageError('Method not allowed'),
 		);
 	}
 
@@ -667,6 +674,7 @@ export abstract class Storage<Reference, AttachedData> {
 			},
 			isHeadMethod ? new BufferStream() : new BufferStream(statusMessageBuffer),
 			storageInfo,
+			new PreconditionFailedStorageError('Precondition failed', storageInfo.attachedData),
 		);
 	}
 
@@ -696,6 +704,7 @@ export abstract class Storage<Reference, AttachedData> {
 			},
 			isHeadMethod ? new BufferStream() : new BufferStream(statusMessageBuffer),
 			storageInfo,
+			new RangeNotSatisfiableStorageError('Range not satisfiable', storageInfo.attachedData),
 		);
 	}
 

@@ -267,7 +267,7 @@ new FileSystemStorage(directory, { weakEtags: true })
 Configure content encoding file mappings.
 
 You can use this option to serve pre-compressed files.
-(see this [this example](./examples/precompress-files.ts) to precompress files with NodeJS)
+(see this [this example](./examples/pre-compressed.ts) to precompress files with NodeJS)
 
 This is a list of objects containing the following properties:
 - `matcher`: a regular expression used to detect which files have a pre-compressed version
@@ -532,6 +532,24 @@ The following property is available:
 
 ---
 
+### `MethodNotAllowedStorageError` (extends StorageError)
+
+The HTTP method is not allowed (405 HTTP code)
+
+---
+
+### `PreconditionFailedStorageError` (extends StorageError)
+
+The precondition set in headers have failed (412 HTTP code)
+
+---
+
+### `RangeNotSatisfiableStorageError` (extends StorageError)
+
+The ranges set in headers are not statisfiable (416 HTTP code)
+
+---
+
 ### `FileSystemStorageError` (extends StorageError)
 
 All errors from FileSystemStorage inherits from this one.
@@ -609,6 +627,9 @@ The following additional property is available:
 You can extend the class `Storage` if you want to stream files from something else than the file system.
 Take a look at [this MongoDB/GridFS storage example](./examples/mongodb-gridfs.ts) to have an example.
 
+You can also take a look to this [this Buffer storage example](./examples/buffer.ts) or
+[this JSON storage example](./examples/json.ts) to serve data directly from your current route.
+
 If you want to implement something nearer from file system you can also take a look at the `GenericFileSystemStorage`
 class. Take a look at [this memory cache storage example](./examples/memory-cache.ts) to have an example.
 
@@ -618,7 +639,7 @@ class. Take a look at [this memory cache storage example](./examples/memory-cach
 
 See [examples](./examples) folder in this repository for full examples
 
-### Serve files
+### [Serve files](./examples/fastify-http.ts)
 
 ```js
 const storage = new FileSystemStorage(directory);
@@ -629,7 +650,7 @@ let result = await storage.prepareResponse(req.url, req);
 await result.send(res);
 ```
 
-### Serve files with directory index.html
+### [Serve files with directory index.html](./examples/serve-indexes.ts)
 
 ```js
 const storage = new FileSystemStorage(directory, { onDirectory: 'serve-index' });
@@ -640,7 +661,7 @@ let result = await storage.prepareResponse(req.url, req);
 await result.send(res);
 ```
 
-### Serve files with directory listing
+### [Serve files with directory listing](./examples/directory-listing.ts)
 
 ```js
 const storage = new FileSystemStorage(directory, { onDirectory: 'list-files' });
@@ -675,7 +696,7 @@ let result = await storage.prepareResponse('/index.html', req);
 await result.send(res);
 ```
 
-### Serve index.html instead of 404 for history.pushState applications
+### [Serve index.html instead of 404 for history.pushState applications](./examples/pushstate-server.ts)
 
 ```js
 const storage = new FileSystemStorage(directory);
@@ -698,7 +719,7 @@ const storage = new FileSystemStorage(directory);
 ...
 
 let result = await storage.prepareResponse(req.url, req);
-if (result.storageInfo?.mimeType === 'text/html') {
+if (!result.error && result.storageInfo?.mimeType === 'text/html') {
   result.headers['Content-Security-Policy'] = "script-src 'self'";
   // you can also add some other security headers:
   // result.headers['X-Frame-Options'] = "SAMEORIGIN";

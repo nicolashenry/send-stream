@@ -1,3 +1,6 @@
+/**
+ * This example shows how to use this library with Koa using HTTP
+ */
 
 import { join } from 'path';
 

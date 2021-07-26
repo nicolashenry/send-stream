@@ -1,3 +1,6 @@
+/**
+ * This example shows how to use this library with vanilla NodeJS http2 module (compat API)
+ */
 
 import * as fs from 'fs';
 import * as http2 from 'http2';

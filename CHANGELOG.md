@@ -1,5 +1,13 @@
 # Changelog
 
+## 2.5.3
+
+* Fix: add explicit errors for 405/412/416 statuses
+* Docs: add CONTRIBUTING.md file
+* Docs: add issue / pull request templates
+* Docs: enhance examples
+* Build: run linting after tests
+
 ## 2.5.2
 
 * Fix: differentiate optional properties and undefined properties

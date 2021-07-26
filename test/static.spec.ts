@@ -146,6 +146,7 @@ describe('static', () => {
 			it('should skip POST requests', async () => {
 				await request(server)
 					.post('/todo.txt')
+					.expect('X-Send-Stream-Error', 'MethodNotAllowedStorageError')
 					.expect(405);
 			});
 
@@ -162,6 +163,7 @@ describe('static', () => {
 				await request(server)
 					.get('/todo.txt')
 					.set('If-Match', '"foo"')
+					.expect('X-Send-Stream-Error', 'PreconditionFailedStorageError')
 					.expect(412);
 			});
 
@@ -264,6 +266,7 @@ describe('static', () => {
 					await request(server)
 						.options('/todo.txt')
 						.expect('Allow', 'GET, HEAD')
+						.expect('X-Send-Stream-Error', 'MethodNotAllowedStorageError')
 						.expect(405);
 				});
 
@@ -437,6 +440,7 @@ describe('static', () => {
 					await request(server)
 						.get('/nums')
 						.set('Range', 'bytes=9-50')
+						.expect('X-Send-Stream-Error', 'RangeNotSatisfiableStorageError')
 						.expect(416);
 				});
 
@@ -445,6 +449,7 @@ describe('static', () => {
 						.get('/nums')
 						.set('Range', 'bytes=9-50')
 						.expect('Content-Range', 'bytes */9')
+						.expect('X-Send-Stream-Error', 'RangeNotSatisfiableStorageError')
 						.expect(416);
 				});
 			});

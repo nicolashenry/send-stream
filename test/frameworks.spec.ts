@@ -2327,6 +2327,7 @@ for (const [frameworkName, frameworkServer] of frameworks) {
 							.get('/')
 							.set('Range', 'bytes=7-7')
 							.expect(416)
+							.expect('X-Send-Stream-Error', 'RangeNotSatisfiableStorageError')
 							.expect('Content-Range', 'bytes */5');
 					});
 				});
