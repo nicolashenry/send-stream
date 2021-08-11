@@ -62,7 +62,7 @@ export class StreamResponse<AttachedData> {
 	 */
 	async send(
 		res: ServerResponse | Http2ServerResponse | ServerHttp2Stream,
-		{ ignorePrematureClose = true }: SendOptions = { ignorePrematureClose: true },
+		{ ignorePrematureClose = true }: SendOptions = {},
 	) {
 		const { statusCode } = this;
 		const { headers: responseHeaders, stream: readStream } = this;
