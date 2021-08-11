@@ -38,7 +38,7 @@
     "eslint-plugin-jsdoc": "~36.0.2",
     "eslint-plugin-node": "~11.1.0",
     "eslint-plugin-sonarjs": "~0.9.1",
-    "eslint-plugin-unicorn": "~34.0.1",
+    "eslint-plugin-unicorn": "~35.0.0",
     "express": "~4.17.1",
     "fastify": "~3.20.1",
     "koa": "~2.13.1",
