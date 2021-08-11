@@ -313,8 +313,8 @@ export function getFreshStatus(
 			!etag
 			|| (
 				ifMatch !== '*'
-				&& parseMultiValueHeader(ifMatch)
-					.find(ifMatchEtag => strongEtagMatch(ifMatchEtag, etag)) === undefined
+				&& !parseMultiValueHeader(ifMatch)
+					.some(ifMatchEtag => strongEtagMatch(ifMatchEtag, etag))
 			)
 		) {
 			return 412;
@@ -332,7 +332,7 @@ export function getFreshStatus(
 			&& (
 				ifNoneMatch === '*'
 				|| parseMultiValueHeader(ifNoneMatch)
-					.find(ifMatchEtag => weakEtagMatch(ifMatchEtag, etag)) !== undefined
+					.some(ifMatchEtag => weakEtagMatch(ifMatchEtag, etag))
 			)
 		) {
 			return isGetOrHead
