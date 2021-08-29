@@ -6,13 +6,13 @@ import { promisify } from 'util';
  */
 export interface RequestHeaders {
 	[header: string]: string | string[] | undefined;
-	'accept-encoding'?: string;
-	'if-match'?: string;
-	'if-none-match'?: string;
-	'if-modified-since'?: string;
-	'if-unmodified-since'?: string;
-	'range'?: string;
-	'if-range'?: string;
+	'accept-encoding'?: string | undefined;
+	'if-match'?: string | undefined;
+	'if-none-match'?: string | undefined;
+	'if-modified-since'?: string | undefined;
+	'if-unmodified-since'?: string | undefined;
+	'range'?: string | undefined;
+	'if-range'?: string | undefined;
 }
 
 /**
