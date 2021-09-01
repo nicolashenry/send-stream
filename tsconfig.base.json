@@ -13,6 +13,7 @@
     "composite": true,
     "noImplicitOverride": true,
     "incremental": true,
+    "exactOptionalPropertyTypes": true,
     "typeRoots": ["./node_modules/@types/"]
   }
 }
