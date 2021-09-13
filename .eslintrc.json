@@ -800,6 +800,7 @@
     "unicorn/no-document-cookie": "off", // not needed: not executed in a browser
     "unicorn/no-for-loop": "warn",
     "unicorn/no-instanceof-array": "warn",
+    "unicorn/no-invalid-remove-event-listener": "off", // not needed: not executed in a browser
     "unicorn/no-hex-escape": "warn",
     "unicorn/no-keyword-prefix": "off", // not needed: seems useless
     "unicorn/no-lonely-if": "warn",
@@ -814,6 +815,7 @@
     "unicorn/no-unreadable-array-destructuring": "off", // too restrictive
     "unicorn/no-unsafe-regex": "off", // too restrictive
     "unicorn/no-unused-properties": "warn",
+    "unicorn/no-useless-fallback-in-spread": "warn",
     "unicorn/no-useless-length-check": "warn",
     "unicorn/no-useless-undefined": "off", // too restrictive
     "unicorn/no-useless-spread": "warn",
