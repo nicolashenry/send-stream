@@ -177,11 +177,13 @@
     "@typescript-eslint/no-misused-new": "warn",
     "@typescript-eslint/no-misused-promises": "warn",
     "@typescript-eslint/no-namespace": "warn",
+    "@typescript-eslint/no-non-null-asserted-nullish-coalescing": "warn",
     "@typescript-eslint/no-non-null-asserted-optional-chain": "warn",
     "@typescript-eslint/no-non-null-assertion": "warn",
     "@typescript-eslint/no-parameter-properties": "off", // not needed: seems useless
     "@typescript-eslint/no-redeclare": "warn",
     "@typescript-eslint/no-require-imports": "warn",
+    "@typescript-eslint/no-restricted-imports": "off", // not needed: seems useless
     "@typescript-eslint/no-shadow": [
       "warn",
       {
@@ -197,7 +199,8 @@
         "allowCallbacks": "always",
         "allowLiterals": "in-unions-and-intersections",
         "allowMappedTypes": "in-unions-and-intersections",
-        "allowTupleTypes": "always"
+        "allowTupleTypes": "always",
+        "allowGenerics": "always"
       }
     ],
     "@typescript-eslint/no-unnecessary-boolean-literal-compare": "warn",
