@@ -59,6 +59,7 @@
       }
     ],
     "@typescript-eslint/consistent-type-definitions": "warn",
+    "@typescript-eslint/consistent-type-exports": "warn",
     "@typescript-eslint/consistent-type-imports": "warn",
     "@typescript-eslint/default-param-last": "warn",
     "@typescript-eslint/dot-notation": "off", // too restrictive
@@ -799,8 +800,10 @@
     "unicorn/no-array-method-this-argument": "warn",
     "unicorn/no-array-push-push": "warn",
     "unicorn/no-array-reduce": "off", // not needed: seems useless
+    "unicorn/no-await-expression-member": "warn",
     "unicorn/no-console-spaces": "warn",
     "unicorn/no-document-cookie": "off", // not needed: not executed in a browser
+    "unicorn/no-empty-file": "warn",
     "unicorn/no-for-loop": "warn",
     "unicorn/no-instanceof-array": "warn",
     "unicorn/no-invalid-remove-event-listener": "off", // not needed: not executed in a browser
@@ -832,12 +835,14 @@
     "unicorn/prefer-array-index-of": "warn",
     "unicorn/prefer-array-some": "warn",
     "unicorn/prefer-at": "off", // too soon
+    "unicorn/prefer-code-point": "warn",
     "unicorn/prefer-date-now": "warn",
     "unicorn/prefer-default-parameters": "warn",
     "unicorn/prefer-dom-node-append": "off", // not needed: not executed in a browser
     "unicorn/prefer-dom-node-dataset": "off", // not needed: not executed in a browser
     "unicorn/prefer-dom-node-remove": "off", // not needed: not executed in a browser
     "unicorn/prefer-dom-node-text-content": "off", // not needed: not executed in a browser
+    "unicorn/prefer-export-from": "warn",
     "unicorn/prefer-keyboard-event-key": "off", // not needed: not executed in a browser
     "unicorn/prefer-includes": "warn",
     "unicorn/prefer-math-trunc": "warn",

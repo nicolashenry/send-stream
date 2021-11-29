@@ -428,7 +428,8 @@ export abstract class Storage<Reference, AttachedData> {
 								rangeToUse = new StreamRange(singleRange.start, singleRange.end);
 								contentLength = singleRange.end + 1 - singleRange.start;
 							} else {
-								const boundary = `----SendStreamBoundary${ (await randomBytes(24)).toString('hex') }`;
+								const randomBytesBuffer = await randomBytes(24);
+								const boundary = `----SendStreamBoundary${ randomBytesBuffer.toString('hex') }`;
 								responseHeaders['Content-Type'] = `multipart/byteranges; boundary=${ boundary }`;
 								responseHeaders['X-Content-Type-Options'] = 'nosniff';
 								rangeToUse = [];
