@@ -725,7 +725,7 @@
     "import/unambiguous": "warn",
     "jsdoc/check-access": "warn",
     "jsdoc/check-alignment": "warn",
-    "jsdoc/check-examples": "warn",
+    "jsdoc/check-examples": "off", // bug: https://github.com/eslint/eslint/issues/14745
     "jsdoc/check-indentation": "warn",
     "jsdoc/check-line-alignment": "off", // seems buggy
     "jsdoc/check-param-names": "warn",
