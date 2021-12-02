@@ -1,5 +1,10 @@
 # Changelog
 
+## 2.5.4
+
+* Fix: set more precise optional property types
+* Refactor: small enhancements
+
 ## 2.5.3
 
 * Fix: add explicit errors for 405/412/416 statuses
