@@ -403,7 +403,11 @@ Custom cache-control header value, overrides storage value (`public, max-age=0` 
 Example:
 
 ```js
-await storage.prepareResponse(req.url, req, { cacheControl: 'public, max-age=31536000' })
+await storage.prepareResponse(
+  req.url,
+  req,
+  { cacheControl: 'public, max-age=31536000' }
+)
 ```
 
 #### **lastModified**
