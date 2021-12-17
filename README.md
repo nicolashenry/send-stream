@@ -37,10 +37,16 @@ const fastify = require('fastify');
 const { FileSystemStorage } = require('send-stream');
 
 const app = fastify({ exposeHeadRoutes: true });
-const storage = new FileSystemStorage(path.join(__dirname, 'assets'), { onDirectory: 'serve-index' });
+const storage = new FileSystemStorage(
+  path.join(__dirname, 'assets'),
+  { onDirectory: 'serve-index' }
+);
 
 app.get('*', async (request, reply) => {
-  const result = await storage.prepareResponse(request.url, request.raw);
+  const result = await storage.prepareResponse(
+    request.url,
+    request.raw
+  );
   if (result.statusCode === 404) {
     reply.callNotFound(); // let fastify handle 404
     return;
@@ -62,10 +68,16 @@ const Koa = require('koa');
 const { FileSystemStorage } = require('send-stream');
 
 const app = new Koa();
-const storage = new FileSystemStorage(path.join(__dirname, 'assets'), { onDirectory: 'serve-index' });
+const storage = new FileSystemStorage(
+  path.join(__dirname, 'assets'),
+  { onDirectory: 'serve-index' }
+);
 
 app.use(async (ctx, next) => {
-  let result = await storage.prepareResponse(ctx.request.path, ctx.req);
+  let result = await storage.prepareResponse(
+    ctx.request.path,
+    ctx.req
+  );
   if (result.statusCode === 404) {
     await next(); // let koa handle 404
     return;
@@ -88,11 +100,17 @@ const express = require("express");
 const { FileSystemStorage } = require('send-stream');
 
 const app = express();
-const storage = new FileSystemStorage(path.join(__dirname, 'assets'), { onDirectory: 'serve-index' });
+const storage = new FileSystemStorage(
+  path.join(__dirname, 'assets'),
+  { onDirectory: 'serve-index' }
+);
 
 app.get('*', async (req, res, next) => {
   try {
-    let result = await storage.prepareResponse(req.url, req);
+    let result = await storage.prepareResponse(
+      req.url,
+      req
+    );
     if (result.statusCode === 404) {
       next(); // let express handle 404
       return;
@@ -231,7 +249,10 @@ Configures the default content type (without charset) that will be used if the c
 Example:
 
 ```js
-new FileSystemStorage(directory, { defaultMimeType: 'application/octet-stream' })
+new FileSystemStorage(
+  directory,
+  { defaultMimeType: 'application/octet-stream' }
+)
 ```
 
 #### **maxRanges**
@@ -247,7 +268,10 @@ Setting it to `0` or less will disable range requests
 Example:
 
 ```js
-new FileSystemStorage(directory, { maxRanges: 10 })
+new FileSystemStorage(
+  directory,
+  { maxRanges: 10 }
+)
 ```
 
 #### **weakEtags**
@@ -259,7 +283,10 @@ The storage will generate strong etags by default, when set to true the storage 
 Example:
 
 ```js
-new FileSystemStorage(directory, { weakEtags: true })
+new FileSystemStorage(
+  directory,
+  { weakEtags: true }
+)
 ```
 
 #### **contentEncodingMappings**
@@ -307,7 +334,10 @@ Defaults to `/^\./` (files/folders beginning with a dot)
 Example:
 
 ```js
-new FileSystemStorage(directory, { ignorePattern: /^myPrivateFolder$/ })
+new FileSystemStorage(
+  directory,
+  { ignorePattern: /^myPrivateFolder$/ }
+)
 ```
 
 #### **fsModule**
@@ -319,7 +349,10 @@ Example:
 ```js
 const memfs = require('memfs');
 memfs.fs.writeFileSync('/hello.txt', 'world');
-new FileSystemStorage(directory, { fsModule: memfs })
+new FileSystemStorage(
+  directory,
+  { fsModule: memfs }
+)
 ```
 
 #### **onDirectory**
@@ -337,7 +370,10 @@ Note that you can customize the html template used for `'list-files'` by overidi
 Example:
 
 ```js
-new FileSystemStorage(directory, { onDirectory: 'list-files' })
+new FileSystemStorage(
+  directory,
+  { onDirectory: 'list-files' }
+)
 ```
 
 ---
@@ -379,7 +415,11 @@ Custom last-modified header value, overrides storage value (defaults to mtimeMs 
 Example:
 
 ```js
-await storage.prepareResponse(req.url, req, { lastModified: 'Wed, 21 Oct 2015 07:28:00 GMT' })
+await storage.prepareResponse(
+  req.url,
+  req,
+  { lastModified: 'Wed, 21 Oct 2015 07:28:00 GMT' }
+)
 ```
 
 #### **etag**
@@ -391,7 +431,11 @@ Custom etag header value, overrides storage value (defaults to size + mtimeMs + 
 Example:
 
 ```js
-await storage.prepareResponse(req.url, req, { etag: '"123"' })
+await storage.prepareResponse(
+  req.url,
+  req,
+  { etag: '"123"' }
+)
 ```
 
 #### **mimeType**
@@ -403,7 +447,11 @@ Custom mime type for content-type header value, overrides storage value (default
 Example:
 
 ```js
-await storage.prepareResponse(req.url, req, { mimeType: 'text/plain' })
+await storage.prepareResponse(
+  req.url,
+  req,
+  { mimeType: 'text/plain' }
+)
 ```
 
 #### **mimeTypeCharset**
@@ -415,7 +463,11 @@ Custom content-type charset value, overrides storage value (defaults to storage 
 Example:
 
 ```js
-await storage.prepareResponse(req.url, req, { mimeTypeCharset: 'UTF-8' })
+await storage.prepareResponse(
+  req.url,
+  req,
+  { mimeTypeCharset: 'UTF-8' }
+)
 ```
 
 #### **contentDispositionType**
@@ -427,7 +479,11 @@ Custom content-disposition header type value, overrides storage value
 Example:
 
 ```js
-await storage.prepareResponse(req.url, req, { contentDispositionType: 'attachment' })
+await storage.prepareResponse(
+  req.url,
+  req,
+  { contentDispositionType: 'attachment' }
+)
 ```
 
 #### **contentDispositionFilename**
@@ -439,7 +495,11 @@ Custom content-disposition header filename value, overrides storage value
 Example:
 
 ```js
-await storage.prepareResponse(req.url, req, { contentDispositionFilename: 'file.txt' })
+await storage.prepareResponse(
+  req.url,
+  req,
+  { contentDispositionFilename: 'file.txt' }
+)
 ```
 
 #### **statusCode**
@@ -452,7 +512,11 @@ Setting this will disable conditional GET and partial responses
 Example:
 
 ```js
-await storage.prepareResponse(req.url, req, { statusCode: 404 })
+await storage.prepareResponse(
+  req.url,
+  req,
+  { statusCode: 404 }
+)
 ```
 
 #### **allowedMethods**
@@ -464,7 +528,11 @@ By default GET and HEAD are the only allowed http methods, set this parameter to
 Example:
 
 ```js
-await storage.prepareResponse(req.url, req, { allowedMethods: ['POST'] })
+await storage.prepareResponse(
+  req.url,
+  req,
+  { allowedMethods: ['POST'] }
+)
 ```
 
 ---
@@ -646,29 +714,44 @@ const storage = new FileSystemStorage(directory);
 
 ...
 
-let result = await storage.prepareResponse(req.url, req);
+let result = await storage.prepareResponse(
+  req.url,
+  req
+);
 await result.send(res);
 ```
 
 ### [Serve files with directory index.html](./examples/serve-indexes.ts)
 
 ```js
-const storage = new FileSystemStorage(directory, { onDirectory: 'serve-index' });
+const storage = new FileSystemStorage(
+  directory,
+  { onDirectory: 'serve-index' }
+);
 
 ...
 
-let result = await storage.prepareResponse(req.url, req);
+let result = await storage.prepareResponse(
+  req.url,
+  req
+);
 await result.send(res);
 ```
 
 ### [Serve files with directory listing](./examples/directory-listing.ts)
 
 ```js
-const storage = new FileSystemStorage(directory, { onDirectory: 'list-files' });
+const storage = new FileSystemStorage(
+  directory,
+  { onDirectory: 'list-files' }
+);
 
 ...
 
-let result = await storage.prepareResponse(req.url, req);
+let result = await storage.prepareResponse(
+  req.url,
+  req
+);
 await result.send(res);
 ```
 
@@ -679,7 +762,10 @@ const storage = new FileSystemStorage(directory);
 
 ...
 
-let result = await storage.prepareResponse(req.url, req);
+let result = await storage.prepareResponse(
+  req.url,
+  req
+);
 result.headers['Access-Control-Allow-Origin'] = '*';
 result.headers['Access-Control-Allow-Headers'] = 'Origin, X-Requested-With, Content-Type, Accept, Range';
 await result.send(res);
@@ -692,7 +778,10 @@ const storage = new FileSystemStorage(directory);
 
 ...
 
-let result = await storage.prepareResponse('/index.html', req);
+let result = await storage.prepareResponse(
+  '/index.html',
+  req
+);
 await result.send(res);
 ```
 
@@ -703,10 +792,16 @@ const storage = new FileSystemStorage(directory);
 
 ...
 
-let result = await storage.prepareResponse(req.url, req);
+let result = await storage.prepareResponse(
+  req.url,
+  req
+);
 // if path is not found then rewrite to root index.html
 if (result.error instanceof FileSystemStorageError) {
-  result = await storage.prepareResponse('/index.html', req);
+  result = await storage.prepareResponse(
+    '/index.html',
+    req
+  );
 }
 await result.send(res);
 ```
@@ -718,8 +813,14 @@ const storage = new FileSystemStorage(directory);
 
 ...
 
-let result = await storage.prepareResponse(req.url, req);
-if (!result.error && result.storageInfo?.mimeType === 'text/html') {
+let result = await storage.prepareResponse(
+  req.url,
+  req
+);
+if (
+  !result.error
+  && result.storageInfo?.mimeType === 'text/html'
+) {
   result.headers['Content-Security-Policy'] = "script-src 'self'";
   // you can also add some other security headers:
   // result.headers['X-Frame-Options'] = "SAMEORIGIN";
