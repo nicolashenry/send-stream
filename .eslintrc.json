@@ -612,6 +612,7 @@
     "prefer-exponentiation-operator": "warn",
     "prefer-named-capture-group": "warn",
     "prefer-numeric-literals": "warn",
+    "prefer-object-has-own": "warn",
     "prefer-object-spread": "warn",
     "prefer-promise-reject-errors": "warn",
     "prefer-regex-literals": "warn",
