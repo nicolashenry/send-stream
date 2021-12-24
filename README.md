@@ -582,7 +582,9 @@ Send the current response through the response in parameter
 
 #### **ignorePrematureClose**
 
-Ignore premature close errors
+Ignore premature close errors, if any error occurs while sending, it will be ignored
+
+Defaults to `true` (since clients can stop transfer anytime, forwarding errors can be annoying)
 
 ---
 

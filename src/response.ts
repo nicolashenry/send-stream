@@ -4,7 +4,7 @@ import type { ServerHttp2Stream } from 'http2';
 import { Http2ServerResponse } from 'http2';
 import type { Readable } from 'stream';
 import { pipeline as streamPipeline } from 'stream';
-import { promisify, types } from 'util';
+import { promisify } from 'util';
 
 import type { ResponseHeaders } from './utils';
 import type { StorageInfo, SendOptions } from './types';
@@ -20,11 +20,7 @@ async function pipeline(
 	try {
 		await promisifiedStreamPipeline(readStream, res);
 	} catch (err: unknown) {
-		if (
-			ignorePrematureClose
-			&& types.isNativeError(err)
-			&& (<NodeJS.ErrnoException> err).code === 'ERR_STREAM_PREMATURE_CLOSE'
-		) {
+		if (ignorePrematureClose) {
 			return;
 		}
 		throw err;

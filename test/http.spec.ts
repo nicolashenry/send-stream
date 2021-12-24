@@ -1,3 +1,4 @@
+/* eslint-disable max-classes-per-file */
 /* eslint-disable max-lines, max-lines-per-function, sonarjs/no-identical-functions, sonarjs/cognitive-complexity */
 /* eslint-env node, mocha */
 
@@ -1879,6 +1880,60 @@ describe('http', () => {
 						const result = await errorStorage.prepareResponse(req.url!, req);
 						lastResult = result;
 						await result.send(res);
+					})().catch(err => {
+						res.statusCode = 500;
+						console.error(err);
+						if (!res.writableEnded) {
+							res.end('Internal Error');
+						}
+					});
+				});
+			});
+			it('should handle stream pipe error', async () => {
+				try {
+					await request(app)
+						.get('/nums.txt');
+					assert.fail();
+				} catch {
+					await new Promise(resolve => {
+						resolve(undefined);
+					});
+				}
+			});
+		});
+
+		describe('should handle stream pipe error with ignorePrematureClose parameter', () => {
+			let app: http.Server;
+			before(() => {
+				class ErrorStorage extends FileSystemStorage {
+					override createReadableStream(si: StorageInfo<FileData>): Readable {
+						// eslint-disable-next-line @typescript-eslint/no-this-alias
+						const st = this;
+						return new class extends Readable {
+							override pipe<T extends NodeJS.WritableStream>(
+								destination: T,
+								options?: { end?: boolean },
+							): T {
+								this.destroy(new Error('oops'));
+								return super.pipe(destination, options);
+							}
+
+							override async _destroy(error: Error | null, callback: (err?: Error | null) => void) {
+								await st.close(si);
+								callback(error);
+							}
+						}();
+					}
+				}
+
+				const errorStorage = new ErrorStorage(fixtures);
+
+				app = http.createServer((req, res) => {
+					(async () => {
+						// eslint-disable-next-line @typescript-eslint/no-non-null-assertion
+						const result = await errorStorage.prepareResponse(req.url!, req);
+						lastResult = result;
+						await result.send(res, { ignorePrematureClose: false });
 					})().catch(err => {
 						res.statusCode = 500;
 						console.error(err);
