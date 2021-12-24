@@ -1,5 +1,9 @@
 # Changelog
 
+## 2.5.5
+
+* Fix: while sending treat all errors as premature close errors (fix for NodeJS 17.3.0)
+
 ## 2.5.4
 
 * Fix: set more precise optional property types
