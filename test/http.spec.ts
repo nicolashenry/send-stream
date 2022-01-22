@@ -2045,7 +2045,7 @@ describe('http', () => {
 						lastResult = resp;
 						const { stream: { pipe: p }, stream } = resp;
 						stream.pipe = function pipe<T extends NodeJS.WritableStream>(
-							this: ReadableStream,
+							this: Readable,
 							destination: T,
 							options?: { end?: boolean },
 						): T {
@@ -2111,7 +2111,7 @@ describe('http', () => {
 						lastResult = resp;
 						const { stream: { pipe: p }, stream } = resp;
 						stream.pipe = function pipe<T extends NodeJS.WritableStream>(
-							this: ReadableStream,
+							this: Readable,
 							destination: T,
 							options?: { end?: boolean },
 						): T {
