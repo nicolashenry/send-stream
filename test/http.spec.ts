@@ -113,9 +113,9 @@ describe('http', () => {
 	}
 
 	afterEach('destroy check', () => {
-		assert.notStrictEqual(lastResult, undefined);
+		assert.notStrictEqual(lastResult, undefined, 'missing last result');
 		if (lastResult && lastResult !== true) {
-			assert.strictEqual(lastResult.stream.destroyed, true);
+			assert.strictEqual(lastResult.stream.destroyed, true, 'last result not destroyed');
 		}
 		lastResult = undefined;
 	});
