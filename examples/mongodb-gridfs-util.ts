@@ -5,9 +5,10 @@
 import * as assert from 'assert';
 import * as crypto from 'crypto';
 import fs from 'fs';
-import { join, relative, sep } from 'path';
+import { join, relative, sep, dirname } from 'path';
 import { pipeline } from 'stream';
 import { promisify } from 'util';
+import { fileURLToPath } from 'url';
 
 import { charset, contentType } from 'mime-types';
 import * as mongodb from 'mongodb';
@@ -69,7 +70,7 @@ client.connect(error => {
 
 	const bucket = new mongodb.GridFSBucket(db);
 
-	const directory = join(__dirname, 'assets');
+	const directory = join(dirname(fileURLToPath(import.meta.url)), 'assets');
 
 	uploadToGridFS(directory, directory, bucket)
 		.then(async () => {
