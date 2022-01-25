@@ -6,13 +6,13 @@ import { promisify } from 'util';
  */
 export interface RequestHeaders {
 	[header: string]: string | string[] | undefined;
-	'accept-encoding'?: string;
-	'if-match'?: string;
-	'if-none-match'?: string;
-	'if-modified-since'?: string;
-	'if-unmodified-since'?: string;
-	'range'?: string;
-	'if-range'?: string;
+	'accept-encoding'?: string | undefined;
+	'if-match'?: string | undefined;
+	'if-none-match'?: string | undefined;
+	'if-modified-since'?: string | undefined;
+	'if-unmodified-since'?: string | undefined;
+	'range'?: string | undefined;
+	'if-range'?: string | undefined;
 }
 
 /**
@@ -21,27 +21,27 @@ export interface RequestHeaders {
 export interface ResponseHeaders {
 	[header: string]: string | string[] | undefined;
 	// eslint-disable-next-line @typescript-eslint/naming-convention
-	'Content-Encoding'?: string;
+	'Content-Encoding'?: string | undefined;
 	// eslint-disable-next-line @typescript-eslint/naming-convention
-	'Last-Modified'?: string;
+	'Last-Modified'?: string | undefined;
 	// eslint-disable-next-line @typescript-eslint/naming-convention
-	'Cache-Control'?: string;
+	'Cache-Control'?: string | undefined;
 	// eslint-disable-next-line @typescript-eslint/naming-convention
-	'Content-Type'?: string;
+	'Content-Type'?: string | undefined;
 	// eslint-disable-next-line @typescript-eslint/naming-convention
-	'ETag'?: string;
+	'ETag'?: string | undefined;
 	// eslint-disable-next-line @typescript-eslint/naming-convention
-	'Accept-Ranges'?: string;
+	'Accept-Ranges'?: string | undefined;
 	// eslint-disable-next-line @typescript-eslint/naming-convention
-	'Content-Range'?: string;
+	'Content-Range'?: string | undefined;
 	// eslint-disable-next-line @typescript-eslint/naming-convention
-	'Content-Length'?: string;
+	'Content-Length'?: string | undefined;
 	// eslint-disable-next-line @typescript-eslint/naming-convention
-	'Vary'?: string;
+	'Vary'?: string | undefined;
 	// eslint-disable-next-line @typescript-eslint/naming-convention
-	'Content-Disposition'?: string;
+	'Content-Disposition'?: string | undefined;
 	// eslint-disable-next-line @typescript-eslint/naming-convention
-	'Allow'?: string;
+	'Allow'?: string | undefined;
 }
 
 /**
@@ -313,8 +313,8 @@ export function getFreshStatus(
 			!etag
 			|| (
 				ifMatch !== '*'
-				&& parseMultiValueHeader(ifMatch)
-					.find(ifMatchEtag => strongEtagMatch(ifMatchEtag, etag)) === undefined
+				&& !parseMultiValueHeader(ifMatch)
+					.some(ifMatchEtag => strongEtagMatch(ifMatchEtag, etag))
 			)
 		) {
 			return 412;
@@ -332,7 +332,7 @@ export function getFreshStatus(
 			&& (
 				ifNoneMatch === '*'
 				|| parseMultiValueHeader(ifNoneMatch)
-					.find(ifMatchEtag => weakEtagMatch(ifMatchEtag, etag)) !== undefined
+					.some(ifMatchEtag => weakEtagMatch(ifMatchEtag, etag))
 			)
 		) {
 			return isGetOrHead

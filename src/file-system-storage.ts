@@ -9,7 +9,7 @@ import { URL } from 'url';
 
 import { Storage } from './storage.js';
 import type { StorageRequestHeaders, StorageInfo } from './types.js';
-import { StorageError } from './error.js';
+import { StorageError } from './errors.js';
 import type { StreamRange } from './utils.js';
 import { acceptEncodings } from './utils.js';
 import type {
@@ -232,7 +232,7 @@ export class GenericFileSystemStorage<FileDescriptor> extends Storage<FilePath, 
 
 		// ignored files
 		const { ignorePattern } = this;
-		if (ignorePattern && pathParts.find(v => ignorePattern.test(v)) !== undefined) {
+		if (ignorePattern && pathParts.some(v => ignorePattern.test(v))) {
 			throw new IgnoredFileError(
 				`${ String(path) } is ignored`,
 				path,

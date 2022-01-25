@@ -4,11 +4,11 @@ import type { ServerHttp2Stream } from 'http2';
 import { Http2ServerResponse } from 'http2';
 import type { Readable } from 'stream';
 import { pipeline as streamPipeline } from 'stream';
-import { promisify, types } from 'util';
+import { promisify } from 'util';
 
 import type { ResponseHeaders } from './utils.js';
 import type { StorageInfo, SendOptions } from './types.js';
-import type { StorageError } from './error.js';
+import type { StorageError } from './errors.js';
 
 const promisifiedStreamPipeline = promisify(streamPipeline);
 
@@ -20,11 +20,7 @@ async function pipeline(
 	try {
 		await promisifiedStreamPipeline(readStream, res);
 	} catch (err: unknown) {
-		if (
-			ignorePrematureClose
-			&& types.isNativeError(err)
-			&& (<NodeJS.ErrnoException> err).code === 'ERR_STREAM_PREMATURE_CLOSE'
-		) {
+		if (ignorePrematureClose) {
 			return;
 		}
 		throw err;
@@ -62,7 +58,7 @@ export class StreamResponse<AttachedData> {
 	 */
 	async send(
 		res: ServerResponse | Http2ServerResponse | ServerHttp2Stream,
-		{ ignorePrematureClose = true }: SendOptions = { ignorePrematureClose: true },
+		{ ignorePrematureClose = true }: SendOptions = {},
 	) {
 		const { statusCode } = this;
 		const { headers: responseHeaders, stream: readStream } = this;

@@ -1,5 +1,22 @@
 # Changelog
 
+## 2.5.5
+
+* Fix: while sending treat all errors as premature close errors (fix for NodeJS 17.3.0)
+
+## 2.5.4
+
+* Fix: set more precise optional property types
+* Refactor: small enhancements
+
+## 2.5.3
+
+* Fix: add explicit errors for 405/412/416 statuses
+* Docs: add CONTRIBUTING.md file
+* Docs: add issue / pull request templates
+* Docs: enhance examples
+* Build: run linting after tests
+
 ## 2.5.2
 
 * Fix: differentiate optional properties and undefined properties

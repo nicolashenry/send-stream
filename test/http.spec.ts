@@ -1,3 +1,4 @@
+/* eslint-disable max-classes-per-file */
 /* eslint-disable max-lines, max-lines-per-function, sonarjs/no-identical-functions, sonarjs/cognitive-complexity */
 /* eslint-env node, mocha */
 
@@ -8,6 +9,7 @@ import { normalize, join, dirname } from 'path';
 import { Readable } from 'stream';
 import type { AddressInfo } from 'net';
 import { fileURLToPath } from 'url';
+import { once } from 'events';
 
 import request from 'supertest';
 
@@ -74,6 +76,13 @@ function multipartHandler(res: request.Response, cb: (err: Error | null, body: u
 	});
 }
 
+async function createAndListenServer(fn: (req: http.IncomingMessage, res: http.ServerResponse) => void) {
+	const app = http.createServer(fn);
+	app.listen();
+	await once(app, 'listening');
+	return app;
+}
+
 describe('http', () => {
 	// test server
 
@@ -83,9 +92,9 @@ describe('http', () => {
 
 	let lastResult: StreamResponse<unknown> | true | undefined;
 
-	function createServer(opts: PrepareResponseOptions & FileSystemStorageOptions & { root: string }) {
+	async function createServer(opts: PrepareResponseOptions & FileSystemStorageOptions & { root: string }) {
 		const storage = new FileSystemStorage(opts.root, opts);
-		return http.createServer((req, res) => {
+		return createAndListenServer((req, res) => {
 			(async () => {
 				// eslint-disable-next-line @typescript-eslint/no-non-null-assertion
 				const response = await storage.prepareResponse(req.url!, req, opts);
@@ -105,17 +114,17 @@ describe('http', () => {
 	}
 
 	afterEach('destroy check', () => {
-		assert.notStrictEqual(lastResult, undefined);
+		assert.notStrictEqual(lastResult, undefined, 'missing last result');
 		if (lastResult && lastResult !== true) {
-			assert.strictEqual(lastResult.stream.destroyed, true);
+			assert.strictEqual(lastResult.stream.destroyed, true, 'last result not destroyed');
 		}
 		lastResult = undefined;
 	});
 
 	describe('prepare response and send', () => {
 		let mainApp: http.Server;
-		before(() => {
-			mainApp = http.createServer((req, res) => {
+		before(async () => {
+			mainApp = await createAndListenServer((req, res) => {
 				(async () => {
 					// eslint-disable-next-line @typescript-eslint/no-non-null-assertion
 					const response = await mainStorage.prepareResponse(req.url!, req);
@@ -220,9 +229,9 @@ describe('http', () => {
 
 		describe('should add a weak ETag header field when weakEtags is set to true', () => {
 			let app: http.Server;
-			before(() => {
+			before(async () => {
 				const storage = new FileSystemStorage(fixtures, { weakEtags: true });
-				app = http.createServer((req, res) => {
+				app = await createAndListenServer((req, res) => {
 					(async () => {
 						// eslint-disable-next-line @typescript-eslint/no-non-null-assertion
 						const response = await storage.prepareResponse(req.url!, req);
@@ -246,9 +255,9 @@ describe('http', () => {
 
 		describe('should error if no method', () => {
 			let app: http.Server;
-			before(() => {
+			before(async () => {
 				const storage = new FileSystemStorage(fixtures, { weakEtags: true });
-				app = http.createServer((req, res) => {
+				app = await createAndListenServer((req, res) => {
 					(async () => {
 						lastResult = true;
 						req.method = '';
@@ -274,7 +283,7 @@ describe('http', () => {
 
 		describe('should handle custom file system stream implementation', () => {
 			let app: http.Server;
-			before(() => {
+			before(async () => {
 				class CustomFileSystemStorage extends FileSystemStorage {
 					override async open(
 						path: FilePath,
@@ -290,7 +299,7 @@ describe('http', () => {
 					}
 				}
 				const storage = new CustomFileSystemStorage(fixtures, {});
-				app = http.createServer((req, res) => {
+				app = await createAndListenServer((req, res) => {
 					(async () => {
 						// eslint-disable-next-line @typescript-eslint/no-non-null-assertion
 						const response = await storage.prepareResponse(req.url!, req);
@@ -372,9 +381,9 @@ describe('http', () => {
 					});
 				}
 			}
-			before(() => {
+			before(async () => {
 				const storage = new ErrorStorage(fixtures);
-				app = http.createServer((req, res) => {
+				app = await createAndListenServer((req, res) => {
 					(async () => {
 						// eslint-disable-next-line @typescript-eslint/no-non-null-assertion
 						const response = await storage.prepareResponse(req.url!, req);
@@ -404,8 +413,8 @@ describe('http', () => {
 		describe('send result', () => {
 			describe('should have headers when sending file', () => {
 				let app: http.Server;
-				before(() => {
-					app = http.createServer((req, res) => {
+				before(async () => {
+					app = await createAndListenServer((req, res) => {
 						(async () => {
 							// eslint-disable-next-line @typescript-eslint/no-non-null-assertion
 							const response = await mainStorage.prepareResponse(req.url!, req);
@@ -430,8 +439,8 @@ describe('http', () => {
 
 			describe('should have headers on 404', () => {
 				let app: http.Server;
-				before(() => {
-					app = http.createServer((req, res) => {
+				before(async () => {
+					app = await createAndListenServer((req, res) => {
 						(async () => {
 							// eslint-disable-next-line @typescript-eslint/no-non-null-assertion
 							const response = await mainStorage.prepareResponse(req.url!, req);
@@ -456,8 +465,8 @@ describe('http', () => {
 
 			describe('should provide path', () => {
 				let app: http.Server;
-				before(() => {
-					app = http.createServer((req, res) => {
+				before(async () => {
+					app = await createAndListenServer((req, res) => {
 						(async () => {
 							// eslint-disable-next-line @typescript-eslint/no-non-null-assertion
 							const response = await mainStorage.prepareResponse(req.url!, req);
@@ -484,8 +493,8 @@ describe('http', () => {
 
 			describe('should provide stat', () => {
 				let app: http.Server;
-				before(() => {
-					app = http.createServer((req, res) => {
+				before(async () => {
+					app = await createAndListenServer((req, res) => {
 						(async () => {
 							// eslint-disable-next-line @typescript-eslint/no-non-null-assertion
 							const response = await mainStorage.prepareResponse(req.url!, req);
@@ -523,8 +532,8 @@ describe('http', () => {
 
 			describe('should allow altering headers', () => {
 				let app: http.Server;
-				before(() => {
-					app = http.createServer((req, res) => {
+				before(async () => {
+					app = await createAndListenServer((req, res) => {
 						(async () => {
 							// eslint-disable-next-line @typescript-eslint/no-non-null-assertion
 							const result = await mainStorage.prepareResponse(req.url!, req);
@@ -557,8 +566,8 @@ describe('http', () => {
 		describe('with conditional-GET', () => {
 			describe('should remove Content headers with 304', () => {
 				let server: http.Server;
-				before(() => {
-					server = createServer({ root: fixtures });
+				before(async () => {
+					server = await createServer({ root: fixtures });
 				});
 				it('should remove Content headers with 304', async () => {
 					const res = await request(server)
@@ -585,6 +594,7 @@ describe('http', () => {
 					await request(mainApp)
 						.get('/name.txt')
 						.set('If-Match', ' "foo", "bar" ')
+						.expect('X-Send-Stream-Error', 'PreconditionFailedStorageError')
 						.expect(412);
 				});
 
@@ -592,18 +602,22 @@ describe('http', () => {
 					await request(mainApp)
 						.head('/name.txt')
 						.set('If-Match', ' "foo", "bar" ')
+						.expect('X-Send-Stream-Error', 'PreconditionFailedStorageError')
 						.expect(412);
 				});
 
 				describe('should respond with 412 when weak ETag matched', () => {
 					let app: http.Server;
-					before(() => {
+					before(async () => {
 						const storage = new FileSystemStorage(fixtures, { weakEtags: true });
-						app = http.createServer((req, res) => {
+						app = await createAndListenServer((req, res) => {
 							(async () => {
 								// eslint-disable-next-line @typescript-eslint/no-non-null-assertion
 								const result = await storage.prepareResponse(req.url!, req);
 								lastResult = result;
+								if (result.error) {
+									result.headers['X-Send-Stream-Error'] = result.error.name;
+								}
 								await result.send(res);
 							})().catch(err => {
 								res.statusCode = 500;
@@ -621,6 +635,7 @@ describe('http', () => {
 						await request(app)
 							.get('/name.txt')
 							.set('If-Match', `"foo", "bar", ${ (<Record<string, string>> res.header).etag }`)
+							.expect('X-Send-Stream-Error', 'PreconditionFailedStorageError')
 							.expect(412);
 					});
 				});
@@ -673,9 +688,9 @@ describe('http', () => {
 
 				describe('should respond with 304 when weak ETag matched', () => {
 					let app: http.Server;
-					before(() => {
+					before(async () => {
 						const storage = new FileSystemStorage(fixtures, { weakEtags: true });
-						app = http.createServer((req, res) => {
+						app = await createAndListenServer((req, res) => {
 							(async () => {
 								// eslint-disable-next-line @typescript-eslint/no-non-null-assertion
 								const result = await storage.prepareResponse(req.url!, req);
@@ -735,6 +750,7 @@ describe('http', () => {
 					await request(mainApp)
 						.get('/name.txt')
 						.set('If-Unmodified-Since', date)
+						.expect('X-Send-Stream-Error', 'PreconditionFailedStorageError')
 						.expect(412);
 				});
 
@@ -748,8 +764,8 @@ describe('http', () => {
 
 			describe('statusCode option should disable 304 and always return statusCode', () => {
 				let server: http.Server;
-				before(() => {
-					server = createServer({ root: fixtures, statusCode: 418 });
+				before(async () => {
+					server = await createServer({ root: fixtures, statusCode: 418 });
 				});
 				it('statusCode option should disable 304 and always return statusCode', async () => {
 					await request(server)
@@ -851,6 +867,7 @@ describe('http', () => {
 						.get('/nums.txt')
 						.set('Range', 'bytes=9-50')
 						.expect('Content-Range', 'bytes */9')
+						.expect('X-Send-Stream-Error', 'RangeNotSatisfiableStorageError')
 						.expect(416);
 				});
 
@@ -859,6 +876,7 @@ describe('http', () => {
 						.head('/nums.txt')
 						.set('Range', 'bytes=9-50')
 						.expect('Content-Range', 'bytes */9')
+						.expect('X-Send-Stream-Error', 'RangeNotSatisfiableStorageError')
 						.expect(416);
 				});
 			});
@@ -904,9 +922,9 @@ describe('http', () => {
 			describe('when if-range present', () => {
 				describe('should not respond with parts when weak etag unchanged', () => {
 					let app: http.Server;
-					before(() => {
+					before(async () => {
 						const storage = new FileSystemStorage(fixtures, { weakEtags: true });
-						app = http.createServer((req, res) => {
+						app = await createAndListenServer((req, res) => {
 							(async () => {
 								// eslint-disable-next-line @typescript-eslint/no-non-null-assertion
 								const result = await storage.prepareResponse(req.url!, req);
@@ -998,8 +1016,8 @@ describe('http', () => {
 
 			describe('statusCode should disable byte ranges', () => {
 				let server: http.Server;
-				before(() => {
-					server = createServer({ root: fixtures, statusCode: 418 });
+				before(async () => {
+					server = await createServer({ root: fixtures, statusCode: 418 });
 				});
 				it('statusCode should disable byte ranges', async () => {
 					await request(server)
@@ -1012,8 +1030,8 @@ describe('http', () => {
 
 		describe('.etag()', () => {
 			let app: http.Server;
-			before(() => {
-				app = http.createServer((req, res) => {
+			before(async () => {
+				app = await createAndListenServer((req, res) => {
 					(async () => {
 						// eslint-disable-next-line @typescript-eslint/no-non-null-assertion
 						const result = await mainStorage.prepareResponse(req.url!, req, { etag: false });
@@ -1045,8 +1063,8 @@ describe('http', () => {
 
 			describe('should be configurable', () => {
 				let app: http.Server;
-				before(() => {
-					app = http.createServer((req, res) => {
+				before(async () => {
+					app = await createAndListenServer((req, res) => {
 						(async () => {
 							const result = await mainStorage.prepareResponse(
 								// eslint-disable-next-line @typescript-eslint/no-non-null-assertion
@@ -1127,8 +1145,8 @@ describe('http', () => {
 
 	describe('prepare response and send (+dispose)', () => {
 		let mainApp: http.Server;
-		before(() => {
-			mainApp = http.createServer((req, res) => {
+		before(async () => {
+			mainApp = await createAndListenServer((req, res) => {
 				(async () => {
 					// eslint-disable-next-line @typescript-eslint/no-non-null-assertion
 					const response = await mainStorage.prepareResponse(req.url!, req);
@@ -1161,8 +1179,8 @@ describe('http', () => {
 
 	describe('direct send', () => {
 		let mainApp: http.Server;
-		before(() => {
-			mainApp = http.createServer((req, res) => {
+		before(async () => {
+			mainApp = await createAndListenServer((req, res) => {
 				(async () => {
 					// eslint-disable-next-line @typescript-eslint/no-non-null-assertion
 					await mainStorage.send(req.url!, req, res);
@@ -1189,8 +1207,8 @@ describe('http', () => {
 		describe('maxRanges', () => {
 			describe('should support disabling accept-ranges', () => {
 				let server: http.Server;
-				before(() => {
-					server = createServer({ maxRanges: 0, root: fixtures });
+				before(async () => {
+					server = await createServer({ maxRanges: 0, root: fixtures });
 				});
 				it('should support disabling accept-ranges', async () => {
 					await request(server)
@@ -1202,8 +1220,8 @@ describe('http', () => {
 
 			describe('should ignore requested range when maxRange is zero', () => {
 				let server: http.Server;
-				before(() => {
-					server = createServer({ maxRanges: 0, root: fixtures });
+				before(async () => {
+					server = await createServer({ maxRanges: 0, root: fixtures });
 				});
 				it('should ignore requested range when maxRange is zero', async () => {
 					await request(server)
@@ -1217,8 +1235,8 @@ describe('http', () => {
 
 			describe('should ignore requested range when maxRange below', () => {
 				let server: http.Server;
-				before(() => {
-					server = createServer({ maxRanges: 1, root: fixtures });
+				before(async () => {
+					server = await createServer({ maxRanges: 1, root: fixtures });
 				});
 				it('should ignore requested range when maxRange below', async () => {
 					await request(server)
@@ -1235,8 +1253,8 @@ describe('http', () => {
 		describe('cacheControl', () => {
 			describe('should support disabling cache-control', () => {
 				let server: http.Server;
-				before(() => {
-					server = createServer({ cacheControl: false, root: fixtures });
+				before(async () => {
+					server = await createServer({ cacheControl: false, root: fixtures });
 				});
 				it('should support disabling cache-control', async () => {
 					await request(server)
@@ -1248,8 +1266,8 @@ describe('http', () => {
 
 			describe('should ignore maxAge option', () => {
 				let server: http.Server;
-				before(() => {
-					server = createServer({ cacheControl: false, root: fixtures });
+				before(async () => {
+					server = await createServer({ cacheControl: false, root: fixtures });
 				});
 				it('should ignore maxAge option', async () => {
 					await request(server)
@@ -1262,8 +1280,8 @@ describe('http', () => {
 
 		describe('etag', () => {
 			let server: http.Server;
-			before(() => {
-				server = createServer({ etag: false, root: fixtures });
+			before(async () => {
+				server = await createServer({ etag: false, root: fixtures });
 			});
 			it('should support disabling etags', async () => {
 				await request(server)
@@ -1275,8 +1293,8 @@ describe('http', () => {
 
 		describe('lastModified', () => {
 			let server: http.Server;
-			before(() => {
-				server = createServer({ lastModified: false, root: fixtures });
+			before(async () => {
+				server = await createServer({ lastModified: false, root: fixtures });
 			});
 			it('should support disabling last-modified', async () => {
 				await request(server)
@@ -1289,8 +1307,8 @@ describe('http', () => {
 		describe('dotfiles', () => {
 			describe('should default to "ignore"', () => {
 				let server: http.Server;
-				before(() => {
-					server = createServer({ root: fixtures });
+				before(async () => {
+					server = await createServer({ root: fixtures });
 				});
 				it('should default to "ignore"', async () => {
 					await request(server)
@@ -1302,8 +1320,8 @@ describe('http', () => {
 
 			describe('should ignore folder too', () => {
 				let server: http.Server;
-				before(() => {
-					server = createServer({ root: fixtures });
+				before(async () => {
+					server = await createServer({ root: fixtures });
 				});
 				it('should ignore folder too', async () => {
 					await request(server)
@@ -1315,8 +1333,8 @@ describe('http', () => {
 
 			describe('when "allow"', () => {
 				let server: http.Server;
-				before(() => {
-					server = createServer({ ignorePattern: false, root: fixtures });
+				before(async () => {
+					server = await createServer({ ignorePattern: false, root: fixtures });
 				});
 				it('should send dotfile', async () => {
 					await request(server)
@@ -1341,8 +1359,8 @@ describe('http', () => {
 			describe('when "ignore"', () => {
 				describe('when "ignore" 1', () => {
 					let server: http.Server;
-					before(() => {
-						server = createServer({ ignorePattern: /^\.[^.]/u, root: fixtures });
+					before(async () => {
+						server = await createServer({ ignorePattern: /^\.[^.]/u, root: fixtures });
 					});
 					it('should 404 for dotfile', async () => {
 						await request(server)
@@ -1389,8 +1407,8 @@ describe('http', () => {
 
 				describe('when "ignore" 1 (using regexp as text)', () => {
 					let server: http.Server;
-					before(() => {
-						server = createServer({ ignorePattern: '^\\.[^.]', root: fixtures });
+					before(async () => {
+						server = await createServer({ ignorePattern: '^\\.[^.]', root: fixtures });
 					});
 					it('should 404 for dotfile', async () => {
 						await request(server)
@@ -1437,8 +1455,8 @@ describe('http', () => {
 
 				describe('when "ignore" 2', () => {
 					let server: http.Server;
-					before(() => {
-						server = createServer({ ignorePattern: /^\.[^.]/u, root: join(fixtures, '.mine') });
+					before(async () => {
+						server = await createServer({ ignorePattern: /^\.[^.]/u, root: join(fixtures, '.mine') });
 					});
 					it('should send files in root dotfile directory', async () => {
 						await request(server)
@@ -1453,8 +1471,8 @@ describe('http', () => {
 			describe('when given', () => {
 				describe('should not join root', () => {
 					let server: http.Server;
-					before(() => {
-						server = createServer({ root: fixtures });
+					before(async () => {
+						server = await createServer({ root: fixtures });
 					});
 					it('should not join root', async () => {
 						await request(server)
@@ -1466,8 +1484,8 @@ describe('http', () => {
 
 				describe('double slash should be ignored', () => {
 					let server: http.Server;
-					before(() => {
-						server = createServer({ root: fixtures });
+					before(async () => {
+						server = await createServer({ root: fixtures });
 					});
 					it('double slash should be ignored', async () => {
 						await request(server)
@@ -1479,8 +1497,8 @@ describe('http', () => {
 
 				describe('double slash in sub path should be ignored', () => {
 					let server: http.Server;
-					before(() => {
-						server = createServer({ root: fixtures });
+					before(async () => {
+						server = await createServer({ root: fixtures });
 					});
 					it('double slash in sub path should be ignored', async () => {
 						await request(server)
@@ -1492,8 +1510,8 @@ describe('http', () => {
 
 				describe('should work with trailing slash', () => {
 					let server: http.Server;
-					before(() => {
-						server = createServer({ root: `${ fixtures }/` });
+					before(async () => {
+						server = await createServer({ root: `${ fixtures }/` });
 					});
 					it('should work with trailing slash', async () => {
 						await request(server)
@@ -1504,8 +1522,8 @@ describe('http', () => {
 
 				describe('should 404 on empty path', () => {
 					let server: http.Server;
-					before(() => {
-						server = createServer({ root: join(fixtures, 'name.txt') });
+					before(async () => {
+						server = await createServer({ root: join(fixtures, 'name.txt') });
 					});
 					it('should 404 on empty path', async () => {
 						await request(server)
@@ -1517,8 +1535,8 @@ describe('http', () => {
 
 				describe('should restrict paths to within root', () => {
 					let server: http.Server;
-					before(() => {
-						server = createServer({ root: fixtures });
+					before(async () => {
+						server = await createServer({ root: fixtures });
 					});
 					it('should restrict paths to within root', async () => {
 						await request(server)
@@ -1530,9 +1548,9 @@ describe('http', () => {
 
 				describe('should restrict paths to within root with path parts', () => {
 					let app: http.Server;
-					before(() => {
+					before(async () => {
 						const storage = new FileSystemStorage(fixtures);
-						app = http.createServer((req, res) => {
+						app = await createAndListenServer((req, res) => {
 							(async () => {
 								// eslint-disable-next-line @typescript-eslint/no-non-null-assertion
 								const response = await storage.prepareResponse(req.url!.split('/'), req);
@@ -1560,8 +1578,8 @@ describe('http', () => {
 
 				describe('should allow .. in root', () => {
 					let server: http.Server;
-					before(() => {
-						server = createServer({ root: `${ fixtures }/../fixtures-http` });
+					before(async () => {
+						server = await createServer({ root: `${ fixtures }/../fixtures-http` });
 					});
 					it('should allow .. in root', async () => {
 						await request(server)
@@ -1573,8 +1591,8 @@ describe('http', () => {
 
 				describe('should not allow root transversal', () => {
 					let server: http.Server;
-					before(() => {
-						server = createServer({ root: join(fixtures, 'name.d') });
+					before(async () => {
+						server = await createServer({ root: join(fixtures, 'name.d') });
 					});
 					it('should not allow root transversal', async () => {
 						await request(server)
@@ -1586,8 +1604,8 @@ describe('http', () => {
 
 				describe('should not allow root path disclosure', () => {
 					let server: http.Server;
-					before(() => {
-						server = createServer({ root: fixtures });
+					before(async () => {
+						server = await createServer({ root: fixtures });
 					});
 					it('should not allow root path disclosure', async () => {
 						await request(server)
@@ -1600,8 +1618,8 @@ describe('http', () => {
 
 			describe('when missing', () => {
 				let mainApp: http.Server;
-				before(() => {
-					mainApp = http.createServer((req, res) => {
+				before(async () => {
+					mainApp = await createAndListenServer((req, res) => {
 						(async () => {
 							// eslint-disable-next-line @typescript-eslint/no-non-null-assertion
 							const response = await mainStorage.prepareResponse(req.url!, req);
@@ -1636,12 +1654,15 @@ describe('http', () => {
 		});
 		describe('other methods', () => {
 			let mainApp: http.Server;
-			before(() => {
-				mainApp = http.createServer((req, res) => {
+			before(async () => {
+				mainApp = await createAndListenServer((req, res) => {
 					(async () => {
 						// eslint-disable-next-line @typescript-eslint/no-non-null-assertion
 						const result = await mainStorage.prepareResponse(req.url!, req);
 						lastResult = result;
+						if (result.error) {
+							result.headers['X-Send-Stream-Error'] = result.error.name;
+						}
 						await result.send(res);
 					})().catch(err => {
 						res.statusCode = 500;
@@ -1657,6 +1678,7 @@ describe('http', () => {
 				await request(mainApp)
 					.options('/name.txt')
 					.expect('Allow', 'GET, HEAD')
+					.expect('X-Send-Stream-Error', 'MethodNotAllowedStorageError')
 					.expect(405);
 			});
 
@@ -1664,13 +1686,14 @@ describe('http', () => {
 				await request(mainApp)
 					.post('/name.txt')
 					.expect('Allow', 'GET, HEAD')
+					.expect('X-Send-Stream-Error', 'MethodNotAllowedStorageError')
 					.expect(405);
 			});
 
 			describe('should not 405 on post allowed', () => {
 				let server: http.Server;
-				before(() => {
-					server = createServer({ root: fixtures, allowedMethods: ['POST'] });
+				before(async () => {
+					server = await createServer({ root: fixtures, allowedMethods: ['POST'] });
 				});
 				it('should not 405 on post allowed', async () => {
 					await request(server)
@@ -1680,19 +1703,21 @@ describe('http', () => {
 				it('should 405 on not head allowed', async () => {
 					await request(server)
 						.head('/name.txt')
+						.expect('X-Send-Stream-Error', 'MethodNotAllowedStorageError')
 						.expect(405);
 				});
 			});
 
 			describe('should 405 on head not allowed', () => {
 				let server: http.Server;
-				before(() => {
-					server = createServer({ root: fixtures, allowedMethods: ['GET'] });
+				before(async () => {
+					server = await createServer({ root: fixtures, allowedMethods: ['GET'] });
 				});
 				it('should 405 on head not allowed', async () => {
 					await request(server)
 						.post('/name.txt')
 						.expect('Allow', 'GET')
+						.expect('X-Send-Stream-Error', 'MethodNotAllowedStorageError')
 						.expect(405);
 				});
 			});
@@ -1702,8 +1727,8 @@ describe('http', () => {
 	describe('when something happenned too soon', () => {
 		describe('should ignore if headers already sent', () => {
 			let app: http.Server;
-			before(() => {
-				app = http.createServer((req, res) => {
+			before(async () => {
+				app = await createAndListenServer((req, res) => {
 					(async () => {
 						res.write('the end');
 						res.end();
@@ -1736,8 +1761,8 @@ describe('http', () => {
 
 		describe('should ignore if connection already destroyed', () => {
 			let app: http.Server;
-			before(() => {
-				app = http.createServer((req, res) => {
+			before(async () => {
+				app = await createAndListenServer((req, res) => {
 					(async () => {
 						res.destroy();
 						lastResult = true;
@@ -1769,8 +1794,8 @@ describe('http', () => {
 
 		describe('should ignore if connection already destroyed and no socket', () => {
 			let app: http.Server;
-			before(() => {
-				app = http.createServer((req, res) => {
+			before(async () => {
+				app = await createAndListenServer((req, res) => {
 					(async () => {
 						res.destroy();
 						lastResult = true;
@@ -1802,8 +1827,8 @@ describe('http', () => {
 
 		describe('should handle connection destroyed', () => {
 			let app: http.Server;
-			before(() => {
-				app = http.createServer((req, res) => {
+			before(async () => {
+				app = await createAndListenServer((req, res) => {
 					(async () => {
 						// eslint-disable-next-line @typescript-eslint/no-non-null-assertion
 						const result = await mainStorage.prepareResponse(req.url!, req);
@@ -1834,7 +1859,7 @@ describe('http', () => {
 
 		describe('should handle stream pipe error', () => {
 			let app: http.Server;
-			before(() => {
+			before(async () => {
 				class ErrorStorage extends FileSystemStorage {
 					override createReadableStream(si: StorageInfo<FileData>): Readable {
 						// eslint-disable-next-line @typescript-eslint/no-this-alias
@@ -1858,7 +1883,7 @@ describe('http', () => {
 
 				const errorStorage = new ErrorStorage(fixtures);
 
-				app = http.createServer((req, res) => {
+				app = await createAndListenServer((req, res) => {
 					(async () => {
 						// eslint-disable-next-line @typescript-eslint/no-non-null-assertion
 						const result = await errorStorage.prepareResponse(req.url!, req);
@@ -1886,9 +1911,9 @@ describe('http', () => {
 			});
 		});
 
-		describe('should handle stream read error on already closed stream', () => {
+		describe('should handle stream pipe error with ignorePrematureClose parameter', () => {
 			let app: http.Server;
-			before(() => {
+			before(async () => {
 				class ErrorStorage extends FileSystemStorage {
 					override createReadableStream(si: StorageInfo<FileData>): Readable {
 						// eslint-disable-next-line @typescript-eslint/no-this-alias
@@ -1912,14 +1937,68 @@ describe('http', () => {
 
 				const errorStorage = new ErrorStorage(fixtures);
 
-				app = http.createServer((req, res) => {
+				app = await createAndListenServer((req, res) => {
+					(async () => {
+						// eslint-disable-next-line @typescript-eslint/no-non-null-assertion
+						const result = await errorStorage.prepareResponse(req.url!, req);
+						lastResult = result;
+						await result.send(res, { ignorePrematureClose: false });
+					})().catch(err => {
+						res.statusCode = 500;
+						console.error(err);
+						if (!res.writableEnded) {
+							res.end('Internal Error');
+						}
+					});
+				});
+			});
+			it('should handle stream pipe error', async () => {
+				try {
+					await request(app)
+						.get('/nums.txt');
+					assert.fail();
+				} catch {
+					await new Promise(resolve => {
+						resolve(undefined);
+					});
+				}
+			});
+		});
+
+		describe('should handle stream read error on already closed stream', () => {
+			let app: http.Server;
+			before(async () => {
+				class ErrorStorage extends FileSystemStorage {
+					override createReadableStream(si: StorageInfo<FileData>): Readable {
+						// eslint-disable-next-line @typescript-eslint/no-this-alias
+						const st = this;
+						return new class extends Readable {
+							override pipe<T extends NodeJS.WritableStream>(
+								destination: T,
+								options?: { end?: boolean },
+							): T {
+								this.destroy(new Error('oops'));
+								return super.pipe(destination, options);
+							}
+
+							override async _destroy(error: Error | null, callback: (err?: Error | null) => void) {
+								await st.close(si);
+								callback(error);
+							}
+						}();
+					}
+				}
+
+				const errorStorage = new ErrorStorage(fixtures);
+
+				app = await createAndListenServer((req, res) => {
 					(async () => {
 						// eslint-disable-next-line @typescript-eslint/no-non-null-assertion
 						const resp = await errorStorage.prepareResponse(req.url!, req);
 						lastResult = resp;
 						const { stream: { pipe: p }, stream } = resp;
 						stream.pipe = function pipe<T extends NodeJS.WritableStream>(
-							this: ReadableStream,
+							this: Readable,
 							destination: T,
 							options?: { end?: boolean },
 						): T {
@@ -1983,7 +2062,7 @@ describe('http', () => {
 						lastResult = resp;
 						const { stream: { pipe: p }, stream } = resp;
 						stream.pipe = function pipe<T extends NodeJS.WritableStream>(
-							this: ReadableStream,
+							this: Readable,
 							destination: T,
 							options?: { end?: boolean },
 						): T {

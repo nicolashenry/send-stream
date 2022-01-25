@@ -1,3 +1,6 @@
+/**
+ * This example shows how to use options to activate directory listing
+ */
 
 import { dirname, join } from 'path';
 import { fileURLToPath } from 'url';

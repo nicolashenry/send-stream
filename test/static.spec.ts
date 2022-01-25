@@ -1,6 +1,7 @@
 /* eslint-env node, mocha */
 
 import * as assert from 'assert';
+import { once } from 'events';
 import * as http from 'http';
 import { join, dirname } from 'path';
 import { fileURLToPath } from 'url';
@@ -26,7 +27,7 @@ describe('static', () => {
 
 	let lastResult: StreamResponse<unknown> | true | undefined;
 
-	function createServer(
+	async function createServer(
 		dir?: string,
 		opts?: PrepareResponseOptions & FileSystemStorageOptions,
 		fn?: (req: http.IncomingMessage, res: http.ServerResponse) => void,
@@ -35,7 +36,7 @@ describe('static', () => {
 
 		const storage = new FileSystemStorage(direct, opts);
 
-		return http.createServer((req, res) => {
+		const server = http.createServer((req, res) => {
 			(async () => {
 				if (fn) {
 					fn(req, res);
@@ -64,12 +65,17 @@ describe('static', () => {
 				}
 			});
 		});
+
+		server.listen();
+		await once(server, 'listening');
+
+		return server;
 	}
 
 	afterEach('destroy check', () => {
-		assert.notStrictEqual(lastResult, undefined);
+		assert.notStrictEqual(lastResult, undefined, 'missing last result');
 		if (lastResult && lastResult !== true) {
-			assert.strictEqual(lastResult.stream.destroyed, true);
+			assert.strictEqual(lastResult.stream.destroyed, true, 'last result not destroyed');
 		}
 		lastResult = undefined;
 	});
@@ -77,8 +83,8 @@ describe('static', () => {
 	describe('serveStatic()', () => {
 		describe('basic operations', () => {
 			let server: http.Server;
-			before(() => {
-				server = createServer();
+			before(async () => {
+				server = await createServer();
 			});
 
 			it('should serve static files', async () => {
@@ -147,6 +153,7 @@ describe('static', () => {
 			it('should skip POST requests', async () => {
 				await request(server)
 					.post('/todo.txt')
+					.expect('X-Send-Stream-Error', 'MethodNotAllowedStorageError')
 					.expect(405);
 			});
 
@@ -163,6 +170,7 @@ describe('static', () => {
 				await request(server)
 					.get('/todo.txt')
 					.set('If-Match', '"foo"')
+					.expect('X-Send-Stream-Error', 'PreconditionFailedStorageError')
 					.expect(412);
 			});
 
@@ -183,8 +191,8 @@ describe('static', () => {
 		describe('acceptRanges', () => {
 			describe('when false', () => {
 				let server: http.Server;
-				before(() => {
-					server = createServer(fixtures, { maxRanges: 0 });
+				before(async () => {
+					server = await createServer(fixtures, { maxRanges: 0 });
 				});
 				it('should include Accept-Ranges none', async () => {
 					await request(server)
@@ -205,8 +213,8 @@ describe('static', () => {
 
 			describe('when true', () => {
 				let server: http.Server;
-				before(() => {
-					server = createServer(fixtures, { maxRanges: 1 });
+				before(async () => {
+					server = await createServer(fixtures, { maxRanges: 1 });
 				});
 				it('should include Accept-Ranges', async () => {
 					await request(server)
@@ -229,8 +237,8 @@ describe('static', () => {
 		describe('cacheControl', () => {
 			describe('when false', () => {
 				let server: http.Server;
-				before(() => {
-					server = createServer(fixtures, { cacheControl: false });
+				before(async () => {
+					server = await createServer(fixtures, { cacheControl: false });
 				});
 				it('should not include Cache-Control', async () => {
 					await request(server)
@@ -242,8 +250,8 @@ describe('static', () => {
 
 			describe('when true', () => {
 				let server: http.Server;
-				before(() => {
-					server = createServer(fixtures, { cacheControl: 'public, max-age=0' });
+				before(async () => {
+					server = await createServer(fixtures, { cacheControl: 'public, max-age=0' });
 				});
 				it('should include Cache-Control', async () => {
 					await request(server)
@@ -257,14 +265,15 @@ describe('static', () => {
 		describe('fallthrough', () => {
 			describe('when false', () => {
 				let server: http.Server;
-				before(() => {
-					server = createServer(fixtures, {});
+				before(async () => {
+					server = await createServer(fixtures, {});
 				});
 
 				it('should 405 when OPTIONS request', async () => {
 					await request(server)
 						.options('/todo.txt')
 						.expect('Allow', 'GET, HEAD')
+						.expect('X-Send-Stream-Error', 'MethodNotAllowedStorageError')
 						.expect(405);
 				});
 
@@ -286,8 +295,8 @@ describe('static', () => {
 
 		describe('hidden files', () => {
 			let server: http.Server;
-			before(() => {
-				server = createServer(fixtures, { ignorePattern: false });
+			before(async () => {
+				server = await createServer(fixtures, { ignorePattern: false });
 			});
 
 			it('should be served when dotfiles: "allow" is given', async () => {
@@ -300,8 +309,8 @@ describe('static', () => {
 		describe('lastModified', () => {
 			describe('when false', () => {
 				let server: http.Server;
-				before(() => {
-					server = createServer(fixtures, { lastModified: false });
+				before(async () => {
+					server = await createServer(fixtures, { lastModified: false });
 				});
 				it('should not include Last-Modifed', async () => {
 					await request(server)
@@ -313,8 +322,8 @@ describe('static', () => {
 
 			describe('when true', () => {
 				let server: http.Server;
-				before(() => {
-					server = createServer(fixtures, {});
+				before(async () => {
+					server = await createServer(fixtures, {});
 				});
 				it('should include Last-Modifed', async () => {
 					await request(server)
@@ -327,8 +336,8 @@ describe('static', () => {
 
 		describe('when traversing past root', () => {
 			let server: http.Server;
-			before(() => {
-				server = createServer(fixtures, {});
+			before(async () => {
+				server = await createServer(fixtures, {});
 			});
 
 			it('should catch urlencoded ../', async () => {
@@ -362,8 +371,8 @@ describe('static', () => {
 
 		describe('when request has "Range" header', () => {
 			let server: http.Server;
-			before(() => {
-				server = createServer();
+			before(async () => {
+				server = await createServer();
 			});
 
 			it('should support byte ranges', async () => {
@@ -438,6 +447,7 @@ describe('static', () => {
 					await request(server)
 						.get('/nums')
 						.set('Range', 'bytes=9-50')
+						.expect('X-Send-Stream-Error', 'RangeNotSatisfiableStorageError')
 						.expect(416);
 				});
 
@@ -446,6 +456,7 @@ describe('static', () => {
 						.get('/nums')
 						.set('Range', 'bytes=9-50')
 						.expect('Content-Range', 'bytes */9')
+						.expect('X-Send-Stream-Error', 'RangeNotSatisfiableStorageError')
 						.expect(416);
 				});
 			});

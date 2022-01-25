@@ -1,3 +1,8 @@
+/**
+ * This example shows how to implement a storage using MongoDB/GridFS as a datasource
+ *
+ * See ./mongodb-gridfs-util.ts to have an example of file/directory upload to MongoDB/GridFS
+ */
 
 import type { Readable } from 'stream';
 import { posix } from 'path';
@@ -14,13 +19,9 @@ import { Storage, StorageError } from '../src/send-stream.js';
 const uri = 'mongodb://localhost:27017';
 const dbName = 'test';
 
-interface File {
-	_id: mongodb.ObjectID;
-	length: number;
-	chunkSize: number;
-	uploadDate: Date;
-	filename: string;
+interface File extends mongodb.GridFSFile {
 	metadata?: {
+		mtimeMs?: number;
 		mimeType?: string;
 		mimeTypeCharset?: string;
 		etag?: string;
@@ -35,7 +36,7 @@ class GridFSStorage extends Storage<string, File> {
 
 	async open(path: string) {
 		const filename = posix.relative('/', decodeURIComponent(new URL(`http://localhost${ path }`).pathname));
-		const files = await (<mongodb.Cursor<File>> this.bucket.find({ filename }, { limit: 1 })).toArray();
+		const files = await (<mongodb.FindCursor<File>> this.bucket.find({ filename }, { limit: 1 })).toArray();
 		if (files.length === 0) {
 			throw new StorageError(`filename ${ filename } not found`, path);
 		}
@@ -43,7 +44,7 @@ class GridFSStorage extends Storage<string, File> {
 		return {
 			attachedData: file,
 			fileName: file.filename,
-			mtimeMs: file.uploadDate.getTime(),
+			mtimeMs: file.metadata?.mtimeMs ?? file.uploadDate.getTime(),
 			size: file.length,
 			mimeType: file.metadata?.mimeType,
 			mimeTypeCharset: file.metadata?.mimeTypeCharset,
@@ -75,7 +76,7 @@ class GridFSStorage extends Storage<string, File> {
 	}
 }
 
-const client = new mongodb.MongoClient(uri, { useNewUrlParser: true, useUnifiedTopology: true });
+const client = new mongodb.MongoClient(uri);
 
 const app = fastify({ exposeHeadRoutes: true });
 

@@ -1,6 +1,6 @@
 import { Readable, PassThrough } from 'stream';
 
-import type { Uint8ArrayOrStreamRange } from './utils';
+import type { Uint8ArrayOrStreamRange } from './utils.js';
 
 /**
  * Single buffer stream

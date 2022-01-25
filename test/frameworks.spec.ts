@@ -133,9 +133,9 @@ for (const [frameworkName, frameworkServer] of frameworks) {
 				context.lastResult = undefined;
 				return;
 			}
-			assert.notStrictEqual(context.lastResult, undefined);
+			assert.notStrictEqual(context.lastResult, undefined, 'missing last result');
 			if (context.lastResult && context.lastResult !== true) {
-				assert.strictEqual(context.lastResult.stream.destroyed, true);
+				assert.strictEqual(context.lastResult.stream.destroyed, true, 'last result not destroyed');
 			}
 			context.lastResult = undefined;
 		});
@@ -2330,6 +2330,7 @@ for (const [frameworkName, frameworkServer] of frameworks) {
 							.get('/')
 							.set('Range', 'bytes=7-7')
 							.expect(416)
+							.expect('X-Send-Stream-Error', 'RangeNotSatisfiableStorageError')
 							.expect('Content-Range', 'bytes */5');
 					});
 				});

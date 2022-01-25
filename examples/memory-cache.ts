@@ -1,3 +1,6 @@
+/**
+ * This example shows how to implement a storage putting everything into memory (and calculating SHA1 etags)
+ */
 
 import { join, dirname } from 'path';
 import * as crypto from 'crypto';

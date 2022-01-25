@@ -1,7 +1,7 @@
 import type { Readable } from 'stream';
 import type { Dir, Stats, Dirent } from 'fs';
 
-import type { StorageOptions } from './types';
+import type { StorageOptions } from './types.js';
 
 /**
  * File data with generic file descriptor used by file storage
@@ -28,7 +28,6 @@ export interface GenericFileData<FileDescriptor> {
 /**
  * File data used by file storage
  */
-// eslint-disable-next-line @typescript-eslint/no-type-alias
 export type FileData = GenericFileData<number>;
 
 /**
@@ -69,7 +68,6 @@ export interface GenericFSModule<FileDescriptor> {
 /**
  * "fs" module like type used by this library
  */
-// eslint-disable-next-line @typescript-eslint/no-type-alias
 export type FSModule = GenericFSModule<number>;
 
 /**
@@ -164,7 +162,6 @@ type Optional<T, K extends keyof T> = Pick<Partial<T>, K> & Omit<T, K>;
 /**
  * FileSystemStorage options
  */
-// eslint-disable-next-line @typescript-eslint/no-type-alias
 export type FileSystemStorageOptions = Optional<GenericFileSystemStorageOptions<number>, 'fsModule'>;
 
 /**

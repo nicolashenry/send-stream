@@ -1,3 +1,6 @@
+/**
+ * This example shows how to implement a storage returning NodeJS Buffer
+ */
 
 import { Readable } from 'stream';
 

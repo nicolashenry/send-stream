@@ -30,7 +30,12 @@ import type {
 	StorageInfo,
 	StorageSendOptions,
 } from './types.js';
-import { StorageError } from './error.js';
+import {
+	MethodNotAllowedStorageError,
+	PreconditionFailedStorageError,
+	RangeNotSatisfiableStorageError,
+	StorageError,
+} from './errors.js';
 
 const DEFAULT_ALLOWED_METHODS = <const> ['GET', 'HEAD'];
 const DEFAULT_MAX_RANGES = 200;
@@ -423,7 +428,8 @@ export abstract class Storage<Reference, AttachedData> {
 								rangeToUse = new StreamRange(singleRange.start, singleRange.end);
 								contentLength = singleRange.end + 1 - singleRange.start;
 							} else {
-								const boundary = `----SendStreamBoundary${ (await randomBytes(24)).toString('hex') }`;
+								const randomBytesBuffer = await randomBytes(24);
+								const boundary = `----SendStreamBoundary${ randomBytesBuffer.toString('hex') }`;
 								responseHeaders['Content-Type'] = `multipart/byteranges; boundary=${ boundary }`;
 								responseHeaders['X-Content-Type-Options'] = 'nosniff';
 								rangeToUse = [];
@@ -599,6 +605,8 @@ export abstract class Storage<Reference, AttachedData> {
 				Allow: allowedMethods.join(', '),
 			},
 			isHeadMethod ? new BufferStream() : new BufferStream(statusMessageBuffer),
+			undefined,
+			new MethodNotAllowedStorageError('Method not allowed'),
 		);
 	}
 
@@ -667,6 +675,7 @@ export abstract class Storage<Reference, AttachedData> {
 			},
 			isHeadMethod ? new BufferStream() : new BufferStream(statusMessageBuffer),
 			storageInfo,
+			new PreconditionFailedStorageError('Precondition failed', storageInfo.attachedData),
 		);
 	}
 
@@ -696,6 +705,7 @@ export abstract class Storage<Reference, AttachedData> {
 			},
 			isHeadMethod ? new BufferStream() : new BufferStream(statusMessageBuffer),
 			storageInfo,
+			new RangeNotSatisfiableStorageError('Range not satisfiable', storageInfo.attachedData),
 		);
 	}
 

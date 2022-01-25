@@ -1,3 +1,6 @@
+/**
+ * This example shows how to serve index.html from directories
+ */
 
 import { dirname, join } from 'path';
 import { fileURLToPath } from 'url';

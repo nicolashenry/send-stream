@@ -1,3 +1,6 @@
+/**
+ * This example shows how to use this library with Fastify using HTTPS
+ */
 
 import * as fs from 'fs';
 import { dirname, join } from 'path';

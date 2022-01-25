@@ -1,4 +1,4 @@
-import { StorageError } from './error.js';
+import { StorageError } from './errors.js';
 import type { FilePath } from './file-system-types.js';
 
 /**

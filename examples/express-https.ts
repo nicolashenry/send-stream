@@ -1,3 +1,6 @@
+/**
+ * This example shows how to use this library with Express using HTTPS
+ */
 
 import * as https from 'https';
 import * as fs from 'fs';
