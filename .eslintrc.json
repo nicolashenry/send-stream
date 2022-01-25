@@ -59,6 +59,7 @@
       }
     ],
     "@typescript-eslint/consistent-type-definitions": "warn",
+    "@typescript-eslint/consistent-type-exports": "warn",
     "@typescript-eslint/consistent-type-imports": "warn",
     "@typescript-eslint/default-param-last": "warn",
     "@typescript-eslint/dot-notation": "off", // too restrictive
@@ -177,11 +178,13 @@
     "@typescript-eslint/no-misused-new": "warn",
     "@typescript-eslint/no-misused-promises": "warn",
     "@typescript-eslint/no-namespace": "warn",
+    "@typescript-eslint/no-non-null-asserted-nullish-coalescing": "warn",
     "@typescript-eslint/no-non-null-asserted-optional-chain": "warn",
     "@typescript-eslint/no-non-null-assertion": "warn",
     "@typescript-eslint/no-parameter-properties": "off", // not needed: seems useless
     "@typescript-eslint/no-redeclare": "warn",
     "@typescript-eslint/no-require-imports": "warn",
+    "@typescript-eslint/no-restricted-imports": "off", // not needed: seems useless
     "@typescript-eslint/no-shadow": [
       "warn",
       {
@@ -197,7 +200,8 @@
         "allowCallbacks": "always",
         "allowLiterals": "in-unions-and-intersections",
         "allowMappedTypes": "in-unions-and-intersections",
-        "allowTupleTypes": "always"
+        "allowTupleTypes": "always",
+        "allowGenerics": "always"
       }
     ],
     "@typescript-eslint/no-unnecessary-boolean-literal-compare": "warn",
@@ -238,6 +242,7 @@
     "@typescript-eslint/prefer-readonly-parameter-types": "off", // too restrictive
     "@typescript-eslint/prefer-reduce-type-parameter": "warn",
     "@typescript-eslint/prefer-regexp-exec": "warn",
+    "@typescript-eslint/prefer-return-this-type": "warn",
     "@typescript-eslint/prefer-string-starts-ends-with": "warn",
     "@typescript-eslint/prefer-ts-expect-error": "warn",
     "@typescript-eslint/promise-function-async": "warn",
@@ -607,6 +612,7 @@
     "prefer-exponentiation-operator": "warn",
     "prefer-named-capture-group": "warn",
     "prefer-numeric-literals": "warn",
+    "prefer-object-has-own": "warn",
     "prefer-object-spread": "warn",
     "prefer-promise-reject-errors": "warn",
     "prefer-regex-literals": "warn",
@@ -720,7 +726,7 @@
     "import/unambiguous": "warn",
     "jsdoc/check-access": "warn",
     "jsdoc/check-alignment": "warn",
-    "jsdoc/check-examples": "warn",
+    "jsdoc/check-examples": "off", // bug: https://github.com/eslint/eslint/issues/14745
     "jsdoc/check-indentation": "warn",
     "jsdoc/check-line-alignment": "off", // seems buggy
     "jsdoc/check-param-names": "warn",
@@ -795,10 +801,13 @@
     "unicorn/no-array-method-this-argument": "warn",
     "unicorn/no-array-push-push": "warn",
     "unicorn/no-array-reduce": "off", // not needed: seems useless
+    "unicorn/no-await-expression-member": "warn",
     "unicorn/no-console-spaces": "warn",
     "unicorn/no-document-cookie": "off", // not needed: not executed in a browser
+    "unicorn/no-empty-file": "warn",
     "unicorn/no-for-loop": "warn",
     "unicorn/no-instanceof-array": "warn",
+    "unicorn/no-invalid-remove-event-listener": "off", // not needed: not executed in a browser
     "unicorn/no-hex-escape": "warn",
     "unicorn/no-keyword-prefix": "off", // not needed: seems useless
     "unicorn/no-lonely-if": "warn",
@@ -809,11 +818,16 @@
     "unicorn/no-object-as-default-parameter": "warn",
     "unicorn/no-process-exit": "warn",
     "unicorn/no-static-only-class": "warn",
+    "unicorn/no-thenable": "warn",
     "unicorn/no-this-assignment": "off", // not needed: covered by @typescript-eslint/no-this-alias
     "unicorn/no-unreadable-array-destructuring": "off", // too restrictive
     "unicorn/no-unsafe-regex": "off", // too restrictive
+    "unicorn/no-useless-promise-resolve-reject": "warn",
     "unicorn/no-unused-properties": "warn",
+    "unicorn/no-useless-fallback-in-spread": "warn",
+    "unicorn/no-useless-length-check": "warn",
     "unicorn/no-useless-undefined": "off", // too restrictive
+    "unicorn/no-useless-spread": "warn",
     "unicorn/no-zero-fractions": "warn",
     "unicorn/number-literal-case": "warn",
     "unicorn/numeric-separators-style": "warn",
@@ -824,20 +838,24 @@
     "unicorn/prefer-array-index-of": "warn",
     "unicorn/prefer-array-some": "warn",
     "unicorn/prefer-at": "off", // too soon
+    "unicorn/prefer-code-point": "warn",
     "unicorn/prefer-date-now": "warn",
     "unicorn/prefer-default-parameters": "warn",
     "unicorn/prefer-dom-node-append": "off", // not needed: not executed in a browser
     "unicorn/prefer-dom-node-dataset": "off", // not needed: not executed in a browser
     "unicorn/prefer-dom-node-remove": "off", // not needed: not executed in a browser
     "unicorn/prefer-dom-node-text-content": "off", // not needed: not executed in a browser
+    "unicorn/prefer-export-from": "warn",
     "unicorn/prefer-keyboard-event-key": "off", // not needed: not executed in a browser
     "unicorn/prefer-includes": "warn",
+    "unicorn/prefer-json-parse-buffer": "warn",
     "unicorn/prefer-math-trunc": "warn",
     "unicorn/prefer-modern-dom-apis": "off", // not needed: not executed in a browser
     "unicorn/prefer-module": "off", // too soon
     "unicorn/prefer-negative-index": "warn",
     "unicorn/prefer-node-protocol": "off", // too soon
     "unicorn/prefer-number-properties": "warn",
+    "unicorn/prefer-object-from-entries": "warn",
     "unicorn/prefer-object-has-own": "warn",
     "unicorn/prefer-optional-catch-binding": "warn",
     "unicorn/prefer-prototype-methods": "warn",
@@ -855,10 +873,12 @@
     "unicorn/prefer-top-level-await": "off", // too soon
     "unicorn/prefer-type-error": "warn",
     "unicorn/prevent-abbreviations": "off", // too restrictive
+    "unicorn/relative-url-style": "warn",
     "unicorn/require-array-join-separator": "warn",
     "unicorn/require-number-to-fixed-digits-argument": "warn",
     "unicorn/require-post-message-target-origin": "off", // not needed: not executed in a browser
     "unicorn/string-content": "off", // not needed: seems useless
+    "unicorn/template-indent": "warn",
     "unicorn/throw-new-error": "warn",
     "node/callback-return": "warn",
     "node/exports-style": "warn", // not needed: covered by typescript
