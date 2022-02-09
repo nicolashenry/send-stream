@@ -772,6 +772,7 @@
     "jsdoc/require-throws": "warn",
     "jsdoc/require-yields": "warn",
     "jsdoc/require-yields-check": "warn",
+    "jsdoc/sort-tags": "warn",
     "jsdoc/tag-lines": "warn",
     "jsdoc/valid-types": "warn",
     "unicorn/better-regex": "warn",
