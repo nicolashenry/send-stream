@@ -880,6 +880,7 @@
     "unicorn/require-post-message-target-origin": "off", // not needed: not executed in a browser
     "unicorn/string-content": "off", // not needed: seems useless
     "unicorn/template-indent": "warn",
+    "unicorn/text-encoding-identifier-case": "warn",
     "unicorn/throw-new-error": "warn",
     "node/callback-return": "warn",
     "node/exports-style": "warn", // not needed: covered by typescript
