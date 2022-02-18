@@ -19,7 +19,7 @@ import { Storage, StorageError } from '../src/send-stream';
 const uri = 'mongodb://localhost:27017';
 const dbName = 'test';
 
-interface File extends mongodb.GridFSFile {
+interface FileWithMetadata {
 	metadata?: {
 		mtimeMs?: number;
 		mimeType?: string;
@@ -28,6 +28,8 @@ interface File extends mongodb.GridFSFile {
 		lastModified?: string;
 	};
 }
+
+type File = mongodb.GridFSFile & FileWithMetadata;
 
 class GridFSStorage extends Storage<string, File> {
 	constructor(readonly bucket: mongodb.GridFSBucket, readonly opts?: StorageOptions) {
