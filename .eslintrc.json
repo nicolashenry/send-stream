@@ -183,6 +183,7 @@
     "@typescript-eslint/no-non-null-assertion": "warn",
     "@typescript-eslint/no-parameter-properties": "off", // not needed: seems useless
     "@typescript-eslint/no-redeclare": "warn",
+    "@typescript-eslint/no-redundant-type-constituents": "warn",
     "@typescript-eslint/no-require-imports": "warn",
     "@typescript-eslint/no-restricted-imports": "off", // not needed: seems useless
     "@typescript-eslint/no-shadow": [
@@ -224,6 +225,7 @@
     ],
     "@typescript-eslint/no-use-before-define": "warn",
     "@typescript-eslint/no-useless-constructor": "warn",
+    "@typescript-eslint/no-useless-empty-export": "warn",
     "@typescript-eslint/no-var-requires": "off", // not needed: seems useless
     "@typescript-eslint/object-curly-spacing": [
       "warn",
@@ -266,6 +268,7 @@
     "@typescript-eslint/return-await": "warn",
     "@typescript-eslint/semi": "warn",
     "@typescript-eslint/sort-type-union-intersection-members": "off", // not needed: seems useless
+    "@typescript-eslint/space-before-blocks": "warn",
     "@typescript-eslint/space-before-function-paren": [
       "warn",
       {
@@ -636,7 +639,7 @@
     "sort-imports": "off", // not needed: seems useless
     "sort-keys": "off", // not needed: seems useless
     "sort-vars": "off", // not needed: seems useless
-    "space-before-blocks": "warn",
+    "space-before-blocks": "off", // disabled by typescript-eslint
     "space-before-function-paren": "off", // disabled by typescript-eslint
     "space-in-parens": "warn",
     "space-infix-ops": "off", // disabled by typescript-eslint

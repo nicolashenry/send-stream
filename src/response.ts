@@ -82,6 +82,7 @@ export class StreamResponse<AttachedData> {
 				return;
 			}
 			resStream.respond({
+				// eslint-disable-next-line @typescript-eslint/naming-convention
 				':status': statusCode,
 				...responseHeaders,
 			});

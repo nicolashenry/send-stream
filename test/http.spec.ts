@@ -1,4 +1,5 @@
 /* eslint-disable max-classes-per-file */
+/* eslint-disable @typescript-eslint/naming-convention */
 /* eslint-disable max-lines, max-lines-per-function, sonarjs/no-identical-functions, sonarjs/cognitive-complexity */
 /* eslint-env node, mocha */
 
@@ -808,9 +809,7 @@ describe('http', () => {
 					await request(app).get('/name.txt');
 					assert.fail();
 				} catch {
-					await new Promise(resolve => {
-						resolve(undefined);
-					});
+					await Promise.resolve(undefined);
 				}
 			});
 		});
@@ -1905,9 +1904,7 @@ describe('http', () => {
 						.get('/nums.txt');
 					assert.fail();
 				} catch {
-					await new Promise(resolve => {
-						resolve(undefined);
-					});
+					await Promise.resolve(undefined);
 				}
 			});
 		});
@@ -1942,9 +1939,7 @@ describe('http', () => {
 						.get('/nums.txt');
 					assert.fail();
 				} catch {
-					await new Promise(resolve => {
-						resolve(undefined);
-					});
+					await Promise.resolve(undefined);
 				}
 			});
 		});
@@ -1979,9 +1974,7 @@ describe('http', () => {
 						.get('/nums.txt');
 					assert.fail();
 				} catch {
-					await new Promise(resolve => {
-						resolve(undefined);
-					});
+					await Promise.resolve(undefined);
 				}
 			});
 		});
@@ -2015,9 +2008,7 @@ describe('http', () => {
 						.get('/nums.txt');
 					assert.fail();
 				} catch {
-					await new Promise(resolve => {
-						resolve(undefined);
-					});
+					await Promise.resolve(undefined);
 				}
 			});
 		});
@@ -2072,9 +2063,7 @@ describe('http', () => {
 						.get('/nums.txt');
 					assert.fail();
 				} catch {
-					await new Promise(resolve => {
-						resolve(undefined);
-					});
+					await Promise.resolve(undefined);
 				}
 			});
 		});
@@ -2129,9 +2118,7 @@ describe('http', () => {
 						.get('/nums.txt');
 					assert.fail();
 				} catch {
-					await new Promise(resolve => {
-						resolve(undefined);
-					});
+					await Promise.resolve(undefined);
 				}
 			});
 		});
@@ -2195,9 +2182,7 @@ describe('http', () => {
 						.get('/nums.txt');
 					assert.fail();
 				} catch {
-					await new Promise(resolve => {
-						resolve(undefined);
-					});
+					await Promise.resolve(undefined);
 				}
 			});
 		});

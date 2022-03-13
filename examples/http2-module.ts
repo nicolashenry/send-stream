@@ -37,6 +37,7 @@ app.on('stream', (stream, headers) => {
 		}
 		const message = 'Internal Server Error';
 		stream.respond({
+			// eslint-disable-next-line @typescript-eslint/naming-convention
 			':status': 500,
 			// eslint-disable-next-line @typescript-eslint/naming-convention
 			'Content-Type': 'text/plain; charset=UTF-8',

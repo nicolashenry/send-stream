@@ -6,12 +6,18 @@ import { promisify } from 'util';
  */
 export interface RequestHeaders {
 	[header: string]: string | string[] | undefined;
+	// eslint-disable-next-line @typescript-eslint/naming-convention
 	'accept-encoding'?: string | undefined;
+	// eslint-disable-next-line @typescript-eslint/naming-convention
 	'if-match'?: string | undefined;
+	// eslint-disable-next-line @typescript-eslint/naming-convention
 	'if-none-match'?: string | undefined;
+	// eslint-disable-next-line @typescript-eslint/naming-convention
 	'if-modified-since'?: string | undefined;
+	// eslint-disable-next-line @typescript-eslint/naming-convention
 	'if-unmodified-since'?: string | undefined;
 	'range'?: string | undefined;
+	// eslint-disable-next-line @typescript-eslint/naming-convention
 	'if-range'?: string | undefined;
 }
 
