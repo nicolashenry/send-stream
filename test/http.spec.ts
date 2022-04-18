@@ -1242,9 +1242,9 @@ describe('http', () => {
 			const storage = new FileSystemStorage(fixtures);
 			app = await createAndListenServer((req, res) => {
 				(async () => {
+					lastResult = true;
 					// eslint-disable-next-line @typescript-eslint/no-non-null-assertion
 					await storage.send(req.url!, req, res);
-					lastResult = true;
 				})().catch(err => {
 					res.statusCode = 500;
 					console.error(err);
