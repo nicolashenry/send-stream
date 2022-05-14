@@ -150,6 +150,7 @@
     "@typescript-eslint/no-confusing-non-null-assertion": "warn",
     "@typescript-eslint/no-confusing-void-expression": "warn",
     "@typescript-eslint/no-dupe-class-members": "warn",
+    "@typescript-eslint/no-duplicate-enum-values": "warn",
     "@typescript-eslint/no-duplicate-imports": "warn",
     "@typescript-eslint/no-dynamic-delete": "warn",
     "@typescript-eslint/no-empty-function": "warn",
@@ -230,6 +231,12 @@
     "@typescript-eslint/object-curly-spacing": [
       "warn",
       "always"
+    ],
+    "@typescript-eslint/parameter-properties": [
+      "warn",
+      {
+        "prefer": "parameter-property"
+      }
     ],
     "@typescript-eslint/prefer-as-const": "warn",
     "@typescript-eslint/prefer-enum-initializers": "warn",
@@ -435,6 +442,7 @@
       }
     ],
     "no-const-assign": "off", // disabled by typescript-eslint
+    "no-constant-binary-expression": "warn",
     "no-constant-condition": "warn",
     "no-constructor-return": "warn",
     "no-continue": "off", // not needed: seems useless
