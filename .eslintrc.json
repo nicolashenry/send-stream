@@ -151,7 +151,7 @@
     "@typescript-eslint/no-confusing-void-expression": "warn",
     "@typescript-eslint/no-dupe-class-members": "warn",
     "@typescript-eslint/no-duplicate-enum-values": "warn",
-    "@typescript-eslint/no-duplicate-imports": "warn",
+    "@typescript-eslint/no-duplicate-imports": "off", // not needed: covered by import/no-duplicates
     "@typescript-eslint/no-dynamic-delete": "warn",
     "@typescript-eslint/no-empty-function": "warn",
     "@typescript-eslint/no-empty-interface": "warn",
