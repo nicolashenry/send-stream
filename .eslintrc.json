@@ -52,6 +52,7 @@
     ],
     "@typescript-eslint/comma-spacing": "warn",
     "@typescript-eslint/consistent-indexed-object-style": "warn",
+    "@typescript-eslint/consistent-generic-constructors": "warn",
     "@typescript-eslint/consistent-type-assertions": [
       "warn",
       {
