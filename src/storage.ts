@@ -330,9 +330,7 @@ export abstract class Storage<Reference, AttachedData> {
 				const { contentDispositionFilename: optsContentDispositionFilename } = opts;
 				contentDispositionFilename = optsContentDispositionFilename === undefined
 					? this.createContentDispositionFilename(storageInfo)
-					: optsContentDispositionFilename
-						? optsContentDispositionFilename
-						: undefined;
+					: optsContentDispositionFilename || undefined;
 				storageInfo.contentDispositionFilename = contentDispositionFilename;
 			}
 
