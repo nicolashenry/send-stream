@@ -52,6 +52,7 @@
     ],
     "@typescript-eslint/comma-spacing": "warn",
     "@typescript-eslint/consistent-indexed-object-style": "warn",
+    "@typescript-eslint/consistent-generic-constructors": "warn",
     "@typescript-eslint/consistent-type-assertions": [
       "warn",
       {
@@ -150,7 +151,8 @@
     "@typescript-eslint/no-confusing-non-null-assertion": "warn",
     "@typescript-eslint/no-confusing-void-expression": "warn",
     "@typescript-eslint/no-dupe-class-members": "warn",
-    "@typescript-eslint/no-duplicate-imports": "warn",
+    "@typescript-eslint/no-duplicate-enum-values": "warn",
+    "@typescript-eslint/no-duplicate-imports": "off", // not needed: covered by import/no-duplicates
     "@typescript-eslint/no-dynamic-delete": "warn",
     "@typescript-eslint/no-empty-function": "warn",
     "@typescript-eslint/no-empty-interface": "warn",
@@ -175,6 +177,7 @@
     "@typescript-eslint/no-loop-func": "warn",
     "@typescript-eslint/no-loss-of-precision": "warn",
     "@typescript-eslint/no-magic-numbers": "off", // too restrictive
+    "@typescript-eslint/no-meaningless-void-operator": "warn",
     "@typescript-eslint/no-misused-new": "warn",
     "@typescript-eslint/no-misused-promises": "warn",
     "@typescript-eslint/no-namespace": "warn",
@@ -183,6 +186,7 @@
     "@typescript-eslint/no-non-null-assertion": "warn",
     "@typescript-eslint/no-parameter-properties": "off", // not needed: seems useless
     "@typescript-eslint/no-redeclare": "warn",
+    "@typescript-eslint/no-redundant-type-constituents": "warn",
     "@typescript-eslint/no-require-imports": "warn",
     "@typescript-eslint/no-restricted-imports": "off", // not needed: seems useless
     "@typescript-eslint/no-shadow": [
@@ -224,10 +228,18 @@
     ],
     "@typescript-eslint/no-use-before-define": "warn",
     "@typescript-eslint/no-useless-constructor": "warn",
+    "@typescript-eslint/no-useless-empty-export": "warn",
     "@typescript-eslint/no-var-requires": "off", // not needed: seems useless
     "@typescript-eslint/object-curly-spacing": [
       "warn",
       "always"
+    ],
+    "@typescript-eslint/padding-line-between-statements": "warn",
+    "@typescript-eslint/parameter-properties": [
+      "warn",
+      {
+        "prefer": "parameter-property"
+      }
     ],
     "@typescript-eslint/prefer-as-const": "warn",
     "@typescript-eslint/prefer-enum-initializers": "warn",
@@ -266,6 +278,7 @@
     "@typescript-eslint/return-await": "warn",
     "@typescript-eslint/semi": "warn",
     "@typescript-eslint/sort-type-union-intersection-members": "off", // not needed: seems useless
+    "@typescript-eslint/space-before-blocks": "warn",
     "@typescript-eslint/space-before-function-paren": [
       "warn",
       {
@@ -432,6 +445,7 @@
       }
     ],
     "no-const-assign": "off", // disabled by typescript-eslint
+    "no-constant-binary-expression": "warn",
     "no-constant-condition": "warn",
     "no-constructor-return": "warn",
     "no-continue": "off", // not needed: seems useless
@@ -636,7 +650,7 @@
     "sort-imports": "off", // not needed: seems useless
     "sort-keys": "off", // not needed: seems useless
     "sort-vars": "off", // not needed: seems useless
-    "space-before-blocks": "warn",
+    "space-before-blocks": "off", // disabled by typescript-eslint
     "space-before-function-paren": "off", // disabled by typescript-eslint
     "space-in-parens": "warn",
     "space-infix-ops": "off", // disabled by typescript-eslint
@@ -772,6 +786,7 @@
     "jsdoc/require-throws": "warn",
     "jsdoc/require-yields": "warn",
     "jsdoc/require-yields-check": "warn",
+    "jsdoc/sort-tags": "warn",
     "jsdoc/tag-lines": "warn",
     "jsdoc/valid-types": "warn",
     "unicorn/better-regex": "warn",
@@ -821,13 +836,15 @@
     "unicorn/no-thenable": "warn",
     "unicorn/no-this-assignment": "off", // not needed: covered by @typescript-eslint/no-this-alias
     "unicorn/no-unreadable-array-destructuring": "off", // too restrictive
+    "unicorn/no-unreadable-iife": "warn",
     "unicorn/no-unsafe-regex": "off", // too restrictive
-    "unicorn/no-useless-promise-resolve-reject": "warn",
     "unicorn/no-unused-properties": "warn",
     "unicorn/no-useless-fallback-in-spread": "warn",
     "unicorn/no-useless-length-check": "warn",
+    "unicorn/no-useless-promise-resolve-reject": "warn",
     "unicorn/no-useless-undefined": "off", // too restrictive
     "unicorn/no-useless-spread": "warn",
+    "unicorn/no-useless-switch-case": "warn",
     "unicorn/no-zero-fractions": "warn",
     "unicorn/number-literal-case": "warn",
     "unicorn/numeric-separators-style": "warn",
@@ -845,13 +862,17 @@
     "unicorn/prefer-dom-node-dataset": "off", // not needed: not executed in a browser
     "unicorn/prefer-dom-node-remove": "off", // not needed: not executed in a browser
     "unicorn/prefer-dom-node-text-content": "off", // not needed: not executed in a browser
+    "unicorn/prefer-event-target": "warn",
     "unicorn/prefer-export-from": "warn",
     "unicorn/prefer-keyboard-event-key": "off", // not needed: not executed in a browser
     "unicorn/prefer-includes": "warn",
     "unicorn/prefer-json-parse-buffer": "warn",
+    "unicorn/prefer-logical-operator-over-ternary": "warn",
     "unicorn/prefer-math-trunc": "warn",
     "unicorn/prefer-modern-dom-apis": "off", // not needed: not executed in a browser
+    "unicorn/prefer-modern-math-apis": "warn",
     "unicorn/prefer-module": "off", // too soon
+    "unicorn/prefer-native-coercion-functions": "warn",
     "unicorn/prefer-negative-index": "warn",
     "unicorn/prefer-node-protocol": "off", // too soon
     "unicorn/prefer-number-properties": "warn",
@@ -879,6 +900,7 @@
     "unicorn/require-post-message-target-origin": "off", // not needed: not executed in a browser
     "unicorn/string-content": "off", // not needed: seems useless
     "unicorn/template-indent": "warn",
+    "unicorn/text-encoding-identifier-case": "off", // too restrictive
     "unicorn/throw-new-error": "warn",
     "node/callback-return": "warn",
     "node/exports-style": "warn", // not needed: covered by typescript
@@ -935,14 +957,14 @@
     "sonarjs/no-element-overwrite": "warn",
     "sonarjs/no-empty-collection": "warn",
     "sonarjs/no-extra-arguments": "off", // not needed: covered by typescript
-    "sonarjs/no-identical-conditions": "warn",
     "sonarjs/no-gratuitous-expressions": "warn",
+    "sonarjs/no-identical-conditions": "warn",
     "sonarjs/no-identical-functions": "warn",
     "sonarjs/no-identical-expressions": "warn",
     "sonarjs/no-ignored-return": "warn",
     "sonarjs/no-inverted-boolean-check": "warn",
-    "sonarjs/no-nested-template-literals": "warn",
     "sonarjs/no-nested-switch": "warn",
+    "sonarjs/no-nested-template-literals": "warn",
     "sonarjs/no-one-iteration-loop": "warn",
     "sonarjs/no-redundant-boolean": "warn",
     "sonarjs/no-redundant-jump": "warn",
