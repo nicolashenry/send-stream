@@ -86,6 +86,9 @@ describe('static', () => {
 			before(async () => {
 				server = await createServer();
 			});
+			after(done => {
+				server.close(done);
+			});
 
 			it('should serve static files', async () => {
 				await request(server)
@@ -194,6 +197,9 @@ describe('static', () => {
 				before(async () => {
 					server = await createServer(fixtures, { maxRanges: 0 });
 				});
+				after(done => {
+					server.close(done);
+				});
 				it('should include Accept-Ranges none', async () => {
 					await request(server)
 						.get('/nums')
@@ -215,6 +221,9 @@ describe('static', () => {
 				let server: http.Server;
 				before(async () => {
 					server = await createServer(fixtures, { maxRanges: 1 });
+				});
+				after(done => {
+					server.close(done);
 				});
 				it('should include Accept-Ranges', async () => {
 					await request(server)
@@ -240,6 +249,9 @@ describe('static', () => {
 				before(async () => {
 					server = await createServer(fixtures, { cacheControl: false });
 				});
+				after(done => {
+					server.close(done);
+				});
 				it('should not include Cache-Control', async () => {
 					await request(server)
 						.get('/nums')
@@ -252,6 +264,9 @@ describe('static', () => {
 				let server: http.Server;
 				before(async () => {
 					server = await createServer(fixtures, { cacheControl: 'public, max-age=0' });
+				});
+				after(done => {
+					server.close(done);
 				});
 				it('should include Cache-Control', async () => {
 					await request(server)
@@ -268,7 +283,9 @@ describe('static', () => {
 				before(async () => {
 					server = await createServer(fixtures, {});
 				});
-
+				after(done => {
+					server.close(done);
+				});
 				it('should 405 when OPTIONS request', async () => {
 					await request(server)
 						.options('/todo.txt')
@@ -298,7 +315,9 @@ describe('static', () => {
 			before(async () => {
 				server = await createServer(fixtures, { ignorePattern: false });
 			});
-
+			after(done => {
+				server.close(done);
+			});
 			it('should be served when dotfiles: "allow" is given', async () => {
 				await request(server)
 					.get('/.hidden')
@@ -312,6 +331,9 @@ describe('static', () => {
 				before(async () => {
 					server = await createServer(fixtures, { lastModified: false });
 				});
+				after(done => {
+					server.close(done);
+				});
 				it('should not include Last-Modifed', async () => {
 					await request(server)
 						.get('/nums')
@@ -324,6 +346,9 @@ describe('static', () => {
 				let server: http.Server;
 				before(async () => {
 					server = await createServer(fixtures, {});
+				});
+				after(done => {
+					server.close(done);
 				});
 				it('should include Last-Modifed', async () => {
 					await request(server)
@@ -339,7 +364,9 @@ describe('static', () => {
 			before(async () => {
 				server = await createServer(fixtures, {});
 			});
-
+			after(done => {
+				server.close(done);
+			});
 			it('should catch urlencoded ../', async () => {
 				await request(server)
 					.get('/users/%2e%2e/%2e%2e/todo.txt')
@@ -374,7 +401,9 @@ describe('static', () => {
 			before(async () => {
 				server = await createServer();
 			});
-
+			after(done => {
+				server.close(done);
+			});
 			it('should support byte ranges', async () => {
 				await request(server)
 					.get('/nums')

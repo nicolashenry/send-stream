@@ -706,9 +706,7 @@ for (const [frameworkName, frameworkServer] of frameworks) {
 								.set('Accept-Encoding', 'br, gzip, identity');
 							assert.fail();
 						} catch {
-							await new Promise(resolve => {
-								resolve(undefined);
-							});
+							await Promise.resolve(undefined);
 						}
 					});
 					it('should throw error', async () => {
@@ -718,9 +716,7 @@ for (const [frameworkName, frameworkServer] of frameworks) {
 								.set('Accept-Encoding', 'gzip, identity');
 							assert.fail();
 						} catch {
-							await new Promise(resolve => {
-								resolve(undefined);
-							});
+							await Promise.resolve(undefined);
 						}
 					});
 				});
@@ -2440,9 +2436,7 @@ for (const [frameworkName, frameworkServer] of frameworks) {
 									.get('/');
 								assert.fail();
 							} catch {
-								await new Promise(resolve => {
-									resolve(undefined);
-								});
+								await Promise.resolve(undefined);
 							}
 						}
 					});
@@ -2507,9 +2501,7 @@ for (const [frameworkName, frameworkServer] of frameworks) {
 								.parse(multipartHandler);
 							assert.fail();
 						} catch {
-							await new Promise(resolve => {
-								resolve(undefined);
-							});
+							await Promise.resolve(undefined);
 						}
 					});
 				});
@@ -2556,9 +2548,7 @@ for (const [frameworkName, frameworkServer] of frameworks) {
 								.parse(multipartHandler);
 							assert.fail();
 						} catch {
-							await new Promise(resolve => {
-								resolve(undefined);
-							});
+							await Promise.resolve(undefined);
 						}
 					});
 				});
@@ -2630,9 +2620,7 @@ for (const [frameworkName, frameworkServer] of frameworks) {
 								.parse(multipartHandler);
 							assert.fail();
 						} catch {
-							await new Promise(resolve => {
-								resolve(undefined);
-							});
+							await Promise.resolve(undefined);
 						}
 					});
 				});

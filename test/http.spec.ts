@@ -1,4 +1,5 @@
 /* eslint-disable max-classes-per-file */
+/* eslint-disable @typescript-eslint/naming-convention */
 /* eslint-disable max-lines, max-lines-per-function, sonarjs/no-identical-functions, sonarjs/cognitive-complexity */
 /* eslint-env node, mocha */
 
@@ -88,7 +89,6 @@ describe('http', () => {
 
 	const dateRegExp = /^\w{3}, \d+ \w+ \d+ \d+:\d+:\d+ \w+$/u;
 	const fixtures = join(dirname(fileURLToPath(import.meta.url)), 'fixtures-http');
-	const mainStorage = new FileSystemStorage(fixtures);
 
 	let lastResult: StreamResponse<unknown> | true | undefined;
 
@@ -122,12 +122,13 @@ describe('http', () => {
 	});
 
 	describe('prepare response and send', () => {
-		let mainApp: http.Server;
+		let app: http.Server;
 		before(async () => {
-			mainApp = await createAndListenServer((req, res) => {
+			const storage = new FileSystemStorage(fixtures);
+			app = await createAndListenServer((req, res) => {
 				(async () => {
 					// eslint-disable-next-line @typescript-eslint/no-non-null-assertion
-					const response = await mainStorage.prepareResponse(req.url!, req);
+					const response = await storage.prepareResponse(req.url!, req);
 					lastResult = response;
 					if (response.error) {
 						response.headers['X-Send-Stream-Error'] = response.error.name;
@@ -142,62 +143,65 @@ describe('http', () => {
 				});
 			});
 		});
+		after(done => {
+			app.close(done);
+		});
 
 		it('should stream the file contents', async () => {
-			await request(mainApp)
+			await request(app)
 				.get('/name.txt')
 				.expect('Content-Length', '4')
 				.expect(200, 'tobi');
 		});
 
 		it('should stream the file contents when there is query string', async () => {
-			await request(mainApp)
+			await request(app)
 				.get('/name.txt?foo=bar')
 				.expect('Content-Length', '4')
 				.expect(200, 'tobi');
 		});
 
 		it('should stream a zero-length file', async () => {
-			await request(mainApp)
+			await request(app)
 				.get('/empty.txt')
 				.expect('Content-Length', '0')
 				.expect(200, '');
 		});
 
 		it('should decode the given path as a URI', async () => {
-			await request(mainApp)
+			await request(app)
 				.get('/some%20thing.txt')
 				.expect(200, 'hey');
 		});
 
 		it('should serve files with dots in name', async () => {
-			await request(mainApp)
+			await request(app)
 				.get('/do..ts.txt')
 				.expect(200, '...');
 		});
 
 		it('should serve files with unicode character', async () => {
-			await request(mainApp)
+			await request(app)
 				.get('/%E2%AD%90.txt')
 				.expect('Content-Disposition', 'inline; filename="?.txt"; filename*=UTF-8\'\'%E2%AD%90.txt')
 				.expect(200, '⭐');
 		});
 
 		it('should serve files in folder with unicode character', async () => {
-			await request(mainApp)
+			await request(app)
 				.get('/snow%20%E2%98%83/index.html')
 				.expect(200);
 		});
 
 		it('should treat a malformed URI as a bad request', async () => {
-			await request(mainApp)
+			await request(app)
 				.get('/some%99thing.txt')
 				.expect('X-Send-Stream-Error', 'MalformedPathError')
 				.expect(404);
 		});
 
 		it('should 404 on NULL bytes', async () => {
-			await request(mainApp)
+			await request(app)
 				.get('/some%00thing.txt')
 				.expect('X-Send-Stream-Error', 'ForbiddenCharacterError')
 				.expect(404);
@@ -205,14 +209,14 @@ describe('http', () => {
 
 		it('should treat an ENAMETOOLONG as a 404', async () => {
 			const path = Array.from({ length: 1000 }).join('foobar');
-			await request(mainApp)
+			await request(app)
 				.get(`/${ path }`)
 				.expect('X-Send-Stream-Error', 'DoesNotExistError')
 				.expect(404);
 		});
 
 		it('should support HEAD', async () => {
-			await request(mainApp)
+			await request(app)
 				.head('/name.txt')
 				.expect(200)
 				.expect('Content-Length', '4')
@@ -222,11 +226,445 @@ describe('http', () => {
 		});
 
 		it('should add a strong ETag header field', async () => {
-			await request(mainApp)
+			await request(app)
 				.get('/name.txt')
 				.expect('etag', /^"[^"]+"$/u);
 		});
 
+		it('should add a Date header field', async () => {
+			await request(app)
+				.get('/name.txt')
+				.expect('date', dateRegExp);
+		});
+
+		it('should add a Last-Modified header field', async () => {
+			await request(app)
+				.get('/name.txt')
+				.expect('last-modified', dateRegExp);
+		});
+
+		it('should add a Accept-Ranges header field', async () => {
+			await request(app)
+				.get('/name.txt')
+				.expect('Accept-Ranges', 'bytes');
+		});
+
+		it('should 404 if the file does not exist', async () => {
+			await request(app)
+				.get('/meow')
+				.expect('X-Send-Stream-Error', 'DoesNotExistError')
+				.expect(404);
+		});
+
+		it('should 404 if the file does not exist (HEAD)', async () => {
+			await request(app)
+				.head('/meow')
+				.expect('X-Send-Stream-Error', 'DoesNotExistError')
+				.expect(404);
+		});
+
+		it('should set Content-Type via mime map', async () => {
+			await request(app)
+				.get('/name.txt')
+				.expect('Content-Type', 'text/plain; charset=UTF-8')
+				.expect(200);
+			await request(app)
+				.get('/tobi.html')
+				.expect('Content-Type', 'text/html; charset=UTF-8')
+				.expect(200);
+		});
+
+		describe('with conditional-GET', () => {
+			describe('should remove Content headers with 304', () => {
+				it('should remove Content headers with 304', async () => {
+					const res = await request(app)
+						.get('/name.txt')
+						.expect(200);
+					await request(app)
+						.get('/name.txt')
+						.set('If-None-Match', (<Record<string, string>> res.header).etag)
+						.expect(shouldNotHaveHeader('Content-Length'))
+						.expect(shouldNotHaveHeader('Content-Type'))
+						.expect(304);
+				});
+			});
+
+			describe('where "If-Match" is set', () => {
+				it('should respond with 200 when "*"', async () => {
+					await request(app)
+						.get('/name.txt')
+						.set('If-Match', '*')
+						.expect(200);
+				});
+
+				it('should respond with 412 when ETag unmatched', async () => {
+					await request(app)
+						.get('/name.txt')
+						.set('If-Match', ' "foo", "bar" ')
+						.expect('X-Send-Stream-Error', 'PreconditionFailedStorageError')
+						.expect(412);
+				});
+
+				it('should respond with 412 when ETag unmatched (HEAD)', async () => {
+					await request(app)
+						.head('/name.txt')
+						.set('If-Match', ' "foo", "bar" ')
+						.expect('X-Send-Stream-Error', 'PreconditionFailedStorageError')
+						.expect(412);
+				});
+
+				it('should respond with 200 when strong ETag matched', async () => {
+					const res = await request(app)
+						.get('/name.txt')
+						.expect(200);
+					await request(app)
+						.get('/name.txt')
+						.set('If-Match', `"foo", "bar", ${ (<Record<string, string>> res.header).etag }`)
+						.expect(200);
+				});
+			});
+
+			describe('where "If-Modified-Since" is set', () => {
+				it('should respond with 304 when unmodified', async () => {
+					const res = await request(app)
+						.get('/name.txt')
+						.expect(200);
+					await request(app)
+						.get('/name.txt')
+						.set('If-Modified-Since', (<Record<string, string>> res.header)['last-modified'])
+						.expect(304);
+				});
+
+				it('should respond with 200 when modified', async () => {
+					const res = await request(app)
+						.get('/name.txt')
+						.expect(200);
+					const lmod = Date.parse((<Record<string, string>> res.header)['last-modified']);
+					const date = new Date(lmod - 60_000);
+					await request(app)
+						.get('/name.txt')
+						.set('If-Modified-Since', date.toUTCString())
+						.expect(200, 'tobi');
+				});
+			});
+
+			describe('where "If-None-Match" is set', () => {
+				it('should respond with 304 when ETag matched', async () => {
+					const res = await request(app)
+						.get('/name.txt')
+						.expect(200);
+					await request(app)
+						.get('/name.txt')
+						.set('If-None-Match', (<Record<string, string>> res.header).etag)
+						.expect(304);
+				});
+
+				it('should respond with 200 when ETag unmatched', async () => {
+					await request(app)
+						.get('/name.txt')
+						.set('If-None-Match', '"123"')
+						.expect(200, 'tobi');
+				});
+
+				it('should respond with 412 when ETag matched on not GET or HEAD', done => {
+					lastResult = true;
+					assert.strictEqual(getFreshStatus(false, { 'if-none-match': '"123"' }, '"123"', false), 412);
+					done();
+				});
+			});
+
+			describe('where "If-Unmodified-Since" is set', () => {
+				it('should respond with 200 when unmodified', async () => {
+					const res = await request(app)
+						.get('/name.txt')
+						.expect(200);
+					await request(app)
+						.get('/name.txt')
+						.set('If-Unmodified-Since', (<Record<string, string>> res.header)['last-modified'])
+						.expect(200);
+				});
+
+				it('should respond with 412 when modified', async () => {
+					const res = await request(app)
+						.get('/name.txt')
+						.expect(200);
+					const lmod = Date.parse((<Record<string, string>> res.header)['last-modified']);
+					const date = new Date(lmod - 60_000).toUTCString();
+					await request(app)
+						.get('/name.txt')
+						.set('If-Unmodified-Since', date)
+						.expect('X-Send-Stream-Error', 'PreconditionFailedStorageError')
+						.expect(412);
+				});
+
+				it('should respond with 200 when invalid date', async () => {
+					await request(app)
+						.get('/name.txt')
+						.set('If-Unmodified-Since', 'foo')
+						.expect(200);
+				});
+			});
+		});
+
+		describe('with Range request', () => {
+			it('should support byte ranges', async () => {
+				await request(app)
+					.get('/nums.txt')
+					.set('Range', 'bytes=0-4')
+					.expect(206, '12345');
+			});
+
+			it('should ignore non-byte ranges', async () => {
+				await request(app)
+					.get('/nums.txt')
+					.set('Range', 'items=0-4')
+					.expect(200, '123456789');
+			});
+
+			it('should be inclusive', async () => {
+				await request(app)
+					.get('/nums.txt')
+					.set('Range', 'bytes=0-0')
+					.expect(206, '1');
+			});
+
+			it('should set Content-Range', async () => {
+				await request(app)
+					.get('/nums.txt')
+					.set('Range', 'bytes=2-5')
+					.expect('Content-Range', 'bytes 2-5/9')
+					.expect(206);
+			});
+
+			it('should support -n', async () => {
+				await request(app)
+					.get('/nums.txt')
+					.set('Range', 'bytes=-3')
+					.expect(206, '789');
+			});
+
+			it('should support n-', async () => {
+				await request(app)
+					.get('/nums.txt')
+					.set('Range', 'bytes=3-')
+					.expect(206, '456789');
+			});
+
+			it('should respond with 206 "Partial Content"', async () => {
+				await request(app)
+					.get('/nums.txt')
+					.set('Range', 'bytes=0-4')
+					.expect(206);
+			});
+
+			it('should set Content-Length to the # of octets transferred', async () => {
+				await request(app)
+					.get('/nums.txt')
+					.set('Range', 'bytes=2-3')
+					.expect('Content-Length', '2')
+					.expect(206, '34');
+			});
+
+			describe('when last-byte-pos of the range is greater the length', () => {
+				it('is taken to be equal to one less than the length', async () => {
+					await request(app)
+						.get('/nums.txt')
+						.set('Range', 'bytes=2-50')
+						.expect('Content-Range', 'bytes 2-8/9')
+						.expect(206);
+				});
+
+				it('should adapt the Content-Length accordingly', async () => {
+					await request(app)
+						.get('/nums.txt')
+						.set('Range', 'bytes=2-50')
+						.expect('Content-Length', '7')
+						.expect(206);
+				});
+			});
+
+			describe('when the first- byte-pos of the range is greater length', () => {
+				it('should respond with 416', async () => {
+					await request(app)
+						.get('/nums.txt')
+						.set('Range', 'bytes=9-50')
+						.expect('Content-Range', 'bytes */9')
+						.expect('X-Send-Stream-Error', 'RangeNotSatisfiableStorageError')
+						.expect(416);
+				});
+
+				it('should respond with 416 for head request', async () => {
+					await request(app)
+						.head('/nums.txt')
+						.set('Range', 'bytes=9-50')
+						.expect('Content-Range', 'bytes */9')
+						.expect('X-Send-Stream-Error', 'RangeNotSatisfiableStorageError')
+						.expect(416);
+				});
+			});
+
+			describe('when syntactically invalid', () => {
+				it('should respond with 200 and the entire contents', async () => {
+					await request(app)
+						.get('/nums.txt')
+						.set('Range', 'asdf')
+						.expect(200, '123456789');
+				});
+			});
+
+			describe('when multiple ranges', () => {
+				it('should respond with 206 with the multiple parts', async () => {
+					await request(app)
+						.get('/nums.txt')
+						.set('Range', 'bytes=1-1,3-')
+						.expect(shouldNotHaveHeader('Content-Range'))
+						.expect('Content-Type', /^multipart\/byteranges/u)
+						.parse(multipartHandler)
+						.expect(res => {
+							if (
+								// eslint-disable-next-line max-len
+								!/^--[^\r\n]+\r\ncontent-type: text\/plain; charset=UTF-8\r\ncontent-range: bytes 1-1\/9\r\n\r\n2\r\n--[^\r\n]+\r\ncontent-type: text\/plain; charset=UTF-8\r\ncontent-range: bytes 3-8\/9\r\n\r\n456789\r\n--[^\r\n]+--$/u
+									.test(<string> res.body)
+							) {
+								throw new Error('multipart/byteranges seems invalid');
+							}
+						});
+				});
+
+				it('should respond with 206 is all ranges can be combined', async () => {
+					await request(app)
+						.get('/nums.txt')
+						.set('Range', 'bytes=1-2,3-5')
+						.parse(multipartHandler)
+						.expect('Content-Range', 'bytes 1-5/9')
+						.expect(206, '23456');
+				});
+			});
+
+			describe('when if-range present', () => {
+				it('should respond with parts when strong etag unchanged', async () => {
+					const res = await request(app)
+						.get('/nums.txt')
+						.expect(200);
+					const { etag } = <Record<string, string>> res.header;
+
+					await request(app)
+						.get('/nums.txt')
+						.set('If-Range', etag)
+						.set('Range', 'bytes=0-0')
+						.expect(206, '1');
+				});
+
+				it('should respond with 200 when etag changed', async () => {
+					const res = await request(app)
+						.get('/nums.txt')
+						.expect(200);
+					const etag = (<Record<string, string>> res.header).etag.replace(/"(?<c>.)/u, '"0$<c>');
+
+					await request(app)
+						.get('/nums.txt')
+						.set('If-Range', etag)
+						.set('Range', 'bytes=0-0')
+						.expect(200, '123456789');
+				});
+
+				it('should respond with parts when modified unchanged', async () => {
+					const res = await request(app)
+						.get('/nums.txt')
+						.expect(200);
+					const { 'last-modified': modified } = <Record<string, string>> res.header;
+
+					await request(app)
+						.get('/nums.txt')
+						.set('If-Range', modified)
+						.set('Range', 'bytes=0-0')
+						.expect(206, '1');
+				});
+
+				it('should respond with 200 when modified changed', async () => {
+					const res = await request(app)
+						.get('/nums.txt')
+						.expect(200);
+					const modified = Date.parse((<Record<string, string>> res.header)['last-modified']) - 20_000;
+
+					await request(app)
+						.get('/nums.txt')
+						.set('If-Range', new Date(modified).toUTCString())
+						.set('Range', 'bytes=0-0')
+						.expect(200, '123456789');
+				});
+
+				it('should respond with 200 when invalid value', async () => {
+					await request(app)
+						.get('/nums.txt')
+						.set('If-Range', 'foo')
+						.set('Range', 'bytes=0-0')
+						.expect(200, '123456789');
+				});
+			});
+		});
+
+		describe('max-age', () => {
+			it('should default to 0', async () => {
+				await request(app)
+					.get('/name.txt')
+					.expect('Cache-Control', 'public, max-age=0');
+			});
+		});
+
+		describe('relative paths', () => {
+			it('should 404 on relative path', async () => {
+				await request(app)
+					.get('/pets/../name.txt')
+					.expect('X-Send-Stream-Error', 'NotNormalizedError')
+					.expect(404);
+			});
+
+			it('should 404 on relative path on head', async () => {
+				await request(app)
+					.head('/pets/../name.txt')
+					.expect('X-Send-Stream-Error', 'NotNormalizedError')
+					.expect(404);
+			});
+
+			it('should 404 on relative path with query params', async () => {
+				await request(app)
+					.get('/pets/../name.txt?foo=bar')
+					.expect('X-Send-Stream-Error', 'NotNormalizedError')
+					.expect(404);
+			});
+
+			it('should 404 on relative path with dot', async () => {
+				await request(app)
+					.get('/name.txt/.')
+					.expect('X-Send-Stream-Error', 'NotNormalizedError')
+					.expect(404);
+			});
+
+			it('should 404 on relative path with dot and query params', async () => {
+				await request(app)
+					.get('/name.txt/.?foo=bar')
+					.expect('X-Send-Stream-Error', 'NotNormalizedError')
+					.expect(404);
+			});
+
+			it('should 404 on relative path with dot bis', async () => {
+				await request(app)
+					.get('/./name.txt')
+					.expect('X-Send-Stream-Error', 'NotNormalizedError')
+					.expect(404);
+			});
+
+			it('should 404 on relative path with dot and query params bis', async () => {
+				await request(app)
+					.get('/./name.txt?foo=bar')
+					.expect('X-Send-Stream-Error', 'NotNormalizedError')
+					.expect(404);
+			});
+		});
+	});
+
+	describe('prepare response and send (alternate)', () => {
 		describe('should add a weak ETag header field when weakEtags is set to true', () => {
 			let app: http.Server;
 			before(async () => {
@@ -245,6 +683,9 @@ describe('http', () => {
 						}
 					});
 				});
+			});
+			after(done => {
+				app.close(done);
 			});
 			it('should add a weak ETag header field when weakEtags is set to true', async () => {
 				await request(app)
@@ -273,6 +714,9 @@ describe('http', () => {
 						}
 					});
 				});
+			});
+			after(done => {
+				app.close(done);
 			});
 			it('should error if no method', async () => {
 				await request(app)
@@ -314,6 +758,9 @@ describe('http', () => {
 					});
 				});
 			});
+			after(done => {
+				app.close(done);
+			});
 			it('should set matching etag and last-modified headers', async () => {
 				await request(app)
 					.get('/name.txt')
@@ -323,49 +770,6 @@ describe('http', () => {
 					.expect('Content-Disposition', 'attachment; filename="test.txt"')
 					.expect(200);
 			});
-		});
-
-		it('should add a Date header field', async () => {
-			await request(mainApp)
-				.get('/name.txt')
-				.expect('date', dateRegExp);
-		});
-
-		it('should add a Last-Modified header field', async () => {
-			await request(mainApp)
-				.get('/name.txt')
-				.expect('last-modified', dateRegExp);
-		});
-
-		it('should add a Accept-Ranges header field', async () => {
-			await request(mainApp)
-				.get('/name.txt')
-				.expect('Accept-Ranges', 'bytes');
-		});
-
-		it('should 404 if the file does not exist', async () => {
-			await request(mainApp)
-				.get('/meow')
-				.expect('X-Send-Stream-Error', 'DoesNotExistError')
-				.expect(404);
-		});
-
-		it('should 404 if the file does not exist (HEAD)', async () => {
-			await request(mainApp)
-				.head('/meow')
-				.expect('X-Send-Stream-Error', 'DoesNotExistError')
-				.expect(404);
-		});
-
-		it('should set Content-Type via mime map', async () => {
-			await request(mainApp)
-				.get('/name.txt')
-				.expect('Content-Type', 'text/plain; charset=UTF-8')
-				.expect(200);
-			await request(mainApp)
-				.get('/tobi.html')
-				.expect('Content-Type', 'text/html; charset=UTF-8')
-				.expect(200);
 		});
 
 		describe('should hang up on file stream error', () => {
@@ -398,14 +802,15 @@ describe('http', () => {
 					});
 				});
 			});
+			after(done => {
+				app.close(done);
+			});
 			it('should hang up on file stream error', async () => {
 				try {
 					await request(app).get('/name.txt');
 					assert.fail();
 				} catch {
-					await new Promise(resolve => {
-						resolve(undefined);
-					});
+					await Promise.resolve(undefined);
 				}
 			});
 		});
@@ -414,10 +819,11 @@ describe('http', () => {
 			describe('should have headers when sending file', () => {
 				let app: http.Server;
 				before(async () => {
+					const storage = new FileSystemStorage(fixtures);
 					app = await createAndListenServer((req, res) => {
 						(async () => {
 							// eslint-disable-next-line @typescript-eslint/no-non-null-assertion
-							const response = await mainStorage.prepareResponse(req.url!, req);
+							const response = await storage.prepareResponse(req.url!, req);
 							lastResult = response;
 							await response.send(res);
 						})().catch(err => {
@@ -428,6 +834,9 @@ describe('http', () => {
 							}
 						});
 					});
+				});
+				after(done => {
+					app.close(done);
 				});
 				it('should have headers when sending file', async () => {
 					await request(app)
@@ -440,10 +849,11 @@ describe('http', () => {
 			describe('should have headers on 404', () => {
 				let app: http.Server;
 				before(async () => {
+					const storage = new FileSystemStorage(fixtures);
 					app = await createAndListenServer((req, res) => {
 						(async () => {
 							// eslint-disable-next-line @typescript-eslint/no-non-null-assertion
-							const response = await mainStorage.prepareResponse(req.url!, req);
+							const response = await storage.prepareResponse(req.url!, req);
 							lastResult = response;
 							await response.send(res);
 						})().catch(err => {
@@ -454,6 +864,9 @@ describe('http', () => {
 							}
 						});
 					});
+				});
+				after(done => {
+					app.close(done);
 				});
 				it('should have headers on 404', async () => {
 					await request(app)
@@ -466,10 +879,11 @@ describe('http', () => {
 			describe('should provide path', () => {
 				let app: http.Server;
 				before(async () => {
+					const storage = new FileSystemStorage(fixtures);
 					app = await createAndListenServer((req, res) => {
 						(async () => {
 							// eslint-disable-next-line @typescript-eslint/no-non-null-assertion
-							const response = await mainStorage.prepareResponse(req.url!, req);
+							const response = await storage.prepareResponse(req.url!, req);
 							lastResult = response;
 							response.headers['X-Send-Stream-Resolved-Path']
 								= response.storageInfo?.attachedData.resolvedPath;
@@ -483,6 +897,9 @@ describe('http', () => {
 						});
 					});
 				});
+				after(done => {
+					app.close(done);
+				});
 				it('should provide path', async () => {
 					await request(app)
 						.get('/name.txt')
@@ -494,10 +911,11 @@ describe('http', () => {
 			describe('should provide stat', () => {
 				let app: http.Server;
 				before(async () => {
+					const storage = new FileSystemStorage(fixtures);
 					app = await createAndListenServer((req, res) => {
 						(async () => {
 							// eslint-disable-next-line @typescript-eslint/no-non-null-assertion
-							const response = await mainStorage.prepareResponse(req.url!, req);
+							const response = await storage.prepareResponse(req.url!, req);
 							lastResult = response;
 							const { storageInfo } = response;
 							if (storageInfo) {
@@ -519,6 +937,9 @@ describe('http', () => {
 						});
 					});
 				});
+				after(done => {
+					app.close(done);
+				});
 				it('should provide stat', async () => {
 					await request(app)
 						.get('/name.txt')
@@ -533,10 +954,11 @@ describe('http', () => {
 			describe('should allow altering headers', () => {
 				let app: http.Server;
 				before(async () => {
+					const storage = new FileSystemStorage(fixtures);
 					app = await createAndListenServer((req, res) => {
 						(async () => {
 							// eslint-disable-next-line @typescript-eslint/no-non-null-assertion
-							const result = await mainStorage.prepareResponse(req.url!, req);
+							const result = await storage.prepareResponse(req.url!, req);
 							lastResult = result;
 							result.headers['Cache-Control'] = 'no-cache';
 							result.headers['Content-Type'] = 'text/x-custom';
@@ -551,6 +973,9 @@ describe('http', () => {
 						});
 					});
 				});
+				after(done => {
+					app.close(done);
+				});
 				it('should allow altering headers', async () => {
 					await request(app)
 						.get('/name.txt')
@@ -564,361 +989,95 @@ describe('http', () => {
 		});
 
 		describe('with conditional-GET', () => {
-			describe('should remove Content headers with 304', () => {
-				let server: http.Server;
+			describe('should respond with 412 when weak ETag matched', () => {
+				let app: http.Server;
 				before(async () => {
-					server = await createServer({ root: fixtures });
-				});
-				it('should remove Content headers with 304', async () => {
-					const res = await request(server)
-						.get('/name.txt')
-						.expect(200);
-					await request(server)
-						.get('/name.txt')
-						.set('If-None-Match', (<Record<string, string>> res.header).etag)
-						.expect(shouldNotHaveHeader('Content-Length'))
-						.expect(shouldNotHaveHeader('Content-Type'))
-						.expect(304);
-				});
-			});
-
-			describe('where "If-Match" is set', () => {
-				it('should respond with 200 when "*"', async () => {
-					await request(mainApp)
-						.get('/name.txt')
-						.set('If-Match', '*')
-						.expect(200);
-				});
-
-				it('should respond with 412 when ETag unmatched', async () => {
-					await request(mainApp)
-						.get('/name.txt')
-						.set('If-Match', ' "foo", "bar" ')
-						.expect('X-Send-Stream-Error', 'PreconditionFailedStorageError')
-						.expect(412);
-				});
-
-				it('should respond with 412 when ETag unmatched (HEAD)', async () => {
-					await request(mainApp)
-						.head('/name.txt')
-						.set('If-Match', ' "foo", "bar" ')
-						.expect('X-Send-Stream-Error', 'PreconditionFailedStorageError')
-						.expect(412);
-				});
-
-				describe('should respond with 412 when weak ETag matched', () => {
-					let app: http.Server;
-					before(async () => {
-						const storage = new FileSystemStorage(fixtures, { weakEtags: true });
-						app = await createAndListenServer((req, res) => {
-							(async () => {
-								// eslint-disable-next-line @typescript-eslint/no-non-null-assertion
-								const result = await storage.prepareResponse(req.url!, req);
-								lastResult = result;
-								if (result.error) {
-									result.headers['X-Send-Stream-Error'] = result.error.name;
-								}
-								await result.send(res);
-							})().catch(err => {
-								res.statusCode = 500;
-								console.error(err);
-								if (!res.writableEnded) {
-									res.end('Internal Error');
-								}
-							});
+					const storage = new FileSystemStorage(fixtures, { weakEtags: true });
+					app = await createAndListenServer((req, res) => {
+						(async () => {
+							// eslint-disable-next-line @typescript-eslint/no-non-null-assertion
+							const result = await storage.prepareResponse(req.url!, req);
+							lastResult = result;
+							if (result.error) {
+								result.headers['X-Send-Stream-Error'] = result.error.name;
+							}
+							await result.send(res);
+						})().catch(err => {
+							res.statusCode = 500;
+							console.error(err);
+							if (!res.writableEnded) {
+								res.end('Internal Error');
+							}
 						});
 					});
-					it('should respond with 412 when weak ETag matched', async () => {
-						const res = await request(app)
-							.get('/name.txt')
-							.expect(200);
-						await request(app)
-							.get('/name.txt')
-							.set('If-Match', `"foo", "bar", ${ (<Record<string, string>> res.header).etag }`)
-							.expect('X-Send-Stream-Error', 'PreconditionFailedStorageError')
-							.expect(412);
-					});
 				});
-
-				it('should respond with 200 when strong ETag matched', async () => {
-					const res = await request(mainApp)
+				after(done => {
+					app.close(done);
+				});
+				it('should respond with 412 when weak ETag matched', async () => {
+					const res = await request(app)
 						.get('/name.txt')
 						.expect(200);
-					await request(mainApp)
+					await request(app)
 						.get('/name.txt')
 						.set('If-Match', `"foo", "bar", ${ (<Record<string, string>> res.header).etag }`)
-						.expect(200);
-				});
-			});
-
-			describe('where "If-Modified-Since" is set', () => {
-				it('should respond with 304 when unmodified', async () => {
-					const res = await request(mainApp)
-						.get('/name.txt')
-						.expect(200);
-					await request(mainApp)
-						.get('/name.txt')
-						.set('If-Modified-Since', (<Record<string, string>> res.header)['last-modified'])
-						.expect(304);
-				});
-
-				it('should respond with 200 when modified', async () => {
-					const res = await request(mainApp)
-						.get('/name.txt')
-						.expect(200);
-					const lmod = Date.parse((<Record<string, string>> res.header)['last-modified']);
-					const date = new Date(lmod - 60_000);
-					await request(mainApp)
-						.get('/name.txt')
-						.set('If-Modified-Since', date.toUTCString())
-						.expect(200, 'tobi');
-				});
-			});
-
-			describe('where "If-None-Match" is set', () => {
-				it('should respond with 304 when ETag matched', async () => {
-					const res = await request(mainApp)
-						.get('/name.txt')
-						.expect(200);
-					await request(mainApp)
-						.get('/name.txt')
-						.set('If-None-Match', (<Record<string, string>> res.header).etag)
-						.expect(304);
-				});
-
-				describe('should respond with 304 when weak ETag matched', () => {
-					let app: http.Server;
-					before(async () => {
-						const storage = new FileSystemStorage(fixtures, { weakEtags: true });
-						app = await createAndListenServer((req, res) => {
-							(async () => {
-								// eslint-disable-next-line @typescript-eslint/no-non-null-assertion
-								const result = await storage.prepareResponse(req.url!, req);
-								lastResult = result;
-								await result.send(res);
-							})().catch(err => {
-								res.statusCode = 500;
-								console.error(err);
-								if (!res.writableEnded) {
-									res.end('Internal Error');
-								}
-							});
-						});
-					});
-					it('should respond with 304 when weak ETag matched', async () => {
-						const res = await request(app)
-							.get('/name.txt')
-							.expect(200);
-						await request(mainApp)
-							.get('/name.txt')
-							.set('If-None-Match', (<Record<string, string>> res.header).etag)
-							.expect(304);
-					});
-				});
-
-				it('should respond with 200 when ETag unmatched', async () => {
-					await request(mainApp)
-						.get('/name.txt')
-						.set('If-None-Match', '"123"')
-						.expect(200, 'tobi');
-				});
-
-				it('should respond with 412 when ETag matched on not GET or HEAD', done => {
-					lastResult = true;
-					assert.strictEqual(getFreshStatus(false, { 'if-none-match': '"123"' }, '"123"', false), 412);
-					done();
-				});
-			});
-
-			describe('where "If-Unmodified-Since" is set', () => {
-				it('should respond with 200 when unmodified', async () => {
-					const res = await request(mainApp)
-						.get('/name.txt')
-						.expect(200);
-					await request(mainApp)
-						.get('/name.txt')
-						.set('If-Unmodified-Since', (<Record<string, string>> res.header)['last-modified'])
-						.expect(200);
-				});
-
-				it('should respond with 412 when modified', async () => {
-					const res = await request(mainApp)
-						.get('/name.txt')
-						.expect(200);
-					const lmod = Date.parse((<Record<string, string>> res.header)['last-modified']);
-					const date = new Date(lmod - 60_000).toUTCString();
-					await request(mainApp)
-						.get('/name.txt')
-						.set('If-Unmodified-Since', date)
 						.expect('X-Send-Stream-Error', 'PreconditionFailedStorageError')
 						.expect(412);
 				});
+			});
 
-				it('should respond with 200 when invalid date', async () => {
-					await request(mainApp)
+			describe('should respond with 304 when weak ETag matched', () => {
+				let app: http.Server;
+				before(async () => {
+					const storage = new FileSystemStorage(fixtures, { weakEtags: true });
+					app = await createAndListenServer((req, res) => {
+						(async () => {
+							// eslint-disable-next-line @typescript-eslint/no-non-null-assertion
+							const result = await storage.prepareResponse(req.url!, req);
+							lastResult = result;
+							await result.send(res);
+						})().catch(err => {
+							res.statusCode = 500;
+							console.error(err);
+							if (!res.writableEnded) {
+								res.end('Internal Error');
+							}
+						});
+					});
+				});
+				after(done => {
+					app.close(done);
+				});
+				it('should respond with 304 when weak ETag matched', async () => {
+					const res = await request(app)
 						.get('/name.txt')
-						.set('If-Unmodified-Since', 'foo')
 						.expect(200);
+					await request(app)
+						.get('/name.txt')
+						.set('If-None-Match', (<Record<string, string>> res.header).etag)
+						.expect(304);
 				});
 			});
 
 			describe('statusCode option should disable 304 and always return statusCode', () => {
-				let server: http.Server;
+				let app: http.Server;
 				before(async () => {
-					server = await createServer({ root: fixtures, statusCode: 418 });
+					app = await createServer({ root: fixtures, statusCode: 418 });
+				});
+				after(done => {
+					app.close(done);
 				});
 				it('statusCode option should disable 304 and always return statusCode', async () => {
-					await request(server)
+					await request(app)
 						.get('/name.txt')
 						.expect(shouldNotHaveHeader('ETag'))
 						.expect(shouldNotHaveHeader('Last-Modified'))
-						.expect(418);
-					const res = await request(mainApp)
-						.get('/name.txt')
-						.expect(200);
-					await request(server)
-						.get('/name.txt')
-						.set('If-None-Match', (<Record<string, string>> res.header).etag)
 						.expect(418);
 				});
 			});
 		});
 
 		describe('with Range request', () => {
-			it('should support byte ranges', async () => {
-				await request(mainApp)
-					.get('/nums.txt')
-					.set('Range', 'bytes=0-4')
-					.expect(206, '12345');
-			});
-
-			it('should ignore non-byte ranges', async () => {
-				await request(mainApp)
-					.get('/nums.txt')
-					.set('Range', 'items=0-4')
-					.expect(200, '123456789');
-			});
-
-			it('should be inclusive', async () => {
-				await request(mainApp)
-					.get('/nums.txt')
-					.set('Range', 'bytes=0-0')
-					.expect(206, '1');
-			});
-
-			it('should set Content-Range', async () => {
-				await request(mainApp)
-					.get('/nums.txt')
-					.set('Range', 'bytes=2-5')
-					.expect('Content-Range', 'bytes 2-5/9')
-					.expect(206);
-			});
-
-			it('should support -n', async () => {
-				await request(mainApp)
-					.get('/nums.txt')
-					.set('Range', 'bytes=-3')
-					.expect(206, '789');
-			});
-
-			it('should support n-', async () => {
-				await request(mainApp)
-					.get('/nums.txt')
-					.set('Range', 'bytes=3-')
-					.expect(206, '456789');
-			});
-
-			it('should respond with 206 "Partial Content"', async () => {
-				await request(mainApp)
-					.get('/nums.txt')
-					.set('Range', 'bytes=0-4')
-					.expect(206);
-			});
-
-			it('should set Content-Length to the # of octets transferred', async () => {
-				await request(mainApp)
-					.get('/nums.txt')
-					.set('Range', 'bytes=2-3')
-					.expect('Content-Length', '2')
-					.expect(206, '34');
-			});
-
-			describe('when last-byte-pos of the range is greater the length', () => {
-				it('is taken to be equal to one less than the length', async () => {
-					await request(mainApp)
-						.get('/nums.txt')
-						.set('Range', 'bytes=2-50')
-						.expect('Content-Range', 'bytes 2-8/9')
-						.expect(206);
-				});
-
-				it('should adapt the Content-Length accordingly', async () => {
-					await request(mainApp)
-						.get('/nums.txt')
-						.set('Range', 'bytes=2-50')
-						.expect('Content-Length', '7')
-						.expect(206);
-				});
-			});
-
-			describe('when the first- byte-pos of the range is greater length', () => {
-				it('should respond with 416', async () => {
-					await request(mainApp)
-						.get('/nums.txt')
-						.set('Range', 'bytes=9-50')
-						.expect('Content-Range', 'bytes */9')
-						.expect('X-Send-Stream-Error', 'RangeNotSatisfiableStorageError')
-						.expect(416);
-				});
-
-				it('should respond with 416 for head request', async () => {
-					await request(mainApp)
-						.head('/nums.txt')
-						.set('Range', 'bytes=9-50')
-						.expect('Content-Range', 'bytes */9')
-						.expect('X-Send-Stream-Error', 'RangeNotSatisfiableStorageError')
-						.expect(416);
-				});
-			});
-
-			describe('when syntactically invalid', () => {
-				it('should respond with 200 and the entire contents', async () => {
-					await request(mainApp)
-						.get('/nums.txt')
-						.set('Range', 'asdf')
-						.expect(200, '123456789');
-				});
-			});
-
-			describe('when multiple ranges', () => {
-				it('should respond with 206 with the multiple parts', async () => {
-					await request(mainApp)
-						.get('/nums.txt')
-						.set('Range', 'bytes=1-1,3-')
-						.expect(shouldNotHaveHeader('Content-Range'))
-						.expect('Content-Type', /^multipart\/byteranges/u)
-						.parse(multipartHandler)
-						.expect(res => {
-							if (
-								// eslint-disable-next-line max-len
-								!/^--[^\r\n]+\r\ncontent-type: text\/plain; charset=UTF-8\r\ncontent-range: bytes 1-1\/9\r\n\r\n2\r\n--[^\r\n]+\r\ncontent-type: text\/plain; charset=UTF-8\r\ncontent-range: bytes 3-8\/9\r\n\r\n456789\r\n--[^\r\n]+--$/u
-									.test(<string> res.body)
-							) {
-								throw new Error('multipart/byteranges seems invalid');
-							}
-						});
-				});
-
-				it('should respond with 206 is all ranges can be combined', async () => {
-					await request(mainApp)
-						.get('/nums.txt')
-						.set('Range', 'bytes=1-2,3-5')
-						.parse(multipartHandler)
-						.expect('Content-Range', 'bytes 1-5/9')
-						.expect(206, '23456');
-				});
-			});
-
 			describe('when if-range present', () => {
 				describe('should not respond with parts when weak etag unchanged', () => {
 					let app: http.Server;
@@ -939,6 +1098,9 @@ describe('http', () => {
 							});
 						});
 					});
+					after(done => {
+						app.close(done);
+					});
 					it('should not respond with parts when weak etag unchanged', async () => {
 						const res = await request(app)
 							.get('/nums.txt')
@@ -952,75 +1114,18 @@ describe('http', () => {
 							.expect(200, '123456789');
 					});
 				});
-
-				it('should respond with parts when strong etag unchanged', async () => {
-					const res = await request(mainApp)
-						.get('/nums.txt')
-						.expect(200);
-					const { etag } = <Record<string, string>> res.header;
-
-					await request(mainApp)
-						.get('/nums.txt')
-						.set('If-Range', etag)
-						.set('Range', 'bytes=0-0')
-						.expect(206, '1');
-				});
-
-				it('should respond with 200 when etag changed', async () => {
-					const res = await request(mainApp)
-						.get('/nums.txt')
-						.expect(200);
-					const etag = (<Record<string, string>> res.header).etag.replace(/"(?<c>.)/u, '"0$<c>');
-
-					await request(mainApp)
-						.get('/nums.txt')
-						.set('If-Range', etag)
-						.set('Range', 'bytes=0-0')
-						.expect(200, '123456789');
-				});
-
-				it('should respond with parts when modified unchanged', async () => {
-					const res = await request(mainApp)
-						.get('/nums.txt')
-						.expect(200);
-					const { 'last-modified': modified } = <Record<string, string>> res.header;
-
-					await request(mainApp)
-						.get('/nums.txt')
-						.set('If-Range', modified)
-						.set('Range', 'bytes=0-0')
-						.expect(206, '1');
-				});
-
-				it('should respond with 200 when modified changed', async () => {
-					const res = await request(mainApp)
-						.get('/nums.txt')
-						.expect(200);
-					const modified = Date.parse((<Record<string, string>> res.header)['last-modified']) - 20_000;
-
-					await request(mainApp)
-						.get('/nums.txt')
-						.set('If-Range', new Date(modified).toUTCString())
-						.set('Range', 'bytes=0-0')
-						.expect(200, '123456789');
-				});
-
-				it('should respond with 200 when invalid value', async () => {
-					await request(mainApp)
-						.get('/nums.txt')
-						.set('If-Range', 'foo')
-						.set('Range', 'bytes=0-0')
-						.expect(200, '123456789');
-				});
 			});
 
 			describe('statusCode should disable byte ranges', () => {
-				let server: http.Server;
+				let app: http.Server;
 				before(async () => {
-					server = await createServer({ root: fixtures, statusCode: 418 });
+					app = await createServer({ root: fixtures, statusCode: 418 });
+				});
+				after(done => {
+					app.close(done);
 				});
 				it('statusCode should disable byte ranges', async () => {
-					await request(server)
+					await request(app)
 						.get('/nums.txt')
 						.set('Range', 'bytes=0-4')
 						.expect(418, '123456789');
@@ -1028,13 +1133,14 @@ describe('http', () => {
 			});
 		});
 
-		describe('.etag()', () => {
+		describe('etag', () => {
 			let app: http.Server;
 			before(async () => {
+				const storage = new FileSystemStorage(fixtures);
 				app = await createAndListenServer((req, res) => {
 					(async () => {
 						// eslint-disable-next-line @typescript-eslint/no-non-null-assertion
-						const result = await mainStorage.prepareResponse(req.url!, req, { etag: false });
+						const result = await storage.prepareResponse(req.url!, req, { etag: false });
 						lastResult = result;
 						await result.send(res);
 					})().catch(err => {
@@ -1046,6 +1152,9 @@ describe('http', () => {
 					});
 				});
 			});
+			after(done => {
+				app.close(done);
+			});
 			it('should support disabling etags', async () => {
 				await request(app)
 					.get('/name.txt')
@@ -1054,19 +1163,14 @@ describe('http', () => {
 			});
 		});
 
-		describe('.maxage()', () => {
-			it('should default to 0', async () => {
-				await request(mainApp)
-					.get('/name.txt')
-					.expect('Cache-Control', 'public, max-age=0');
-			});
-
+		describe('max-age', () => {
 			describe('should be configurable', () => {
 				let app: http.Server;
 				before(async () => {
+					const storage = new FileSystemStorage(fixtures);
 					app = await createAndListenServer((req, res) => {
 						(async () => {
-							const result = await mainStorage.prepareResponse(
+							const result = await storage.prepareResponse(
 								// eslint-disable-next-line @typescript-eslint/no-non-null-assertion
 								req.url!,
 								req,
@@ -1083,6 +1187,9 @@ describe('http', () => {
 						});
 					});
 				});
+				after(done => {
+					app.close(done);
+				});
 				it('should be configurable', async () => {
 					await request(app)
 						.get('/name.txt')
@@ -1090,66 +1197,16 @@ describe('http', () => {
 				});
 			});
 		});
-
-		describe('relative paths', () => {
-			it('should 404 on relative path', async () => {
-				await request(mainApp)
-					.get('/pets/../name.txt')
-					.expect('X-Send-Stream-Error', 'NotNormalizedError')
-					.expect(404);
-			});
-
-			it('should 404 on relative path on head', async () => {
-				await request(mainApp)
-					.head('/pets/../name.txt')
-					.expect('X-Send-Stream-Error', 'NotNormalizedError')
-					.expect(404);
-			});
-
-			it('should 404 on relative path with query params', async () => {
-				await request(mainApp)
-					.get('/pets/../name.txt?foo=bar')
-					.expect('X-Send-Stream-Error', 'NotNormalizedError')
-					.expect(404);
-			});
-
-			it('should 404 on relative path with dot', async () => {
-				await request(mainApp)
-					.get('/name.txt/.')
-					.expect('X-Send-Stream-Error', 'NotNormalizedError')
-					.expect(404);
-			});
-
-			it('should 404 on relative path with dot and query params', async () => {
-				await request(mainApp)
-					.get('/name.txt/.?foo=bar')
-					.expect('X-Send-Stream-Error', 'NotNormalizedError')
-					.expect(404);
-			});
-
-			it('should 404 on relative path with dot bis', async () => {
-				await request(mainApp)
-					.get('/./name.txt')
-					.expect('X-Send-Stream-Error', 'NotNormalizedError')
-					.expect(404);
-			});
-
-			it('should 404 on relative path with dot and query params bis', async () => {
-				await request(mainApp)
-					.get('/./name.txt?foo=bar')
-					.expect('X-Send-Stream-Error', 'NotNormalizedError')
-					.expect(404);
-			});
-		});
 	});
 
 	describe('prepare response and send (+dispose)', () => {
-		let mainApp: http.Server;
+		let app: http.Server;
 		before(async () => {
-			mainApp = await createAndListenServer((req, res) => {
+			const storage = new FileSystemStorage(fixtures);
+			app = await createAndListenServer((req, res) => {
 				(async () => {
 					// eslint-disable-next-line @typescript-eslint/no-non-null-assertion
-					const response = await mainStorage.prepareResponse(req.url!, req);
+					const response = await storage.prepareResponse(req.url!, req);
 					try {
 						lastResult = response;
 						if (response.error) {
@@ -1168,9 +1225,12 @@ describe('http', () => {
 				});
 			});
 		});
+		after(done => {
+			app.close(done);
+		});
 
 		it('should stream the file contents', async () => {
-			await request(mainApp)
+			await request(app)
 				.get('/name.txt')
 				.expect('Content-Length', '4')
 				.expect(200, 'tobi');
@@ -1178,13 +1238,14 @@ describe('http', () => {
 	});
 
 	describe('direct send', () => {
-		let mainApp: http.Server;
+		let app: http.Server;
 		before(async () => {
-			mainApp = await createAndListenServer((req, res) => {
+			const storage = new FileSystemStorage(fixtures);
+			app = await createAndListenServer((req, res) => {
 				(async () => {
-					// eslint-disable-next-line @typescript-eslint/no-non-null-assertion
-					await mainStorage.send(req.url!, req, res);
 					lastResult = true;
+					// eslint-disable-next-line @typescript-eslint/no-non-null-assertion
+					await storage.send(req.url!, req, res);
 				})().catch(err => {
 					res.statusCode = 500;
 					console.error(err);
@@ -1194,9 +1255,12 @@ describe('http', () => {
 				});
 			});
 		});
+		after(done => {
+			app.close(done);
+		});
 
 		it('should stream the file contents', async () => {
-			await request(mainApp)
+			await request(app)
 				.get('/name.txt')
 				.expect('Content-Length', '4')
 				.expect(200, 'tobi');
@@ -1206,12 +1270,15 @@ describe('http', () => {
 	describe('send(file, options)', () => {
 		describe('maxRanges', () => {
 			describe('should support disabling accept-ranges', () => {
-				let server: http.Server;
+				let app: http.Server;
 				before(async () => {
-					server = await createServer({ maxRanges: 0, root: fixtures });
+					app = await createServer({ maxRanges: 0, root: fixtures });
+				});
+				after(done => {
+					app.close(done);
 				});
 				it('should support disabling accept-ranges', async () => {
-					await request(server)
+					await request(app)
 						.get('/nums.txt')
 						.expect('Accept-Ranges', 'none')
 						.expect(200);
@@ -1219,12 +1286,15 @@ describe('http', () => {
 			});
 
 			describe('should ignore requested range when maxRange is zero', () => {
-				let server: http.Server;
+				let app: http.Server;
 				before(async () => {
-					server = await createServer({ maxRanges: 0, root: fixtures });
+					app = await createServer({ maxRanges: 0, root: fixtures });
+				});
+				after(done => {
+					app.close(done);
 				});
 				it('should ignore requested range when maxRange is zero', async () => {
-					await request(server)
+					await request(app)
 						.get('/nums.txt')
 						.set('Range', 'bytes=0-2')
 						.expect('Accept-Ranges', 'none')
@@ -1234,12 +1304,15 @@ describe('http', () => {
 			});
 
 			describe('should ignore requested range when maxRange below', () => {
-				let server: http.Server;
+				let app: http.Server;
 				before(async () => {
-					server = await createServer({ maxRanges: 1, root: fixtures });
+					app = await createServer({ maxRanges: 1, root: fixtures });
+				});
+				after(done => {
+					app.close(done);
 				});
 				it('should ignore requested range when maxRange below', async () => {
-					await request(server)
+					await request(app)
 						.get('/nums.txt')
 						.set('Range', 'bytes=0-2,4-5')
 						.parse(multipartHandler)
@@ -1252,12 +1325,15 @@ describe('http', () => {
 
 		describe('cacheControl', () => {
 			describe('should support disabling cache-control', () => {
-				let server: http.Server;
+				let app: http.Server;
 				before(async () => {
-					server = await createServer({ cacheControl: false, root: fixtures });
+					app = await createServer({ cacheControl: false, root: fixtures });
+				});
+				after(done => {
+					app.close(done);
 				});
 				it('should support disabling cache-control', async () => {
-					await request(server)
+					await request(app)
 						.get('/name.txt')
 						.expect(shouldNotHaveHeader('Cache-Control'))
 						.expect(200);
@@ -1265,12 +1341,15 @@ describe('http', () => {
 			});
 
 			describe('should ignore maxAge option', () => {
-				let server: http.Server;
+				let app: http.Server;
 				before(async () => {
-					server = await createServer({ cacheControl: false, root: fixtures });
+					app = await createServer({ cacheControl: false, root: fixtures });
+				});
+				after(done => {
+					app.close(done);
 				});
 				it('should ignore maxAge option', async () => {
-					await request(server)
+					await request(app)
 						.get('/name.txt')
 						.expect(shouldNotHaveHeader('Cache-Control'))
 						.expect(200);
@@ -1279,12 +1358,15 @@ describe('http', () => {
 		});
 
 		describe('etag', () => {
-			let server: http.Server;
+			let app: http.Server;
 			before(async () => {
-				server = await createServer({ etag: false, root: fixtures });
+				app = await createServer({ etag: false, root: fixtures });
+			});
+			after(done => {
+				app.close(done);
 			});
 			it('should support disabling etags', async () => {
-				await request(server)
+				await request(app)
 					.get('/name.txt')
 					.expect(shouldNotHaveHeader('ETag'))
 					.expect(200);
@@ -1292,12 +1374,15 @@ describe('http', () => {
 		});
 
 		describe('lastModified', () => {
-			let server: http.Server;
+			let app: http.Server;
 			before(async () => {
-				server = await createServer({ lastModified: false, root: fixtures });
+				app = await createServer({ lastModified: false, root: fixtures });
+			});
+			after(done => {
+				app.close(done);
 			});
 			it('should support disabling last-modified', async () => {
-				await request(server)
+				await request(app)
 					.get('/name.txt')
 					.expect(shouldNotHaveHeader('Last-Modified'))
 					.expect(200);
@@ -1306,12 +1391,15 @@ describe('http', () => {
 
 		describe('dotfiles', () => {
 			describe('should default to "ignore"', () => {
-				let server: http.Server;
+				let app: http.Server;
 				before(async () => {
-					server = await createServer({ root: fixtures });
+					app = await createServer({ root: fixtures });
+				});
+				after(done => {
+					app.close(done);
 				});
 				it('should default to "ignore"', async () => {
-					await request(server)
+					await request(app)
 						.get('/.hidden.txt')
 						.expect('X-Send-Stream-Error', 'IgnoredFileError')
 						.expect(404);
@@ -1319,12 +1407,15 @@ describe('http', () => {
 			});
 
 			describe('should ignore folder too', () => {
-				let server: http.Server;
+				let app: http.Server;
 				before(async () => {
-					server = await createServer({ root: fixtures });
+					app = await createServer({ root: fixtures });
+				});
+				after(done => {
+					app.close(done);
 				});
 				it('should ignore folder too', async () => {
-					await request(server)
+					await request(app)
 						.get('/.mine/name.txt')
 						.expect('X-Send-Stream-Error', 'IgnoredFileError')
 						.expect(404);
@@ -1332,24 +1423,27 @@ describe('http', () => {
 			});
 
 			describe('when "allow"', () => {
-				let server: http.Server;
+				let app: http.Server;
 				before(async () => {
-					server = await createServer({ ignorePattern: false, root: fixtures });
+					app = await createServer({ ignorePattern: false, root: fixtures });
+				});
+				after(done => {
+					app.close(done);
 				});
 				it('should send dotfile', async () => {
-					await request(server)
+					await request(app)
 						.get('/.hidden.txt')
 						.expect(200, 'secret');
 				});
 
 				it('should send within dotfile directory', async () => {
-					await request(server)
+					await request(app)
 						.get('/.mine/name.txt')
 						.expect(200, /tobi/u);
 				});
 
 				it('should 404 for non-existent dotfile', async () => {
-					await request(server)
+					await request(app)
 						.get('/.nothere')
 						.expect('X-Send-Stream-Error', 'DoesNotExistError')
 						.expect(404);
@@ -1358,47 +1452,50 @@ describe('http', () => {
 
 			describe('when "ignore"', () => {
 				describe('when "ignore" 1', () => {
-					let server: http.Server;
+					let app: http.Server;
 					before(async () => {
-						server = await createServer({ ignorePattern: /^\.[^.]/u, root: fixtures });
+						app = await createServer({ ignorePattern: /^\.[^.]/u, root: fixtures });
+					});
+					after(done => {
+						app.close(done);
 					});
 					it('should 404 for dotfile', async () => {
-						await request(server)
+						await request(app)
 							.get('/.hidden.txt')
 							.expect('X-Send-Stream-Error', 'IgnoredFileError')
 							.expect(404);
 					});
 
 					it('should 404 for dotfile directory', async () => {
-						await request(server)
+						await request(app)
 							.get('/.mine')
 							.expect('X-Send-Stream-Error', 'IgnoredFileError')
 							.expect(404);
 					});
 
 					it('should 404 for dotfile directory with trailing slash', async () => {
-						await request(server)
+						await request(app)
 							.get('/.mine/')
 							.expect('X-Send-Stream-Error', 'IgnoredFileError')
 							.expect(404);
 					});
 
 					it('should 404 for file within dotfile directory', async () => {
-						await request(server)
+						await request(app)
 							.get('/.mine/name.txt')
 							.expect('X-Send-Stream-Error', 'IgnoredFileError')
 							.expect(404);
 					});
 
 					it('should 404 for non-existent dotfile', async () => {
-						await request(server)
+						await request(app)
 							.get('/.nothere')
 							.expect('X-Send-Stream-Error', 'IgnoredFileError')
 							.expect(404);
 					});
 
 					it('should 404 for non-existent dotfile directory', async () => {
-						await request(server)
+						await request(app)
 							.get('/.what/name.txt')
 							.expect('X-Send-Stream-Error', 'IgnoredFileError')
 							.expect(404);
@@ -1406,47 +1503,50 @@ describe('http', () => {
 				});
 
 				describe('when "ignore" 1 (using regexp as text)', () => {
-					let server: http.Server;
+					let app: http.Server;
 					before(async () => {
-						server = await createServer({ ignorePattern: '^\\.[^.]', root: fixtures });
+						app = await createServer({ ignorePattern: '^\\.[^.]', root: fixtures });
+					});
+					after(done => {
+						app.close(done);
 					});
 					it('should 404 for dotfile', async () => {
-						await request(server)
+						await request(app)
 							.get('/.hidden.txt')
 							.expect('X-Send-Stream-Error', 'IgnoredFileError')
 							.expect(404);
 					});
 
 					it('should 404 for dotfile directory', async () => {
-						await request(server)
+						await request(app)
 							.get('/.mine')
 							.expect('X-Send-Stream-Error', 'IgnoredFileError')
 							.expect(404);
 					});
 
 					it('should 404 for dotfile directory with trailing slash', async () => {
-						await request(server)
+						await request(app)
 							.get('/.mine/')
 							.expect('X-Send-Stream-Error', 'IgnoredFileError')
 							.expect(404);
 					});
 
 					it('should 404 for file within dotfile directory', async () => {
-						await request(server)
+						await request(app)
 							.get('/.mine/name.txt')
 							.expect('X-Send-Stream-Error', 'IgnoredFileError')
 							.expect(404);
 					});
 
 					it('should 404 for non-existent dotfile', async () => {
-						await request(server)
+						await request(app)
 							.get('/.nothere')
 							.expect('X-Send-Stream-Error', 'IgnoredFileError')
 							.expect(404);
 					});
 
 					it('should 404 for non-existent dotfile directory', async () => {
-						await request(server)
+						await request(app)
 							.get('/.what/name.txt')
 							.expect('X-Send-Stream-Error', 'IgnoredFileError')
 							.expect(404);
@@ -1454,12 +1554,15 @@ describe('http', () => {
 				});
 
 				describe('when "ignore" 2', () => {
-					let server: http.Server;
+					let app: http.Server;
 					before(async () => {
-						server = await createServer({ ignorePattern: /^\.[^.]/u, root: join(fixtures, '.mine') });
+						app = await createServer({ ignorePattern: /^\.[^.]/u, root: join(fixtures, '.mine') });
+					});
+					after(done => {
+						app.close(done);
 					});
 					it('should send files in root dotfile directory', async () => {
-						await request(server)
+						await request(app)
 							.get('/name.txt')
 							.expect(200, /tobi/u);
 					});
@@ -1470,12 +1573,15 @@ describe('http', () => {
 		describe('root', () => {
 			describe('when given', () => {
 				describe('should not join root', () => {
-					let server: http.Server;
+					let app: http.Server;
 					before(async () => {
-						server = await createServer({ root: fixtures });
+						app = await createServer({ root: fixtures });
+					});
+					after(done => {
+						app.close(done);
 					});
 					it('should not join root', async () => {
-						await request(server)
+						await request(app)
 							.get('/pets/../name.txt')
 							.expect('X-Send-Stream-Error', 'NotNormalizedError')
 							.expect(404);
@@ -1483,12 +1589,15 @@ describe('http', () => {
 				});
 
 				describe('double slash should be ignored', () => {
-					let server: http.Server;
+					let app: http.Server;
 					before(async () => {
-						server = await createServer({ root: fixtures });
+						app = await createServer({ root: fixtures });
+					});
+					after(done => {
+						app.close(done);
 					});
 					it('double slash should be ignored', async () => {
-						await request(server)
+						await request(app)
 							.get('//name.txt')
 							.expect('X-Send-Stream-Error', 'ConsecutiveSlashesError')
 							.expect(404);
@@ -1496,12 +1605,15 @@ describe('http', () => {
 				});
 
 				describe('double slash in sub path should be ignored', () => {
-					let server: http.Server;
+					let app: http.Server;
 					before(async () => {
-						server = await createServer({ root: fixtures });
+						app = await createServer({ root: fixtures });
+					});
+					after(done => {
+						app.close(done);
 					});
 					it('double slash in sub path should be ignored', async () => {
-						await request(server)
+						await request(app)
 							.get('/pets//index.html')
 							.expect('X-Send-Stream-Error', 'ConsecutiveSlashesError')
 							.expect(404);
@@ -1509,24 +1621,30 @@ describe('http', () => {
 				});
 
 				describe('should work with trailing slash', () => {
-					let server: http.Server;
+					let app: http.Server;
 					before(async () => {
-						server = await createServer({ root: `${ fixtures }/` });
+						app = await createServer({ root: `${ fixtures }/` });
+					});
+					after(done => {
+						app.close(done);
 					});
 					it('should work with trailing slash', async () => {
-						await request(server)
+						await request(app)
 							.get('/name.txt')
 							.expect(200, 'tobi');
 					});
 				});
 
 				describe('should 404 on empty path', () => {
-					let server: http.Server;
+					let app: http.Server;
 					before(async () => {
-						server = await createServer({ root: join(fixtures, 'name.txt') });
+						app = await createServer({ root: join(fixtures, 'name.txt') });
+					});
+					after(done => {
+						app.close(done);
 					});
 					it('should 404 on empty path', async () => {
-						await request(server)
+						await request(app)
 							.get('')
 							.expect('X-Send-Stream-Error', 'TrailingSlashError')
 							.expect(404);
@@ -1534,12 +1652,15 @@ describe('http', () => {
 				});
 
 				describe('should restrict paths to within root', () => {
-					let server: http.Server;
+					let app: http.Server;
 					before(async () => {
-						server = await createServer({ root: fixtures });
+						app = await createServer({ root: fixtures });
+					});
+					after(done => {
+						app.close(done);
 					});
 					it('should restrict paths to within root', async () => {
-						await request(server)
+						await request(app)
 							.get('/pets/../../http.spec.ts')
 							.expect('X-Send-Stream-Error', 'NotNormalizedError')
 							.expect(404);
@@ -1568,6 +1689,9 @@ describe('http', () => {
 							});
 						});
 					});
+					after(done => {
+						app.close(done);
+					});
 					it('should restrict paths to within root with path parts', async () => {
 						await request(app)
 							.get('/pets/../../http.spec.ts')
@@ -1577,12 +1701,15 @@ describe('http', () => {
 				});
 
 				describe('should allow .. in root', () => {
-					let server: http.Server;
+					let app: http.Server;
 					before(async () => {
-						server = await createServer({ root: `${ fixtures }/../fixtures-http` });
+						app = await createServer({ root: `${ fixtures }/../fixtures-http` });
+					});
+					after(done => {
+						app.close(done);
 					});
 					it('should allow .. in root', async () => {
-						await request(server)
+						await request(app)
 							.get('/pets/../../http.spec.ts')
 							.expect('X-Send-Stream-Error', 'NotNormalizedError')
 							.expect(404);
@@ -1590,12 +1717,15 @@ describe('http', () => {
 				});
 
 				describe('should not allow root transversal', () => {
-					let server: http.Server;
+					let app: http.Server;
 					before(async () => {
-						server = await createServer({ root: join(fixtures, 'name.d') });
+						app = await createServer({ root: join(fixtures, 'name.d') });
+					});
+					after(done => {
+						app.close(done);
 					});
 					it('should not allow root transversal', async () => {
-						await request(server)
+						await request(app)
 							.get('/../name.dir/name.txt')
 							.expect('X-Send-Stream-Error', 'NotNormalizedError')
 							.expect(404);
@@ -1603,12 +1733,15 @@ describe('http', () => {
 				});
 
 				describe('should not allow root path disclosure', () => {
-					let server: http.Server;
+					let app: http.Server;
 					before(async () => {
-						server = await createServer({ root: fixtures });
+						app = await createServer({ root: fixtures });
+					});
+					after(done => {
+						app.close(done);
 					});
 					it('should not allow root path disclosure', async () => {
-						await request(server)
+						await request(app)
 							.get('/pets/../../fixtures-http/name.txt')
 							.expect('X-Send-Stream-Error', 'NotNormalizedError')
 							.expect(404);
@@ -1617,12 +1750,13 @@ describe('http', () => {
 			});
 
 			describe('when missing', () => {
-				let mainApp: http.Server;
+				let app: http.Server;
 				before(async () => {
-					mainApp = await createAndListenServer((req, res) => {
+					const storage = new FileSystemStorage(fixtures);
+					app = await createAndListenServer((req, res) => {
 						(async () => {
 							// eslint-disable-next-line @typescript-eslint/no-non-null-assertion
-							const response = await mainStorage.prepareResponse(req.url!, req);
+							const response = await storage.prepareResponse(req.url!, req);
 							lastResult = response;
 							if (response.error) {
 								response.headers['X-Send-Stream-Error'] = response.error.name;
@@ -1637,28 +1771,32 @@ describe('http', () => {
 						});
 					});
 				});
+				after(done => {
+					app.close(done);
+				});
 
 				it('should consider .. malicious', async () => {
-					await request(mainApp)
+					await request(app)
 						.get('/../http.spec.ts')
 						.expect('X-Send-Stream-Error', 'NotNormalizedError')
 						.expect(404);
 				});
 
 				it('should still serve files with dots in name', async () => {
-					await request(mainApp)
+					await request(app)
 						.get('/do..ts.txt')
 						.expect(200, '...');
 				});
 			});
 		});
 		describe('other methods', () => {
-			let mainApp: http.Server;
+			let app: http.Server;
 			before(async () => {
-				mainApp = await createAndListenServer((req, res) => {
+				const storage = new FileSystemStorage(fixtures);
+				app = await createAndListenServer((req, res) => {
 					(async () => {
 						// eslint-disable-next-line @typescript-eslint/no-non-null-assertion
-						const result = await mainStorage.prepareResponse(req.url!, req);
+						const result = await storage.prepareResponse(req.url!, req);
 						lastResult = result;
 						if (result.error) {
 							result.headers['X-Send-Stream-Error'] = result.error.name;
@@ -1673,9 +1811,12 @@ describe('http', () => {
 					});
 				});
 			});
+			after(done => {
+				app.close(done);
+			});
 
 			it('should 405 when OPTIONS request', async () => {
-				await request(mainApp)
+				await request(app)
 					.options('/name.txt')
 					.expect('Allow', 'GET, HEAD')
 					.expect('X-Send-Stream-Error', 'MethodNotAllowedStorageError')
@@ -1683,25 +1824,30 @@ describe('http', () => {
 			});
 
 			it('should 405 on post', async () => {
-				await request(mainApp)
+				await request(app)
 					.post('/name.txt')
 					.expect('Allow', 'GET, HEAD')
 					.expect('X-Send-Stream-Error', 'MethodNotAllowedStorageError')
 					.expect(405);
 			});
+		});
 
+		describe('other methods (alternate)', () => {
 			describe('should not 405 on post allowed', () => {
-				let server: http.Server;
+				let app: http.Server;
 				before(async () => {
-					server = await createServer({ root: fixtures, allowedMethods: ['POST'] });
+					app = await createServer({ root: fixtures, allowedMethods: ['POST'] });
+				});
+				after(done => {
+					app.close(done);
 				});
 				it('should not 405 on post allowed', async () => {
-					await request(server)
+					await request(app)
 						.post('/name.txt')
 						.expect(200);
 				});
 				it('should 405 on not head allowed', async () => {
-					await request(server)
+					await request(app)
 						.head('/name.txt')
 						.expect('X-Send-Stream-Error', 'MethodNotAllowedStorageError')
 						.expect(405);
@@ -1709,12 +1855,15 @@ describe('http', () => {
 			});
 
 			describe('should 405 on head not allowed', () => {
-				let server: http.Server;
+				let app: http.Server;
 				before(async () => {
-					server = await createServer({ root: fixtures, allowedMethods: ['GET'] });
+					app = await createServer({ root: fixtures, allowedMethods: ['GET'] });
+				});
+				after(done => {
+					app.close(done);
 				});
 				it('should 405 on head not allowed', async () => {
-					await request(server)
+					await request(app)
 						.post('/name.txt')
 						.expect('Allow', 'GET')
 						.expect('X-Send-Stream-Error', 'MethodNotAllowedStorageError')
@@ -1728,13 +1877,14 @@ describe('http', () => {
 		describe('should ignore if headers already sent', () => {
 			let app: http.Server;
 			before(async () => {
+				const storage = new FileSystemStorage(fixtures);
 				app = await createAndListenServer((req, res) => {
 					(async () => {
 						res.write('the end');
 						res.end();
 						lastResult = true;
 						// eslint-disable-next-line @typescript-eslint/no-non-null-assertion
-						const result = await mainStorage.prepareResponse(req.url!, req);
+						const result = await storage.prepareResponse(req.url!, req);
 						lastResult = result;
 						await result.send(res);
 					})().catch(err => {
@@ -1745,6 +1895,9 @@ describe('http', () => {
 						}
 					});
 				});
+			});
+			after(done => {
+				app.close(done);
 			});
 			it('should error if headers already sent', async () => {
 				try {
@@ -1752,9 +1905,7 @@ describe('http', () => {
 						.get('/nums.txt');
 					assert.fail();
 				} catch {
-					await new Promise(resolve => {
-						resolve(undefined);
-					});
+					await Promise.resolve(undefined);
 				}
 			});
 		});
@@ -1762,12 +1913,13 @@ describe('http', () => {
 		describe('should ignore if connection already destroyed', () => {
 			let app: http.Server;
 			before(async () => {
+				const storage = new FileSystemStorage(fixtures);
 				app = await createAndListenServer((req, res) => {
 					(async () => {
 						res.destroy();
 						lastResult = true;
 						// eslint-disable-next-line @typescript-eslint/no-non-null-assertion
-						const result = await mainStorage.prepareResponse(req.url!, req);
+						const result = await storage.prepareResponse(req.url!, req);
 						lastResult = result;
 						await result.send(res);
 					})().catch(err => {
@@ -1778,6 +1930,9 @@ describe('http', () => {
 						}
 					});
 				});
+			});
+			after(done => {
+				app.close(done);
 			});
 			it('should error if connection already destroyed', async () => {
 				try {
@@ -1785,9 +1940,7 @@ describe('http', () => {
 						.get('/nums.txt');
 					assert.fail();
 				} catch {
-					await new Promise(resolve => {
-						resolve(undefined);
-					});
+					await Promise.resolve(undefined);
 				}
 			});
 		});
@@ -1795,12 +1948,13 @@ describe('http', () => {
 		describe('should ignore if connection already destroyed and no socket', () => {
 			let app: http.Server;
 			before(async () => {
+				const storage = new FileSystemStorage(fixtures);
 				app = await createAndListenServer((req, res) => {
 					(async () => {
 						res.destroy();
 						lastResult = true;
 						// eslint-disable-next-line @typescript-eslint/no-non-null-assertion
-						const result = await mainStorage.prepareResponse(req.url!, req);
+						const result = await storage.prepareResponse(req.url!, req);
 						lastResult = result;
 						await result.send(res);
 					})().catch(err => {
@@ -1812,15 +1966,16 @@ describe('http', () => {
 					});
 				});
 			});
+			after(done => {
+				app.close(done);
+			});
 			it('should ignore if connection already destroyed and no socket', async () => {
 				try {
 					await request(app)
 						.get('/nums.txt');
 					assert.fail();
 				} catch {
-					await new Promise(resolve => {
-						resolve(undefined);
-					});
+					await Promise.resolve(undefined);
 				}
 			});
 		});
@@ -1828,10 +1983,11 @@ describe('http', () => {
 		describe('should handle connection destroyed', () => {
 			let app: http.Server;
 			before(async () => {
+				const storage = new FileSystemStorage(fixtures);
 				app = await createAndListenServer((req, res) => {
 					(async () => {
 						// eslint-disable-next-line @typescript-eslint/no-non-null-assertion
-						const result = await mainStorage.prepareResponse(req.url!, req);
+						const result = await storage.prepareResponse(req.url!, req);
 						lastResult = result;
 						await result.send(res);
 						res.destroy(new Error('olala'));
@@ -1844,15 +2000,16 @@ describe('http', () => {
 					});
 				});
 			});
+			after(done => {
+				app.close(done);
+			});
 			it('should handle connection destroyed', async () => {
 				try {
 					await request(app)
 						.get('/nums.txt');
 					assert.fail();
 				} catch {
-					await new Promise(resolve => {
-						resolve(undefined);
-					});
+					await Promise.resolve(undefined);
 				}
 			});
 		});
@@ -1898,15 +2055,16 @@ describe('http', () => {
 					});
 				});
 			});
+			after(done => {
+				app.close(done);
+			});
 			it('should handle stream pipe error', async () => {
 				try {
 					await request(app)
 						.get('/nums.txt');
 					assert.fail();
 				} catch {
-					await new Promise(resolve => {
-						resolve(undefined);
-					});
+					await Promise.resolve(undefined);
 				}
 			});
 		});
@@ -1952,15 +2110,16 @@ describe('http', () => {
 					});
 				});
 			});
+			after(done => {
+				app.close(done);
+			});
 			it('should handle stream pipe error', async () => {
 				try {
 					await request(app)
 						.get('/nums.txt');
 					assert.fail();
 				} catch {
-					await new Promise(resolve => {
-						resolve(undefined);
-					});
+					await Promise.resolve(undefined);
 				}
 			});
 		});
@@ -2015,15 +2174,16 @@ describe('http', () => {
 					});
 				});
 			});
+			after(done => {
+				app.close(done);
+			});
 			it('should handle stream read error on already closed stream', async () => {
 				try {
 					await request(app)
 						.get('/nums.txt');
 					assert.fail();
 				} catch {
-					await new Promise(resolve => {
-						resolve(undefined);
-					});
+					await Promise.resolve(undefined);
 				}
 			});
 		});

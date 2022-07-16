@@ -14,7 +14,7 @@ import { FileSystemStorage } from '../../src/send-stream.js';
 import type { ServerWrapper } from './server.wrapper.js';
 
 export class KoaServerWrapper implements ServerWrapper {
-	app: Koa<Koa.DefaultState, Koa.DefaultContext>;
+	app: Koa;
 	server: Server | undefined;
 	context: { lastResult?: StreamResponse<unknown> | true | undefined };
 
