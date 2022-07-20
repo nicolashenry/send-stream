@@ -1,5 +1,9 @@
 # Changelog
 
+## 2.6.0
+
+* Drop support for Node 12
+
 ## 2.5.5
 
 * Fix: while sending treat all errors as premature close errors (fix for NodeJS 17.3.0)
