@@ -386,6 +386,7 @@
     "linebreak-style": "off", // too restrictive
     "lines-around-comment": "off", // too restrictive
     "lines-between-class-members": "off", // disabled by typescript-eslint
+    "logical-assignment-operators": "warn",
     "max-classes-per-file": [
       "warn",
       10
