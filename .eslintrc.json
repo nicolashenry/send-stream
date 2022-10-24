@@ -836,6 +836,7 @@
     "unicorn/no-static-only-class": "warn",
     "unicorn/no-thenable": "warn",
     "unicorn/no-this-assignment": "off", // not needed: covered by @typescript-eslint/no-this-alias
+    "unicorn/no-unnecessary-await": "warn",
     "unicorn/no-unreadable-array-destructuring": "off", // too restrictive
     "unicorn/no-unreadable-iife": "warn",
     "unicorn/no-unsafe-regex": "off", // too restrictive
@@ -900,6 +901,7 @@
     "unicorn/require-number-to-fixed-digits-argument": "warn",
     "unicorn/require-post-message-target-origin": "off", // not needed: not executed in a browser
     "unicorn/string-content": "off", // not needed: seems useless
+    "unicorn/switch-case-braces": ["warn", "avoid"],
     "unicorn/template-indent": "warn",
     "unicorn/text-encoding-identifier-case": "off", // too restrictive
     "unicorn/throw-new-error": "warn",
