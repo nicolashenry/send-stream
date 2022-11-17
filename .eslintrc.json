@@ -146,6 +146,7 @@
     ],
     "@typescript-eslint/method-signature-style": "off", // seems useless
     "@typescript-eslint/naming-convention": "warn",
+    "@typescript-eslint/non-nullable-type-assertion-style": "warn",
     "@typescript-eslint/no-array-constructor": "warn",
     "@typescript-eslint/no-base-to-string": "warn",
     "@typescript-eslint/no-confusing-non-null-assertion": "warn",
@@ -217,6 +218,7 @@
     "@typescript-eslint/no-unsafe-argument": "warn",
     "@typescript-eslint/no-unsafe-assignment": "warn",
     "@typescript-eslint/no-unsafe-call": "warn",
+    "@typescript-eslint/no-unsafe-declaration-merging": "warn",
     "@typescript-eslint/no-unsafe-member-access": "warn",
     "@typescript-eslint/no-unsafe-return": "warn",
     "@typescript-eslint/no-unused-expressions": "warn",
@@ -277,6 +279,7 @@
     ],
     "@typescript-eslint/return-await": "warn",
     "@typescript-eslint/semi": "warn",
+    "@typescript-eslint/sort-type-constituents": "off", // not needed: seems useless
     "@typescript-eslint/sort-type-union-intersection-members": "off", // not needed: seems useless
     "@typescript-eslint/space-before-blocks": "warn",
     "@typescript-eslint/space-before-function-paren": [
@@ -465,6 +468,7 @@
     "no-empty-character-class": "warn",
     "no-empty-function": "off", // disabled by typescript-eslint
     "no-empty-pattern": "warn",
+    "no-empty-static-block": "warn",
     "no-eq-null": "off", // not needed: covered by eqeqeq rule
     "no-eval": "warn",
     "no-ex-assign": "warn",
@@ -506,6 +510,7 @@
     "no-nested-ternary": "off", // not needed: seems useless
     "no-new": "warn",
     "no-new-func": "warn",
+    "no-new-native-nonconstructor": "off", // not needed: covered by typescript
     "no-new-object": "warn",
     "no-new-symbol": "off", // disabled by typescript-eslint
     "no-new-wrappers": "warn",
@@ -565,6 +570,7 @@
     "no-unsafe-optional-chaining": "warn",
     "no-unused-expressions": "off", // disabled by typescript-eslint
     "no-unused-labels": "warn",
+    "no-unused-private-class-members": "warn",
     "no-unused-vars": "off", // disabled by typescript-eslint
     "no-use-before-define": "off", // disabled by typescript-eslint
     "no-useless-backreference": "warn",
@@ -758,9 +764,12 @@
     "jsdoc/newline-after-description": "warn",
     "jsdoc/no-bad-blocks": "warn",
     "jsdoc/no-defaults": "warn",
+    "jsdoc/no-missing-syntax": "off", // not needed: seems useless
     "jsdoc/no-multi-asterisks": "warn",
+    "jsdoc/no-restricted-syntax": "off", // not needed: seems useless
     "jsdoc/no-types": "warn",
     "jsdoc/no-undefined-types": "warn",
+    "jsdoc/require-asterisk-prefix": "warn",
     "jsdoc/require-description-complete-sentence": "off", // not needed: seems useless
     "jsdoc/require-description": "warn",
     "jsdoc/require-example": "off", // not needed: seems useless
@@ -789,6 +798,7 @@
     "jsdoc/require-yields-check": "warn",
     "jsdoc/sort-tags": "warn",
     "jsdoc/tag-lines": "warn",
+    "jsdoc/text-escaping": "off", // not needed: seems useless
     "jsdoc/valid-types": "warn",
     "unicorn/better-regex": "warn",
     "unicorn/catch-error-name": [
