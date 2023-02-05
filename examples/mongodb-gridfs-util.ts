@@ -2,7 +2,6 @@
  * This file is an example of file/directory upload to MongoDB/GridFS to use with ./mongodb-gridfs.ts example
  */
 
-import * as assert from 'assert';
 import * as crypto from 'crypto';
 import fs from 'fs';
 import { join, relative, sep } from 'path';
@@ -62,21 +61,18 @@ const dbName = 'test';
 
 const client = new mongodb.MongoClient(uri);
 
-client.connect(error => {
-	assert.ifError(error);
+client.connect()
+	.then(async () => {
+		const db = client.db(dbName);
 
-	const db = client.db(dbName);
+		const bucket = new mongodb.GridFSBucket(db);
 
-	const bucket = new mongodb.GridFSBucket(db);
+		const directory = join(__dirname, 'assets');
 
-	const directory = join(__dirname, 'assets');
-
-	uploadToGridFS(directory, directory, bucket)
-		.then(async () => {
-			console.info('files have been uploaded');
-			await client.close();
-		})
-		.catch(err => {
-			console.error('error:', err);
-		});
-});
+		await uploadToGridFS(directory, directory, bucket);
+		console.info('files have been uploaded');
+		await client.close();
+	})
+	.catch(err => {
+		console.error('error:', err);
+	});

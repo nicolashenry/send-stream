@@ -79,6 +79,7 @@
       {}
     ],
     "@typescript-eslint/init-declarations": "off", // too restrictive
+    "@typescript-eslint/key-spacing": "warn",
     "@typescript-eslint/keyword-spacing": "warn",
     "@typescript-eslint/lines-between-class-members": ["warn", { "exceptAfterSingleLine": true }],
     "@typescript-eslint/member-delimiter-style": "warn",
@@ -465,7 +466,7 @@
     "indent": "off", // disabled by typescript-eslint
     "init-declarations": "off", // disabled by typescript-eslint
     "jsx-quotes": "off", // not needed: seems useless
-    "key-spacing": "warn",
+    "key-spacing": "off", // disabled by typescript-eslint
     "keyword-spacing": "off", // disabled by typescript-eslint
     "line-comment-position": "off", // not needed: seems useless
     "linebreak-style": "off", // too restrictive

@@ -6,7 +6,6 @@
 
 import type { Readable } from 'stream';
 import { posix } from 'path';
-import * as assert from 'assert';
 // eslint-disable-next-line node/prefer-global/url
 import { URL } from 'url';
 
@@ -82,29 +81,27 @@ const client = new mongodb.MongoClient(uri);
 
 const app = fastify({ exposeHeadRoutes: true });
 
-client.connect(error => {
-	assert.ifError(error);
+client.connect()
+	.then(async () => {
+		const db = client.db(dbName);
 
-	const db = client.db(dbName);
+		const bucket = new mongodb.GridFSBucket(db);
 
-	const bucket = new mongodb.GridFSBucket(db);
+		const storage = new GridFSStorage(bucket);
 
-	const storage = new GridFSStorage(bucket);
+		app.get('*', async (request, reply) => {
+			const result = await storage.prepareResponse(request.url, request.raw);
+			if (result.statusCode === 404) {
+				reply.callNotFound();
+				return;
+			}
+			await result.send(reply.raw);
+		});
 
-	app.get('*', async (request, reply) => {
-		const result = await storage.prepareResponse(request.url, request.raw);
-		if (result.statusCode === 404) {
-			reply.callNotFound();
-			return;
-		}
-		await result.send(reply.raw);
+		await app.listen(3000);
+		console.info('listening on http://localhost:3000');
+	})
+	.catch(err => {
+		console.error(err);
 	});
 
-	app.listen(3000)
-		.then(() => {
-			console.info('listening on http://localhost:3000');
-		})
-		.catch(err => {
-			console.error(err);
-		});
-});
