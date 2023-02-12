@@ -253,7 +253,7 @@
     "@typescript-eslint/no-extraneous-class": "warn",
     "@typescript-eslint/no-floating-promises": ["warn", { "ignoreVoid": false }],
     "@typescript-eslint/no-for-in-array": "warn",
-    "@typescript-eslint/no-implicit-any-catch": "warn",
+    "@typescript-eslint/no-implicit-any-catch": "off", // not needed: covered by typescript
     "@typescript-eslint/no-implied-eval": "warn",
     "@typescript-eslint/no-import-type-side-effects": "warn",
     "@typescript-eslint/no-inferrable-types": "warn",
@@ -763,6 +763,7 @@
     "wrap-regex": "off", // not needed: seems useless
     "yield-star-spacing": "warn",
     "yoda": "warn",
+    "import/consistent-type-specifier-style": "warn",
     "import/default": "off", // not needed: covered by typescript
     "import/dynamic-import-chunkname": "off", // not needed: seems useless
     "import/export": "off", // not needed: covered by typescript
@@ -788,6 +789,7 @@
     "import/no-deprecated": "off", // not needed: slow and cases are rare
     "import/no-duplicates": "warn",
     "import/no-dynamic-require": "off", // not needed: covered by typescript
+    "import/no-empty-named-blocks": "warn",
     "import/no-extraneous-dependencies": [
       "warn",
       {
@@ -902,7 +904,7 @@
     "unicorn/expiring-todo-comments": "off", // not needed: seems useless
     "unicorn/explicit-length-check": "off", // bug: not checking if type is array
     "unicorn/filename-case": "warn",
-    "unicorn/import-index": "warn",
+    "unicorn/import-index": "off", // not needed: seems useless
     "unicorn/import-style": "off", // not needed: seems useless
     "unicorn/new-for-builtins": "warn",
     "unicorn/no-abusive-eslint-disable": "warn",
@@ -975,7 +977,7 @@
     "unicorn/prefer-node-protocol": "off", // too soon
     "unicorn/prefer-number-properties": "warn",
     "unicorn/prefer-object-from-entries": "warn",
-    "unicorn/prefer-object-has-own": "warn",
+    "unicorn/prefer-object-has-own": "off", // already covered by prefer-object-has-own
     "unicorn/prefer-optional-catch-binding": "warn",
     "unicorn/prefer-prototype-methods": "warn",
     "unicorn/prefer-query-selector": "off", // not needed: not executed in a browser

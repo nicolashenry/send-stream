@@ -73,7 +73,8 @@
     "test": "npm run test-coverage",
     "ci": "npm run build && npm run test && npm run lint",
     "clean-ci": "npm run clean && npm run build && npm run test && npm run lint",
-    "eslint-find-unused-rules": "eslint-find-rules -u .eslintrc.json --ext .ts"
+    "eslint-find-unused-rules": "eslint-find-rules -u .eslintrc.json --ext .ts",
+    "eslint-find-deprecated-rules": "eslint-find-rules -d .eslintrc.json --ext .ts"
   },
   "main": "dist/src/send-stream.js",
   "typings": "dist/src/send-stream.d.ts",
