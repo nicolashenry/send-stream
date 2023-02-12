@@ -255,6 +255,7 @@
     "@typescript-eslint/no-for-in-array": "warn",
     "@typescript-eslint/no-implicit-any-catch": "warn",
     "@typescript-eslint/no-implied-eval": "warn",
+    "@typescript-eslint/no-import-type-side-effects": "warn",
     "@typescript-eslint/no-inferrable-types": "warn",
     "@typescript-eslint/no-invalid-this": "warn",
     "@typescript-eslint/no-invalid-void-type": "warn",
