@@ -44,6 +44,7 @@
     "@typescript-eslint/ban-ts-comment": "warn",
     "@typescript-eslint/ban-tslint-comment": "warn",
     "@typescript-eslint/ban-types": "warn",
+    "@typescript-eslint/block-spacing": "warn",
     "@typescript-eslint/brace-style": "warn",
     "@typescript-eslint/class-literal-property-style": "warn",
     "@typescript-eslint/comma-dangle": [
@@ -397,7 +398,7 @@
     ],
     "arrow-spacing": "warn",
     "block-scoped-var": "off", // not needed: seems useless
-    "block-spacing": "warn",
+    "block-spacing": "off", // disabled by typescript-eslint
     "brace-style": "off", // disabled by typescript-eslint
     "camelcase": "off", // not needed: covered by @typescript-eslint/naming-convention
     "capitalized-comments": "off", // not needed: seems useless
