@@ -34,7 +34,10 @@ const server = https.createServer(
 		cert: fs.readFileSync(join(__dirname, 'cert', 'localhost.crt')),
 	},
 	(req, res) => {
-		app.callback()(req, res);
+		app.callback()(req, res)
+			.catch(err => {
+				console.error(err);
+			});
 	},
 );
 

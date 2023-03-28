@@ -35,7 +35,10 @@ const server = http2.createSecureServer(
 		allowHTTP1: true,
 	},
 	(req, res) => {
-		app.callback()(req, res);
+		app.callback()(req, res)
+			.catch(err => {
+				console.error(err);
+			});
 	},
 );
 
