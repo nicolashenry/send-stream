@@ -124,9 +124,8 @@ for (const [frameworkName, frameworkServer] of frameworks) {
 			context.lastResult = undefined;
 		});
 
-		afterEach('destroy check', function checkDestroy() {
-			// eslint-disable-next-line @typescript-eslint/no-invalid-this
-			if (this.currentTest?.state === 'failed') {
+		afterEach('destroy check', function checkDestroy(this: Mocha.Context) {
+			if (this.currentTest?.state !== 'passed') {
 				context.lastResult = undefined;
 				return;
 			}
