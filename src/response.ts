@@ -33,7 +33,6 @@ async function pipeline(
 export class StreamResponse<AttachedData> {
 	/**
 	 * Create stream response
-	 *
 	 * @param statusCode - the status code matching the required resource
 	 * @param headers - the response headers to be sent for the required resource
 	 * @param stream - the response stream to be sent for the required resource
@@ -50,7 +49,6 @@ export class StreamResponse<AttachedData> {
 
 	/**
 	 * Send response to http response
-	 *
 	 * @param res - http response
 	 * @param opts - options
 	 * @param opts.ignorePrematureClose - ignore premature close errors

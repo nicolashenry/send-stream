@@ -268,6 +268,7 @@
     "@typescript-eslint/no-meaningless-void-operator": "warn",
     "@typescript-eslint/no-misused-new": "warn",
     "@typescript-eslint/no-misused-promises": "warn",
+    "@typescript-eslint/no-mixed-enums": "warn",
     "@typescript-eslint/no-namespace": "warn",
     "@typescript-eslint/no-non-null-asserted-nullish-coalescing": "warn",
     "@typescript-eslint/no-non-null-asserted-optional-chain": "warn",
@@ -306,6 +307,7 @@
     "@typescript-eslint/no-unsafe-assignment": "warn",
     "@typescript-eslint/no-unsafe-call": "warn",
     "@typescript-eslint/no-unsafe-declaration-merging": "warn",
+    "@typescript-eslint/no-unsafe-enum-comparison": "warn",
     "@typescript-eslint/no-unsafe-member-access": "warn",
     "@typescript-eslint/no-unsafe-return": "warn",
     "@typescript-eslint/no-unused-expressions": "warn",
@@ -847,11 +849,13 @@
     "jsdoc/check-values": "warn",
     "jsdoc/empty-tags": "warn",
     "jsdoc/implements-on-classes": "warn",
+    "jsdoc/informative-docs": "off", // too restrictive
     "jsdoc/match-description": "off", // not needed: seems useless
     "jsdoc/match-name": "off", // not needed: seems useless
     "jsdoc/multiline-blocks": "warn",
-    "jsdoc/newline-after-description": "warn",
     "jsdoc/no-bad-blocks": "warn",
+    "jsdoc/no-blank-blocks": "warn",
+    "jsdoc/no-blank-block-descriptions": "warn",
     "jsdoc/no-defaults": "warn",
     "jsdoc/no-missing-syntax": "off", // not needed: seems useless
     "jsdoc/no-multi-asterisks": "warn",
@@ -958,6 +962,7 @@
     "unicorn/prefer-array-index-of": "warn",
     "unicorn/prefer-array-some": "warn",
     "unicorn/prefer-at": "off", // too soon
+    "unicorn/prefer-blob-reading-methods": "off", // not needed: not executed in a browser
     "unicorn/prefer-code-point": "warn",
     "unicorn/prefer-date-now": "warn",
     "unicorn/prefer-default-parameters": "warn",

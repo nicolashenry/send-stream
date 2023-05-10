@@ -89,7 +89,6 @@ export abstract class Storage<Reference, AttachedData> {
 
 	/**
 	 * Create storage
-	 *
 	 * @param opts - storage options
 	 */
 	constructor(opts: StorageOptions = {}) {
@@ -118,7 +117,6 @@ export abstract class Storage<Reference, AttachedData> {
 
 	/**
 	 * Create last-mofified header value from storage information (uses mtimeMs)
-	 *
 	 * @param storageInfo - storage information
 	 * @returns last-mofified header
 	 */
@@ -136,7 +134,6 @@ export abstract class Storage<Reference, AttachedData> {
 
 	/**
 	 * Create etag header value from storage information (uses mtimeMs, size and contentEncoding)
-	 *
 	 * @param storageInfo - storage information
 	 * @returns etag header
 	 */
@@ -155,7 +152,6 @@ export abstract class Storage<Reference, AttachedData> {
 
 	/**
 	 * Create cache-control header value from storage information (return always public, max-age=0 unless overriden)
-	 *
 	 * @param storageInfo - storage information
 	 * @returns cache-control header
 	 */
@@ -169,7 +165,6 @@ export abstract class Storage<Reference, AttachedData> {
 
 	/**
 	 * Create mime type for content-type header value from storage information
-	 *
 	 * @param storageInfo - storage information (unused unless overriden)
 	 * @returns mime type
 	 */
@@ -191,7 +186,6 @@ export abstract class Storage<Reference, AttachedData> {
 
 	/**
 	 * Create charset that will be appended with mime type into content-type header
-	 *
 	 * @param storageInfo - storage information (unused unless overriden)
 	 * @param mimeType - mime type
 	 * @returns charset
@@ -205,7 +199,6 @@ export abstract class Storage<Reference, AttachedData> {
 
 	/**
 	 * Create content-disposition header type from storage information (return always inline unless overriden)
-	 *
 	 * @param storageInfo - storage information (unused unless overriden)
 	 * @returns content-disposition header type
 	 */
@@ -220,7 +213,6 @@ export abstract class Storage<Reference, AttachedData> {
 	/**
 	 * Create content-disposition header filename from storage information
 	 * (return always the original filename unless overriden)
-	 *
 	 * @param storageInfo - storage information
 	 * @returns content-disposition header filename
 	 */
@@ -235,7 +227,6 @@ export abstract class Storage<Reference, AttachedData> {
 
 	/**
 	 * Prepare to send file
-	 *
 	 * @param reference - file reference
 	 * @param req - request headers or request objects
 	 * @param [opts] - options
@@ -507,7 +498,6 @@ export abstract class Storage<Reference, AttachedData> {
 
 	/**
 	 * Send file directly to response
-	 *
 	 * @param reference - file reference
 	 * @param req - request headers or request objects
 	 * @param res - http response
@@ -531,7 +521,6 @@ export abstract class Storage<Reference, AttachedData> {
 	/**
 	 * Create compressed stream
 	 * (for gzip / brotli encodings only but this method can be overidden to eventually implement other encodings)
-	 *
 	 * @param stream - stream to compress
 	 * @param contentEncoding - 'br' for brotli encoding or 'gzip' for gzip encoding, other values are not supported
 	 * @param expectedSize - expected stream size
@@ -581,7 +570,6 @@ export abstract class Storage<Reference, AttachedData> {
 
 	/**
 	 * Create Method Not Allowed error response
-	 *
 	 * @param isHeadMethod - true if HEAD method is used
 	 * @param allowedMethods - allowed methods for Allow header
 	 * @returns Method Not Allowed response
@@ -610,7 +598,6 @@ export abstract class Storage<Reference, AttachedData> {
 
 	/**
 	 * Create storage error response (Not Found response usually)
-	 *
 	 * @param isHeadMethod - true if HEAD method is used
 	 * @param error - the error causing this response
 	 * @returns the error response
@@ -637,7 +624,6 @@ export abstract class Storage<Reference, AttachedData> {
 
 	/**
 	 * Create Not Modified response
-	 *
 	 * @param responseHeaders - response headers
 	 * @param storageInfo - the current storage info
 	 * @returns the Not Modified response
@@ -652,7 +638,6 @@ export abstract class Storage<Reference, AttachedData> {
 
 	/**
 	 * Create the Precondition Failed error response
-	 *
 	 * @param isHeadMethod - true if HEAD method is used
 	 * @param storageInfo - the current storage info
 	 * @returns the Precondition Failed error response
@@ -679,7 +664,6 @@ export abstract class Storage<Reference, AttachedData> {
 
 	/**
 	 * Create the Range Not Satisfiable error response
-	 *
 	 * @param isHeadMethod - true if HEAD method is used
 	 * @param size - size of content for Content-Range header
 	 * @param storageInfo - the current storage info
@@ -710,7 +694,6 @@ export abstract class Storage<Reference, AttachedData> {
 	/**
 	 * Create the successful OK (200) or Partial Content (206) response
 	 * (the http code could also be the one set in parameters)
-	 *
 	 * @param statusCode - 200 or 206 or the statusCode set in parameters
 	 * @param responseHeaders - the response headers
 	 * @param stream - the content stream
@@ -729,7 +712,6 @@ export abstract class Storage<Reference, AttachedData> {
 
 	/**
 	 * Open file and retrieve storage information (filename, modification date, size, ...)
-	 *
 	 * @param reference - file reference
 	 * @param requestHeaders - request headers
 	 * @returns StorageInfo object
@@ -741,7 +723,6 @@ export abstract class Storage<Reference, AttachedData> {
 
 	/**
 	 * Create readable stream from storage information
-	 *
 	 * @param storageInfo - storage information
 	 * @param range - range to use or undefined if size is unknown
 	 * @param autoClose - true if stream should close itself
@@ -755,7 +736,6 @@ export abstract class Storage<Reference, AttachedData> {
 
 	/**
 	 * Close storage information (if needed)
-	 *
 	 * @param storageInfo - storage information
 	 */
 	abstract close(storageInfo: StorageInfo<AttachedData>): Promise<void>;

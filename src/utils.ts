@@ -56,7 +56,6 @@ export interface ResponseHeaders {
 export class StreamRange {
 	/**
 	 * StreamRange constructor
-	 *
 	 * @param start - start index
 	 * @param end - end index
 	 */
@@ -78,7 +77,6 @@ export const randomBytes = promisify(cryptoRandomBytes);
 
 /**
  * Transform stats to etag
- *
  * @param size - file size
  * @param mtimeMs - modification time in milliseconds
  * @param contentEncoding - content encoding
@@ -100,7 +98,6 @@ export function statsToEtag(size: number, mtimeMs: number, contentEncoding?: str
 
 /**
  * Convert milliseconds to utc string
- *
  * @param timeMs - time in milliseconds
  * @returns utc string
  */
@@ -110,7 +107,6 @@ export function millisecondsToUTCString(timeMs: number) {
 
 /**
  * Test if etag is weak
- *
  * @param etag - etag
  * @returns true if weak
  */
@@ -120,7 +116,6 @@ function isWeakEtag(etag: string) {
 
 /**
  * Test if etag is strong
- *
  * @param etag - etag
  * @returns true if strong
  */
@@ -130,7 +125,6 @@ function isStrongEtag(etag: string) {
 
 /**
  * Get opaque etag (remove weak part)
- *
  * @param etag - etag
  * @returns opaque etag
  */
@@ -144,7 +138,6 @@ function opaqueEtag(etag: string) {
 
 /**
  * Compare etag with weak validation
- *
  * @param a - etag a
  * @param b - etag b
  * @returns true if match
@@ -155,7 +148,6 @@ function weakEtagMatch(a: string, b: string) {
 
 /**
  * Compare etag with strong validation
- *
  * @param a - etag a
  * @param b - etag b
  * @returns true if match
@@ -166,7 +158,6 @@ function strongEtagMatch(a: string, b: string) {
 
 /**
  * Check if range is fresh
- *
  * @param requestHeaders - request headers
  * @param etag - etag response header
  * @param lastModified - last modified response header
@@ -197,7 +188,6 @@ export function isRangeFresh(
 
 /**
  * Format content-range header
- *
  * @param rangeType - type of range
  * @param size - total size
  * @param range - range to use (empty = *)
@@ -210,7 +200,6 @@ export function contentRange(rangeType: string, size: number, range?: StreamRang
 
 /**
  * Parse multiple value header
- *
  * @param header - header to parse
  * @returns splitted headers
  */
@@ -226,7 +215,6 @@ function parseMultiValueHeader(header: string) {
 
 /**
  * Get accepted content encodings
- *
  * @param acceptEncoding - Accept-Encoding header value
  * @param encodingPreferences - order of preference
  * @param identityEncodingPreference - identity encoding preference
@@ -295,7 +283,6 @@ export function acceptEncodings<T extends { order: number }>(
 
 /**
  * Get fresh status (ETag, Last-Modified handling)
- *
  * @param isGetOrHead - http method is GET or HEAD
  * @param requestHeaders - request headers
  * @param etag - etag response header

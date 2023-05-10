@@ -12,7 +12,6 @@ export class FileSystemStorageError extends StorageError<FilePath> {
 
 	/**
 	 * Create file system storage error
-	 *
 	 * @param message - error message
 	 * @param path - encoded path or path parts
 	 * @param pathParts - path parts relative to root
@@ -30,7 +29,6 @@ export class FileSystemStorageError extends StorageError<FilePath> {
 export class MalformedPathError extends FileSystemStorageError {
 	/**
 	 * Create file system storage error
-	 *
 	 * @param message - error message
 	 * @param path - encoded path or path parts
 	 * @param pathParts - path parts relative to root
@@ -51,7 +49,6 @@ export class NotNormalizedError extends FileSystemStorageError {
 	normalizedPath: string;
 	/**
 	 * Create file system storage error
-	 *
 	 * @param message - error message
 	 * @param path - encoded path
 	 * @param pathParts - path parts relative to root
@@ -70,7 +67,6 @@ export class NotNormalizedError extends FileSystemStorageError {
 export class InvalidPathError extends FileSystemStorageError {
 	/**
 	 * Create file system storage error
-	 *
 	 * @param message - error message
 	 * @param path - encoded path or path parts
 	 * @param pathParts - path parts relative to root
@@ -87,7 +83,6 @@ export class InvalidPathError extends FileSystemStorageError {
 export class ConsecutiveSlashesError extends FileSystemStorageError {
 	/**
 	 * Create file system storage error
-	 *
 	 * @param message - error message
 	 * @param path - encoded path or path parts
 	 * @param pathParts - path parts relative to root
@@ -104,7 +99,6 @@ export class ConsecutiveSlashesError extends FileSystemStorageError {
 export class IgnoredFileError extends FileSystemStorageError {
 	/**
 	 * Create file system storage error
-	 *
 	 * @param message - error message
 	 * @param path - encoded path or path parts
 	 * @param pathParts - path parts relative to root
@@ -121,7 +115,6 @@ export class IgnoredFileError extends FileSystemStorageError {
 export class ForbiddenCharacterError extends FileSystemStorageError {
 	/**
 	 * Create file system storage error
-	 *
 	 * @param message - error message
 	 * @param path - encoded path or path parts
 	 * @param pathParts - path parts relative to root
@@ -142,7 +135,6 @@ export class TrailingSlashError extends FileSystemStorageError {
 	untrailedPathParts: readonly string[];
 	/**
 	 * Create file system storage error
-	 *
 	 * @param message - error message
 	 * @param path - encoded path or path parts
 	 * @param pathParts - path parts relative to root
@@ -166,7 +158,6 @@ export class IsDirectoryError extends FileSystemStorageError {
 
 	/**
 	 * Create file system storage error
-	 *
 	 * @param message - error message
 	 * @param path - encoded path or path parts
 	 * @param pathParts - path parts
@@ -190,7 +181,6 @@ export class DoesNotExistError extends FileSystemStorageError {
 
 	/**
 	 * Create file system storage error
-	 *
 	 * @param message - error message
 	 * @param path - encoded path or path parts
 	 * @param pathParts - path parts

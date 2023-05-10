@@ -34,7 +34,6 @@ import {
 
 /**
  * Escape HTML in path for this library (only replace & character since ", < and > are already excluded)
- *
  * @param path - the path to escape
  * @returns the escaped path
  */
@@ -111,7 +110,6 @@ export class GenericFileSystemStorage<FileDescriptor> extends Storage<FilePath, 
 
 	/**
 	 * Create file system storage
-	 *
 	 * @param root - root folder path
 	 * @param opts - file system storage options
 	 */
@@ -155,7 +153,6 @@ export class GenericFileSystemStorage<FileDescriptor> extends Storage<FilePath, 
 
 	/**
 	 * Parse and check url encoded path or path array
-	 *
 	 * @param path - url encoded path or path array to be accessed from root
 	 * @returns path array
 	 * @throws when the path can not be parsed
@@ -264,7 +261,6 @@ export class GenericFileSystemStorage<FileDescriptor> extends Storage<FilePath, 
 
 	/**
 	 * Open file, return undefined if does not exist
-	 *
 	 * @param path - file path
 	 * @returns file handle
 	 */
@@ -280,7 +276,6 @@ export class GenericFileSystemStorage<FileDescriptor> extends Storage<FilePath, 
 
 	/**
 	 * Get Stat object from file descriptor
-	 *
 	 * @param fd - file descriptor
 	 * @param _path - file path (unused but can be useful for caching on override)
 	 * @returns Stat object
@@ -291,7 +286,6 @@ export class GenericFileSystemStorage<FileDescriptor> extends Storage<FilePath, 
 
 	/**
 	 * Close file descriptor
-	 *
 	 * @param fd - file descriptor
 	 * @param _path - file path (unused but can be useful for caching on override)
 	 * @returns Stat object
@@ -302,7 +296,6 @@ export class GenericFileSystemStorage<FileDescriptor> extends Storage<FilePath, 
 
 	/**
 	 * Open file and retrieve storage information (filename, modification date, size, ...)
-	 *
 	 * @param path - file path
 	 * @param requestHeaders - request headers
 	 * @returns StorageInfo object
@@ -459,7 +452,6 @@ export class GenericFileSystemStorage<FileDescriptor> extends Storage<FilePath, 
 
 	/**
 	 * Async generator method to return the directory listing as HTML
-	 *
 	 * @param storageInfo - storage information
 	 * @yields html parts
 	 */
@@ -498,7 +490,6 @@ export class GenericFileSystemStorage<FileDescriptor> extends Storage<FilePath, 
 
 	/**
 	 * Returns the list of files from a directory
-	 *
 	 * @param storageInfo - storage information
 	 * @returns the list of files
 	 */
@@ -510,7 +501,6 @@ export class GenericFileSystemStorage<FileDescriptor> extends Storage<FilePath, 
 
 	/**
 	 * Create readable stream from storage information
-	 *
 	 * @param storageInfo - storage information
 	 * @param range - range to use or undefined if size is unknown
 	 * @param autoClose - true if stream should close itself
@@ -546,7 +536,6 @@ export class GenericFileSystemStorage<FileDescriptor> extends Storage<FilePath, 
 
 	/**
 	 * Close storage information
-	 *
 	 * @param storageInfo - storage information
 	 * @returns void
 	 */

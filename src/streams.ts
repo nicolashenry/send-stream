@@ -10,7 +10,6 @@ export class BufferStream extends Readable {
 
 	/**
 	 * Create a single buffer stream
-	 *
 	 * @param buffer - content buffer or undefined if stream need to be empty
 	 */
 	constructor(buffer?: Uint8Array) {
@@ -32,7 +31,6 @@ export class BufferStream extends Readable {
 
 	/**
 	 * Destroy implementation
-	 *
 	 * @param error - error or null
 	 * @param callback - callback to be called after destroy
 	 */
@@ -49,7 +47,6 @@ export class BufferStream extends Readable {
 export class MultiStream extends PassThrough {
 	/**
 	 * Create a multi streams stream
-	 *
 	 * @param ranges - array of Buffer or StreamRange
 	 * @param onNextStream - function creating the Readable when needed
 	 * @param onDestroy - function called on close to release resources
@@ -66,7 +63,6 @@ export class MultiStream extends PassThrough {
 
 	/**
 	 * Destroy implementation
-	 *
 	 * @param error - error or null
 	 * @param callback - callback to be called after destroy
 	 */

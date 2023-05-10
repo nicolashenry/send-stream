@@ -9,7 +9,6 @@ export class StorageError<T> extends Error {
 
 	/**
 	 * Create a storage error
-	 *
 	 * @param message - error message
 	 * @param reference - error storage reference
 	 */
@@ -26,7 +25,6 @@ export class StorageError<T> extends Error {
 export class MethodNotAllowedStorageError extends StorageError<undefined> {
 	/**
 	 * Create method not allowed error
-	 *
 	 * @param message - error message
 	 */
 	constructor(message: string) {
@@ -41,7 +39,6 @@ export class MethodNotAllowedStorageError extends StorageError<undefined> {
 export class PreconditionFailedStorageError<T> extends StorageError<T> {
 	/**
 	 * Create precondition failed error
-	 *
 	 * @param message - error message
 	 * @param reference - error storage reference
 	 */
@@ -57,7 +54,6 @@ export class PreconditionFailedStorageError<T> extends StorageError<T> {
 export class RangeNotSatisfiableStorageError<T> extends StorageError<T> {
 	/**
 	 * Create range not satisfiable error
-	 *
 	 * @param message - error message
 	 * @param reference - error storage reference
 	 */
