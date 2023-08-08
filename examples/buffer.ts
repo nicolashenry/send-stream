@@ -19,6 +19,7 @@ class BufferStorage extends Storage<StorageInfo<Buffer>, Buffer> {
 			size: data.attachedData.byteLength,
 		};
 	}
+
 	createReadableStream(
 		storageInfo: StorageInfo<Buffer>,
 		range: StreamRange | undefined,
@@ -35,6 +36,7 @@ class BufferStorage extends Storage<StorageInfo<Buffer>, Buffer> {
 			},
 		});
 	}
+
 	async close() {
 		// noop
 	}
