@@ -23,6 +23,7 @@ class JSONStorage extends Storage<StorageInfo<unknown>, Buffer> {
 			mimeTypeCharset: 'UTF-8',
 		};
 	}
+
 	createReadableStream(
 		storageInfo: StorageInfo<Buffer>,
 		range: StreamRange | undefined,
@@ -39,6 +40,7 @@ class JSONStorage extends Storage<StorageInfo<unknown>, Buffer> {
 			},
 		});
 	}
+
 	async close() {
 		// noop
 	}

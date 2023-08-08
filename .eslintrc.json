@@ -47,6 +47,7 @@
     "@typescript-eslint/block-spacing": "warn",
     "@typescript-eslint/brace-style": "warn",
     "@typescript-eslint/class-literal-property-style": "warn",
+    "@typescript-eslint/class-methods-use-this": "off", // not needed: annoying
     "@typescript-eslint/comma-dangle": [
       "warn",
       "always-multiline"
@@ -83,7 +84,7 @@
     "@typescript-eslint/key-spacing": "warn",
     "@typescript-eslint/keyword-spacing": "warn",
     "@typescript-eslint/lines-around-comment": "off", // too restrictive
-    "@typescript-eslint/lines-between-class-members": ["warn", { "exceptAfterSingleLine": true }],
+    "@typescript-eslint/lines-between-class-members": ["warn", "always", { "exceptAfterSingleLine": true }],
     "@typescript-eslint/member-delimiter-style": "warn",
     "@typescript-eslint/member-ordering": [
       "warn",
@@ -238,7 +239,6 @@
     "@typescript-eslint/no-confusing-void-expression": "warn",
     "@typescript-eslint/no-dupe-class-members": "warn",
     "@typescript-eslint/no-duplicate-enum-values": "warn",
-    "@typescript-eslint/no-duplicate-imports": "off", // not needed: covered by import/no-duplicates
     "@typescript-eslint/no-duplicate-type-constituents": "warn",
     "@typescript-eslint/no-dynamic-delete": "warn",
     "@typescript-eslint/no-empty-function": "warn",
@@ -256,7 +256,6 @@
     "@typescript-eslint/no-extraneous-class": "warn",
     "@typescript-eslint/no-floating-promises": ["warn", { "ignoreVoid": false }],
     "@typescript-eslint/no-for-in-array": "warn",
-    "@typescript-eslint/no-implicit-any-catch": "off", // not needed: covered by typescript
     "@typescript-eslint/no-implied-eval": "warn",
     "@typescript-eslint/no-import-type-side-effects": "warn",
     "@typescript-eslint/no-inferrable-types": "warn",
@@ -273,7 +272,6 @@
     "@typescript-eslint/no-non-null-asserted-nullish-coalescing": "warn",
     "@typescript-eslint/no-non-null-asserted-optional-chain": "warn",
     "@typescript-eslint/no-non-null-assertion": "warn",
-    "@typescript-eslint/no-parameter-properties": "off", // not needed: seems useless
     "@typescript-eslint/no-redeclare": "warn",
     "@typescript-eslint/no-redundant-type-constituents": "warn",
     "@typescript-eslint/no-require-imports": "warn",
@@ -369,7 +367,6 @@
     "@typescript-eslint/return-await": "warn",
     "@typescript-eslint/semi": "warn",
     "@typescript-eslint/sort-type-constituents": "off", // not needed: seems useless
-    "@typescript-eslint/sort-type-union-intersection-members": "off", // not needed: seems useless
     "@typescript-eslint/space-before-blocks": "warn",
     "@typescript-eslint/space-before-function-paren": [
       "warn",
@@ -762,7 +759,7 @@
     "template-tag-spacing": "warn",
     "unicode-bom": "warn",
     "use-isnan": "warn",
-    "valid-typeof": "off", // disabled by typescript-eslint
+    "valid-typeof": "warn",
     "vars-on-top": "off", // not needed: seems useless
     "wrap-iife": "warn",
     "wrap-regex": "off", // not needed: seems useless
