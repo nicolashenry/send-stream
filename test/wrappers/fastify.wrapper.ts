@@ -22,7 +22,7 @@ export class FastifyServerWrapper implements ServerWrapper {
 	}
 
 	async listen() {
-		await this.app.listen(0, '0.0.0.0');
+		await this.app.listen({ port: 0, host: '0.0.0.0' });
 		this.server = this.app.server;
 	}
 
