@@ -597,11 +597,12 @@
     "no-new": "warn",
     "no-new-func": "warn",
     "no-new-native-nonconstructor": "off", // not needed: covered by typescript
-    "no-new-object": "warn",
+    "no-new-object": "off", // deprecated: replaced by no-object-constructor
     "no-new-symbol": "off", // disabled by typescript-eslint
     "no-new-wrappers": "warn",
     "no-nonoctal-decimal-escape": "warn",
     "no-obj-calls": "off", // disabled by typescript-eslint
+    "no-object-constructor": "warn",
     "no-octal": "off", // not needed: covered by typescript
     "no-octal-escape": "warn",
     "no-param-reassign": "warn",
@@ -846,6 +847,7 @@
     "jsdoc/check-values": "warn",
     "jsdoc/empty-tags": "warn",
     "jsdoc/implements-on-classes": "warn",
+    "jsdoc/imports-as-dependencies": "warn",
     "jsdoc/informative-docs": "off", // too restrictive
     "jsdoc/match-description": "off", // not needed: seems useless
     "jsdoc/match-name": "off", // not needed: seems useless
