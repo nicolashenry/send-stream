@@ -1,7 +1,13 @@
 # Changelog
 
+## 2.7.0
+
+* Add support for Node 20
+* Drop support for Node 14
+
 ## 2.6.0
 
+* Add support for Node 18
 * Drop support for Node 12
 
 ## 2.5.5
