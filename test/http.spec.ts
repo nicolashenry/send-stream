@@ -523,7 +523,7 @@ describe('http', () => {
 						.parse(multipartHandler)
 						.expect(res => {
 							if (
-								// eslint-disable-next-line max-len
+								// eslint-disable-next-line @stylistic/max-len
 								!/^--[^\r\n]+\r\ncontent-type: text\/plain; charset=UTF-8\r\ncontent-range: bytes 1-1\/9\r\n\r\n2\r\n--[^\r\n]+\r\ncontent-type: text\/plain; charset=UTF-8\r\ncontent-range: bytes 3-8\/9\r\n\r\n456789\r\n--[^\r\n]+--$/u
 									.test(<string> res.body)
 							) {

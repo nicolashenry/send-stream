@@ -11,6 +11,7 @@
   },
   "plugins": [
     "@typescript-eslint",
+    "@stylistic",
     "import",
     "jsdoc",
     "unicorn",
@@ -44,15 +45,12 @@
     "@typescript-eslint/ban-ts-comment": "warn",
     "@typescript-eslint/ban-tslint-comment": "warn",
     "@typescript-eslint/ban-types": "warn",
-    "@typescript-eslint/block-spacing": "warn",
-    "@typescript-eslint/brace-style": "warn",
+    "@typescript-eslint/block-spacing": "off", // deprecated: replaced by @stylistic/block-spacing
+    "@typescript-eslint/brace-style": "off", // deprecated: replaced by @stylistic/brace-style
     "@typescript-eslint/class-literal-property-style": "warn",
     "@typescript-eslint/class-methods-use-this": "off", // not needed: annoying
-    "@typescript-eslint/comma-dangle": [
-      "warn",
-      "always-multiline"
-    ],
-    "@typescript-eslint/comma-spacing": "warn",
+    "@typescript-eslint/comma-dangle": "off", // deprecated: replaced by @stylistic/comma-dangle
+    "@typescript-eslint/comma-spacing": "off", // deprecated: replaced by @stylistic/comma-spacing
     "@typescript-eslint/consistent-indexed-object-style": "warn",
     "@typescript-eslint/consistent-generic-constructors": "warn",
     "@typescript-eslint/consistent-type-assertions": [
@@ -74,18 +72,18 @@
       }
     ],
     "@typescript-eslint/explicit-module-boundary-types": "off", // not needed: seems useless
-    "@typescript-eslint/func-call-spacing": "warn",
-    "@typescript-eslint/indent": [
-      "warn",
-      "tab",
-      {}
-    ],
+    "@typescript-eslint/func-call-spacing": "off", // deprecated: replaced by @stylistic/function-call-spacing
+    "@typescript-eslint/indent": "off", // deprecated: replaced by @stylistic/indent
     "@typescript-eslint/init-declarations": "off", // too restrictive
-    "@typescript-eslint/key-spacing": "warn",
-    "@typescript-eslint/keyword-spacing": "warn",
+    "@typescript-eslint/key-spacing": "off", // deprecated: replaced by @stylistic/key-spacing
+    "@typescript-eslint/keyword-spacing": "off", // deprecated: replaced by @stylistic/keyword-spacing
     "@typescript-eslint/lines-around-comment": "off", // too restrictive
-    "@typescript-eslint/lines-between-class-members": ["warn", "always", { "exceptAfterSingleLine": true }],
-    "@typescript-eslint/member-delimiter-style": "warn",
+    "@typescript-eslint/lines-between-class-members": "off", // deprecated: replaced by @stylistic/lines-between-class-members
+    "@typescript-eslint/max-params": [
+      "warn",
+      { "max": 6 }
+    ],
+    "@typescript-eslint/member-delimiter-style": "off", // deprecated: replaced by @stylistic/member-delimiter-style
     "@typescript-eslint/member-ordering": [
       "warn",
       {
@@ -245,14 +243,8 @@
     "@typescript-eslint/no-empty-interface": "warn",
     "@typescript-eslint/no-explicit-any": "warn",
     "@typescript-eslint/no-extra-non-null-assertion": "warn",
-    "@typescript-eslint/no-extra-parens": [
-      "warn",
-      "all",
-      {
-        "nestedBinaryExpressions": false
-      }
-    ],
-    "@typescript-eslint/no-extra-semi": "warn",
+    "@typescript-eslint/no-extra-parens": "off", // disabled by typescript-eslint
+    "@typescript-eslint/no-extra-semi": "off", // deprecated: replaced by @stylistic/no-extra-semi
     "@typescript-eslint/no-extraneous-class": "warn",
     "@typescript-eslint/no-floating-promises": ["warn", { "ignoreVoid": false }],
     "@typescript-eslint/no-for-in-array": "warn",
@@ -284,17 +276,7 @@
     ],
     "@typescript-eslint/no-this-alias": "warn",
     "@typescript-eslint/no-throw-literal": "warn",
-    "@typescript-eslint/no-type-alias": [
-      "warn",
-      {
-        "allowAliases": "in-unions-and-intersections",
-        "allowCallbacks": "always",
-        "allowLiterals": "in-unions-and-intersections",
-        "allowMappedTypes": "in-unions-and-intersections",
-        "allowTupleTypes": "always",
-        "allowGenerics": "always"
-      }
-    ],
+    "@typescript-eslint/no-type-alias": "off", // deprecated: replaced by @typescript-eslint/consistent-type-definitions
     "@typescript-eslint/no-unnecessary-boolean-literal-compare": "warn",
     "@typescript-eslint/no-unnecessary-condition": "warn",
     "@typescript-eslint/no-unnecessary-qualifier": "warn",
@@ -308,6 +290,7 @@
     "@typescript-eslint/no-unsafe-enum-comparison": "warn",
     "@typescript-eslint/no-unsafe-member-access": "warn",
     "@typescript-eslint/no-unsafe-return": "warn",
+    "@typescript-eslint/no-unsafe-unary-minus": "warn",
     "@typescript-eslint/no-unused-expressions": "warn",
     "@typescript-eslint/no-unused-vars": [
       "warn",
@@ -319,11 +302,8 @@
     "@typescript-eslint/no-useless-constructor": "warn",
     "@typescript-eslint/no-useless-empty-export": "warn",
     "@typescript-eslint/no-var-requires": "off", // not needed: seems useless
-    "@typescript-eslint/object-curly-spacing": [
-      "warn",
-      "always"
-    ],
-    "@typescript-eslint/padding-line-between-statements": "warn",
+    "@typescript-eslint/object-curly-spacing": "off", // deprecated: replaced by @stylistic/object-curly-spacing
+    "@typescript-eslint/padding-line-between-statements": "off", // deprecated: replaced by @stylistic/padding-line-between-statements
     "@typescript-eslint/parameter-properties": [
       "warn",
       {
@@ -331,6 +311,22 @@
       }
     ],
     "@typescript-eslint/prefer-as-const": "warn",
+    "@typescript-eslint/prefer-destructuring": [
+      "warn",
+      {
+        "VariableDeclarator": {
+          "array": true,
+          "object": true
+        },
+        "AssignmentExpression": {
+          "array": false,
+          "object": false
+        }
+      },
+      {
+        "enforceForRenamedProperties": true
+      }
+    ],
     "@typescript-eslint/prefer-enum-initializers": "warn",
     "@typescript-eslint/prefer-for-of": "warn",
     "@typescript-eslint/prefer-function-type": "off", // not needed: seems useless
@@ -347,13 +343,7 @@
     "@typescript-eslint/prefer-string-starts-ends-with": "warn",
     "@typescript-eslint/prefer-ts-expect-error": "warn",
     "@typescript-eslint/promise-function-async": "warn",
-    "@typescript-eslint/quotes": [
-      "warn",
-      "single",
-      {
-        "avoidEscape": true
-      }
-    ],
+    "@typescript-eslint/quotes": "off", // deprecated: replaced by @stylistic/quotes
     "@typescript-eslint/require-array-sort-compare": "warn",
     "@typescript-eslint/require-await": "warn",
     "@typescript-eslint/restrict-plus-operands": "warn",
@@ -365,10 +355,139 @@
       }
     ],
     "@typescript-eslint/return-await": "warn",
-    "@typescript-eslint/semi": "warn",
+    "@typescript-eslint/semi": "off", // deprecated: replaced by @stylistic/semi
     "@typescript-eslint/sort-type-constituents": "off", // not needed: seems useless
-    "@typescript-eslint/space-before-blocks": "warn",
-    "@typescript-eslint/space-before-function-paren": [
+    "@typescript-eslint/space-before-blocks": "off", // deprecated: replaced by @stylistic/space-before-blocks
+    "@typescript-eslint/space-before-function-paren": "off", // deprecated: replaced by @stylistic/space-before-function-paren
+    "@typescript-eslint/space-infix-ops": "off", // deprecated: replaced by @stylistic/space-infix-ops
+    "@typescript-eslint/strict-boolean-expressions": "off", // too restrictive
+    "@typescript-eslint/switch-exhaustiveness-check": "warn",
+    "@typescript-eslint/triple-slash-reference": "warn",
+    "@typescript-eslint/type-annotation-spacing": "off", // deprecated: replaced by @stylistic/type-annotation-spacing
+    "@typescript-eslint/typedef": "off", // not needed: opposite of projet rules
+    "@typescript-eslint/unbound-method": "warn",
+    "@typescript-eslint/unified-signatures": "warn",
+    "@stylistic/array-bracket-newline": "warn",
+    "@stylistic/array-bracket-spacing": "warn",
+    "@stylistic/array-element-newline": [
+      "warn",
+      "consistent"
+    ],
+    "@stylistic/arrow-parens": [
+      "warn",
+      "as-needed"
+    ],
+    "@stylistic/arrow-spacing": "warn",
+    "@stylistic/block-spacing": "warn",
+    "@stylistic/brace-style": "warn",
+    "@stylistic/comma-dangle": [
+      "warn",
+      "always-multiline"
+    ],
+    "@stylistic/comma-spacing": "warn",
+    "@stylistic/comma-style": "warn",
+    "@stylistic/computed-property-spacing": "warn",
+    "@stylistic/dot-location": [
+      "warn",
+      "property"
+    ],
+    "@stylistic/eol-last": "warn",
+    "@stylistic/func-call-spacing": "off", // deprecated: replaced by @stylistic/function-call-spacing
+    "@stylistic/function-call-spacing": "warn",
+    "@stylistic/function-call-argument-newline": [
+      "warn",
+      "consistent"
+    ],
+    "@stylistic/function-paren-newline": [
+      "warn",
+      "consistent"
+    ],
+    "@stylistic/generator-star-spacing": "warn",
+    "@stylistic/implicit-arrow-linebreak": "warn",
+    "@stylistic/indent": [
+      "warn",
+      "tab",
+      {}
+    ],
+    "@stylistic/jsx-quotes": "off", // not needed: seems useless
+    "@stylistic/key-spacing": "warn",
+    "@stylistic/keyword-spacing": "warn",
+    "@stylistic/linebreak-style": "off", // too restrictive
+    "@stylistic/lines-around-comment": "off", // too restrictive
+    "@stylistic/lines-between-class-members": ["warn", "always", { "exceptAfterSingleLine": true }],
+    "@stylistic/max-len": [
+      "warn",
+      {
+        "code": 120
+      }
+    ],
+    "@stylistic/max-statements-per-line": "warn",
+    "@stylistic/multiline-ternary": ["warn", "always-multiline"],
+    "@stylistic/new-parens": "warn",
+    "@stylistic/newline-per-chained-call": "warn",
+    "@stylistic/no-confusing-arrow": "off", // not needed: seems useless
+    "@stylistic/no-extra-parens": [
+      "warn",
+      "all",
+      {
+        "nestedBinaryExpressions": false
+      }
+    ],
+    "@stylistic/no-extra-semi": "warn",
+    "@stylistic/no-floating-decimal": "warn",
+    "@stylistic/no-mixed-operators": "warn",
+    "@stylistic/no-mixed-spaces-and-tabs": "warn",
+    "@stylistic/no-multi-spaces": "warn",
+    "@stylistic/no-multiple-empty-lines": [
+      "warn",
+      {
+        "max": 1,
+        "maxBOF": 0,
+        "maxEOF": 1
+      }
+    ],
+    "@stylistic/no-tabs": "off", // not needed: opposite of project rules
+    "@stylistic/no-trailing-spaces": "warn",
+    "@stylistic/no-whitespace-before-property": "warn",
+    "@stylistic/nonblock-statement-body-position": "off", // not needed: opposite of project rules
+    "@stylistic/object-curly-newline": "warn",
+    "@stylistic/object-curly-spacing": [
+      "warn",
+      "always"
+    ],
+    "@stylistic/object-property-newline": [
+      "warn",
+      {
+        "allowAllPropertiesOnSameLine": true
+      }
+    ],
+    "@stylistic/one-var-declaration-per-line": "off", // not needed: seems useless
+    "@stylistic/operator-linebreak": [
+      "warn",
+      "before"
+    ],
+    "@stylistic/padded-blocks": [
+      "warn",
+      "never"
+    ],
+    "@stylistic/padding-line-between-statements": "warn",
+    "@stylistic/quote-props": [
+      "warn",
+      "as-needed"
+    ],
+    "@stylistic/quotes": [
+      "warn",
+      "single",
+      {
+        "avoidEscape": true
+      }
+    ],
+    "@stylistic/rest-spread-spacing": "warn",
+    "@stylistic/semi": "warn",
+    "@stylistic/semi-spacing": "warn",
+    "@stylistic/semi-style": "warn",
+    "@stylistic/space-before-blocks": "warn",
+    "@stylistic/space-before-function-paren": [
       "warn",
       {
         "anonymous": "always",
@@ -376,28 +495,47 @@
         "asyncArrow": "always"
       }
     ],
-    "@typescript-eslint/space-infix-ops": "warn",
-    "@typescript-eslint/strict-boolean-expressions": "off", // too restrictive
-    "@typescript-eslint/switch-exhaustiveness-check": "warn",
-    "@typescript-eslint/triple-slash-reference": "warn",
-    "@typescript-eslint/type-annotation-spacing": "warn",
-    "@typescript-eslint/typedef": "off", // not needed: opposite of projet rules
-    "@typescript-eslint/unbound-method": "warn",
-    "@typescript-eslint/unified-signatures": "warn",
+    "@stylistic/space-in-parens": "warn",
+    "@stylistic/space-infix-ops": "warn",
+    "@stylistic/space-unary-ops": "warn",
+    "@stylistic/spaced-comment": ["warn", "always", { "markers": ["/"] }],
+    "@stylistic/switch-colon-spacing": "warn",
+    "@stylistic/template-curly-spacing": [
+      "warn",
+      "always"
+    ],
+    "@stylistic/template-tag-spacing": "warn",
+    "@stylistic/wrap-iife": "warn",
+    "@stylistic/wrap-regex": "off", // not needed: seems useless
+    "@stylistic/yield-star-spacing": "warn",
+    "@stylistic/member-delimiter-style": "warn",
+    "@stylistic/type-annotation-spacing": "warn",
+    "@stylistic/jsx-child-element-spacing": "off", // not needed: seems useless
+    "@stylistic/jsx-closing-bracket-location": "off", // not needed: seems useless
+    "@stylistic/jsx-closing-tag-location": "off", // not needed: seems useless
+    "@stylistic/jsx-curly-brace-presence": "off", // not needed: seems useless
+    "@stylistic/jsx-curly-newline": "off", // not needed: seems useless
+    "@stylistic/jsx-curly-spacing": "off", // not needed: seems useless
+    "@stylistic/jsx-equals-spacing": "off", // not needed: seems useless
+    "@stylistic/jsx-first-prop-new-line": "off", // not needed: seems useless
+    "@stylistic/jsx-indent": "off", // not needed: seems useless
+    "@stylistic/jsx-indent-props": "off", // not needed: seems useless
+    "@stylistic/jsx-max-props-per-line": "off", // not needed: seems useless
+    "@stylistic/jsx-newline": "off", // not needed: seems useless
+    "@stylistic/jsx-one-expression-per-line": "off", // not needed: seems useless
+    "@stylistic/jsx-props-no-multi-spaces": "off", // not needed: seems useless
+    "@stylistic/jsx-self-closing-comp": "off", // not needed: seems useless
+    "@stylistic/jsx-sort-props": "off", // not needed: seems useless
+    "@stylistic/jsx-tag-spacing": "off", // not needed: seems useless
+    "@stylistic/jsx-wrap-multilines": "off", // not needed: seems useless
     "accessor-pairs": "warn",
-    "array-bracket-newline": "warn",
-    "array-bracket-spacing": "warn",
+    "array-bracket-newline": "off", // deprecated: replaced by @stylistic/array-bracket-newline
+    "array-bracket-spacing": "off", // deprecated: replaced by @stylistic/array-bracket-spacing
     "array-callback-return": "off", // not needed: covered by typescript
-    "array-element-newline": [
-      "warn",
-      "consistent"
-    ],
+    "array-element-newline": "off", // deprecated: replaced by @stylistic/array-element-newline
     "arrow-body-style": "warn",
-    "arrow-parens": [
-      "warn",
-      "as-needed"
-    ],
-    "arrow-spacing": "warn",
+    "arrow-parens": "off", // deprecated: replaced by @stylistic/arrow-parens
+    "arrow-spacing": "off", // deprecated: replaced by @stylistic/arrow-spacing
     "block-scoped-var": "off", // not needed: seems useless
     "block-spacing": "off", // disabled by typescript-eslint
     "brace-style": "off", // disabled by typescript-eslint
@@ -406,12 +544,12 @@
     "class-methods-use-this": "off", // not needed: annoying
     "comma-dangle": "off", // disabled by typescript-eslint
     "comma-spacing": "off", // disabled by typescript-eslint
-    "comma-style": "warn",
+    "comma-style": "off", // deprecated: replaced by @stylistic/comma-style
     "complexity": [
       "warn",
       80
     ],
-    "computed-property-spacing": "warn",
+    "computed-property-spacing": "off", // deprecated: replaced by @stylistic/computed-property-spacing
     "consistent-return": "warn",
     "consistent-this": "off", // not needed: seems useless
     "constructor-super": "off", // disabled by typescript-eslint
@@ -419,12 +557,9 @@
     "default-case": "off", // too restrictive
     "default-case-last": "warn",
     "default-param-last": "off", // disabled by typescript-eslint
-    "dot-location": [
-      "warn",
-      "property"
-    ],
+    "dot-location": "off", // deprecated: replaced by @stylistic/dot-location
     "dot-notation": "off", // disabled by typescript-eslint
-    "eol-last": "warn",
+    "eol-last": "off", // deprecated: replaced by @stylistic/eol-last
     "eqeqeq": "warn",
     "for-direction": "warn",
     "func-call-spacing": "off", // disabled by typescript-eslint
@@ -437,15 +572,9 @@
         "allowArrowFunctions": true
       }
     ],
-    "function-call-argument-newline": [
-      "warn",
-      "consistent"
-    ],
-    "function-paren-newline": [
-      "warn",
-      "multiline-arguments"
-    ],
-    "generator-star-spacing": "warn",
+    "function-call-argument-newline": "off", // deprecated: replaced by @stylistic/function-call-argument-newline
+    "function-paren-newline": "off", // deprecated: replaced by @stylistic/function-paren-newline
+    "generator-star-spacing": "off", // deprecated: replaced by @stylistic/generator-star-spacing
     "getter-return": "off", // disabled by typescript-eslint
     "grouped-accessor-pairs": "warn",
     "guard-for-in": "warn",
@@ -484,12 +613,7 @@
       "warn",
       10
     ],
-    "max-len": [
-      "warn",
-      {
-        "code": 120
-      }
-    ],
+    "max-len": "off", // deprecated: replaced by @stylistic/max-len
     "max-lines": [
       "warn",
       1200
@@ -499,10 +623,7 @@
       500
     ],
     "max-nested-callbacks": "warn",
-    "max-params": [
-      "warn",
-      6
-    ],
+    "max-params": "off", // disabled by typescript-eslint
     "max-statements": [
       "warn",
       160
@@ -511,8 +632,8 @@
     "multiline-comment-style": "off", // not needed: seems useless
     "multiline-ternary": "off", // not needed: seems useless
     "new-cap": "warn",
-    "new-parens": "warn",
-    "newline-per-chained-call": "warn",
+    "new-parens": "off", // deprecated: replaced by @stylistic/new-parens
+    "newline-per-chained-call": "off", // deprecated: replaced by @stylistic/newline-per-chained-call
     "no-alert": "warn",
     "no-array-constructor": "off", // disabled by typescript-eslint
     "no-async-promise-executor": "warn",
@@ -565,7 +686,7 @@
     "no-extra-parens": "off", // disabled by typescript-eslint
     "no-extra-semi": "off", // disabled by typescript-eslint
     "no-fallthrough": "warn",
-    "no-floating-decimal": "warn",
+    "no-floating-decimal": "off", // deprecated: replaced by @stylistic/no-floating-decimal
     "no-func-assign": "off", // disabled by typescript-eslint
     "no-global-assign": "off", // not needed: covered by typescript
     "no-implicit-coercion": "warn",
@@ -586,12 +707,12 @@
     "no-loss-of-precision": "off",
     "no-magic-numbers": "off", // disabled by typescript-eslint
     "no-misleading-character-class": "warn",
-    "no-mixed-operators": "warn",
-    "no-mixed-spaces-and-tabs": "warn",
+    "no-mixed-operators": "off", // deprecated: replaced by @stylistic/no-mixed-operators
+    "no-mixed-spaces-and-tabs": "off", // deprecated: replaced by @stylistic/no-mixed-spaces-and-tabs
     "no-multi-assign": "warn",
-    "no-multi-spaces": "warn",
+    "no-multi-spaces": "off", // deprecated: replaced by @stylistic/no-multi-spaces
     "no-multi-str": "warn",
-    "no-multiple-empty-lines": "warn",
+    "no-multiple-empty-lines": "off", // deprecated: replaced by @stylistic/no-multiple-empty-lines
     "no-negated-condition": "warn",
     "no-nested-ternary": "off", // not needed: seems useless
     "no-new": "warn",
@@ -642,7 +763,7 @@
     "no-ternary": "off", // not needed: seems useless
     "no-this-before-super": "off", // disabled by typescript-eslint
     "no-throw-literal": "off", // not needed: covered by @typescript-eslint/no-throw-literal rule
-    "no-trailing-spaces": "warn",
+    "no-trailing-spaces": "off", // deprecated: replaced by @stylistic/no-trailing-spaces
     "no-undef": "off", // disabled by typescript-eslint
     "no-undef-init": "warn",
     "no-undefined": "off", // not needed: seems useless
@@ -672,17 +793,12 @@
     "no-var": "warn",
     "no-void": "warn",
     "no-warning-comments": "warn",
-    "no-whitespace-before-property": "warn",
+    "no-whitespace-before-property": "off", // deprecated: replaced by @stylistic/no-whitespace-before-property
     "no-with": "off", // not needed: covered by typescript
     "nonblock-statement-body-position": "off", // not needed: opposite of project rules
-    "object-curly-newline": "warn",
+    "object-curly-newline": "off", // deprecated: replaced by @stylistic/object-curly-newline
     "object-curly-spacing": "off", // disabled by typescript-eslint
-    "object-property-newline": [
-      "warn",
-      {
-        "allowAllPropertiesOnSameLine": true
-      }
-    ],
+    "object-property-newline": "off", // deprecated: replaced by @stylistic/object-property-newline
     "object-shorthand": "warn",
     "one-var": [
       "warn",
@@ -690,33 +806,12 @@
     ],
     "one-var-declaration-per-line": "off", // not needed: seems useless
     "operator-assignment": "warn",
-    "operator-linebreak": [
-      "warn",
-      "before"
-    ],
-    "padded-blocks": [
-      "warn",
-      "never"
-    ],
-    "padding-line-between-statements": "off", // not needed: seems useless
+    "operator-linebreak": "off", // deprecated: replaced by @stylistic/operator-linebreak
+    "padded-blocks": "off", // deprecated: replaced by @stylistic/padded-blocks
+    "padding-line-between-statements": "off", // disabled by typescript-eslint
     "prefer-arrow-callback": "warn",
     "prefer-const": "warn",
-    "prefer-destructuring": [
-      "warn",
-      {
-        "VariableDeclarator": {
-          "array": true,
-          "object": true
-        },
-        "AssignmentExpression": {
-          "array": false,
-          "object": false
-        }
-      },
-      {
-        "enforceForRenamedProperties": true
-      }
-    ],
+    "prefer-destructuring": "off", // disabled by typescript-eslint
     "prefer-exponentiation-operator": "warn",
     "prefer-named-capture-group": "warn",
     "prefer-numeric-literals": "warn",
@@ -727,44 +822,38 @@
     "prefer-rest-params": "warn",
     "prefer-spread": "warn",
     "prefer-template": "warn",
-    "quote-props": [
-      "warn",
-      "as-needed"
-    ],
+    "quote-props": "off", // deprecated: replaced by @stylistic/quote-props
     "quotes": "off", // disabled by typescript-eslint
     "radix": "warn",
     "require-atomic-updates": "off", // bug: https://github.com/eslint/eslint/issues/11899
     "require-await": "off", // disabled by typescript-eslint
     "require-unicode-regexp": "warn",
     "require-yield": "warn",
-    "rest-spread-spacing": "warn",
+    "rest-spread-spacing": "off", // deprecated: replaced by @stylistic/rest-spread-spacing
     "semi": "off", // disabled by typescript-eslint
-    "semi-spacing": "warn",
-    "semi-style": "warn",
+    "semi-spacing": "off", // deprecated: replaced by @stylistic/semi-spacing
+    "semi-style": "off", // deprecated: replaced by @stylistic/semi-style
     "sort-imports": "off", // not needed: seems useless
     "sort-keys": "off", // not needed: seems useless
     "sort-vars": "off", // not needed: seems useless
     "space-before-blocks": "off", // disabled by typescript-eslint
     "space-before-function-paren": "off", // disabled by typescript-eslint
-    "space-in-parens": "warn",
+    "space-in-parens": "off", // deprecated: replaced by @stylistic/space-in-parens
     "space-infix-ops": "off", // disabled by typescript-eslint
-    "space-unary-ops": "warn",
-    "spaced-comment": ["warn", "always", { "markers": ["/"] }],
+    "space-unary-ops": "off", // deprecated: replaced by @stylistic/space-unary-ops
+    "spaced-comment": "off", // deprecated: replaced by @stylistic/spaced-comment
     "strict": "warn",
-    "switch-colon-spacing": "warn",
+    "switch-colon-spacing": "off", // deprecated: replaced by @stylistic/switch-colon-spacing
     "symbol-description": "warn",
-    "template-curly-spacing": [
-      "warn",
-      "always"
-    ],
-    "template-tag-spacing": "warn",
+    "template-curly-spacing": "off", // deprecated: replaced by @stylistic/template-curly-spacing
+    "template-tag-spacing": "off", // deprecated: replaced by @stylistic/template-tag-spacing
     "unicode-bom": "warn",
     "use-isnan": "warn",
     "valid-typeof": "warn",
     "vars-on-top": "off", // not needed: seems useless
-    "wrap-iife": "warn",
+    "wrap-iife": "off", // deprecated: replaced by @stylistic/wrap-iife
     "wrap-regex": "off", // not needed: seems useless
-    "yield-star-spacing": "warn",
+    "yield-star-spacing": "off", // deprecated: replaced by @stylistic/yield-star-spacing
     "yoda": "warn",
     "import/consistent-type-specifier-style": "warn",
     "import/default": "off", // not needed: covered by typescript

@@ -1,4 +1,3 @@
-
 import type { Dir, Dirent, Stats } from 'fs';
 import { open, fstat, close, createReadStream, opendir, readdir, constants } from 'fs';
 import { join } from 'path';

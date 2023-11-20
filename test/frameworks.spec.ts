@@ -2273,7 +2273,7 @@ for (const [frameworkName, frameworkServer] of frameworks) {
 							.expect('Content-Type', /^multipart\/byteranges/u)
 							.expect(res => {
 								if (
-									// eslint-disable-next-line max-len
+									// eslint-disable-next-line @stylistic/max-len
 									!/^--[^\r\n]+\r\ncontent-type: text\/plain; charset=UTF-8\r\ncontent-range: bytes 0-0\/5\r\n\r\nw\r\n--[^\r\n]+\r\ncontent-type: text\/plain; charset=UTF-8\r\ncontent-range: bytes 2-2\/5\r\n\r\nr\r\n--[^\r\n]+--$/u
 										.test(<string> res.body)
 								) {
@@ -2785,7 +2785,7 @@ for (const [frameworkName, frameworkServer] of frameworks) {
 					await request(app.server)
 						.get('/')
 						.expect('Content-Type', 'text/html; charset=UTF-8')
-						// eslint-disable-next-line max-len
+						// eslint-disable-next-line @stylistic/max-len
 						.expect(200, '<!DOCTYPE html><html lang="en"><head><meta charset="utf-8"><title>/</title><meta name="viewport" content="width=device-width"><meta name="description" content="Content of / directory"></head><body><h1>Directory: /</h1><ul><li><a href="./foo.txt">foo.txt</a></li></ul></body></html>');
 				});
 			});

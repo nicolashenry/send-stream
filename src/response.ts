@@ -1,4 +1,3 @@
-
 import { ServerResponse } from 'http';
 import type { ServerHttp2Stream } from 'http2';
 import { Http2ServerResponse } from 'http2';
