@@ -34,7 +34,7 @@ export class BufferStream extends Readable {
 	 * @param error - error or null
 	 * @param callback - callback to be called after destroy
 	 */
-	override _destroy(error: Error | null, callback: (err?: Error | null) => void) {
+	override _destroy(error: Error | null, callback: (err?: Error | null | undefined) => void) {
 		this.buffer = undefined;
 		// eslint-disable-next-line no-underscore-dangle
 		super._destroy(error, callback);
@@ -66,7 +66,7 @@ export class MultiStream extends PassThrough {
 	 * @param error - error or null
 	 * @param callback - callback to be called after destroy
 	 */
-	override _destroy(error: Error | null, callback: (err: Error | null) => void) {
+	override _destroy(error: Error | null, callback: (err?: Error | null | undefined) => void) {
 		this.onDestroy()
 			.then(() => {
 				// eslint-disable-next-line no-underscore-dangle
