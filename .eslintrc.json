@@ -301,6 +301,7 @@
     "@typescript-eslint/no-use-before-define": "warn",
     "@typescript-eslint/no-useless-constructor": "warn",
     "@typescript-eslint/no-useless-empty-export": "warn",
+    "@typescript-eslint/no-useless-template-literals": "warn",
     "@typescript-eslint/no-var-requires": "off", // not needed: seems useless
     "@typescript-eslint/object-curly-spacing": "off", // deprecated: replaced by @stylistic/object-curly-spacing
     "@typescript-eslint/padding-line-between-statements": "off", // deprecated: replaced by @stylistic/padding-line-between-statements
