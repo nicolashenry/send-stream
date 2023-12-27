@@ -410,6 +410,7 @@
       "tab",
       {}
     ],
+    "@stylistic/indent-binary-ops": ["warn", "tab"],
     "@stylistic/jsx-quotes": "off", // not needed: seems useless
     "@stylistic/key-spacing": "warn",
     "@stylistic/keyword-spacing": "warn",
@@ -506,6 +507,8 @@
       "always"
     ],
     "@stylistic/template-tag-spacing": "warn",
+    "@stylistic/type-generic-spacing": "warn",
+    "@stylistic/type-named-tuple-spacing": "warn",
     "@stylistic/wrap-iife": "warn",
     "@stylistic/wrap-regex": "off", // not needed: seems useless
     "@stylistic/yield-star-spacing": "warn",
