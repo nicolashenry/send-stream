@@ -8,7 +8,7 @@ import { FileSystemStorage } from '../../src/send-stream';
 import type { ServerWrapper } from './server.wrapper';
 
 export class VanillaServerWrapper implements ServerWrapper {
-	server: Server | undefined;
+	server: Server;
 	context: { lastResult?: StreamResponse<unknown> | true | undefined };
 	listener: ((req: IncomingMessage, res: ServerResponse) => Promise<void>) | undefined;
 
@@ -42,7 +42,7 @@ export class VanillaServerWrapper implements ServerWrapper {
 
 	async listen() {
 		await new Promise(resolve => {
-			this.server = this.server?.listen(() => {
+			this.server = this.server.listen(() => {
 				resolve(undefined);
 			});
 		});
@@ -50,17 +50,13 @@ export class VanillaServerWrapper implements ServerWrapper {
 
 	async close() {
 		await new Promise((resolve, reject) => {
-			if (this.server) {
-				this.server.close(err => {
-					if (err) {
-						reject(err);
-						return;
-					}
-					resolve(undefined);
-				});
-			} else {
-				throw new Error('cannot close server (not existing)');
-			}
+			this.server.close(err => {
+				if (err) {
+					reject(err);
+					return;
+				}
+				resolve(undefined);
+			});
 		});
 	}
 

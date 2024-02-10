@@ -28,7 +28,22 @@ import { ExpressServerWrapper } from './wrappers/express.wrapper';
 import { VanillaServerWrapper } from './wrappers/vanilla.wrapper';
 
 function brotliParser(res: request.Response, cb: (err: Error | null, body: unknown) => void) {
-	const decompress = pipeline(res, createBrotliDecompress(), err => {
+	const readable = new Readable({
+		// eslint-disable-next-line @typescript-eslint/no-empty-function
+		read() {},
+	});
+
+	res.on('data', chunk => {
+		readable.push(chunk);
+	});
+	res.on('error', (err: Error | undefined) => {
+		readable.destroy(err);
+	});
+	res.on('end', () => {
+		readable.push(null);
+	});
+
+	const decompress = pipeline(readable, createBrotliDecompress(), err => {
 		if (!err) {
 			return;
 		}

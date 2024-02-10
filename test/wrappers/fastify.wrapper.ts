@@ -10,7 +10,7 @@ import { FileSystemStorage } from '../../src/send-stream';
 import type { ServerWrapper } from './server.wrapper';
 
 export class FastifyServerWrapper implements ServerWrapper {
-	server: Server | undefined;
+	server: Server;
 	context: { lastResult?: StreamResponse<unknown> | true | undefined };
 	app: FastifyInstance;
 
@@ -19,11 +19,11 @@ export class FastifyServerWrapper implements ServerWrapper {
 			exposeHeadRoutes: true,
 		});
 		this.context = context;
+		this.server = this.app.server;
 	}
 
 	async listen() {
 		await this.app.listen({ port: 0, host: '0.0.0.0' });
-		this.server = this.app.server;
 	}
 
 	async close() {

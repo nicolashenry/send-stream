@@ -587,7 +587,7 @@ export abstract class Storage<Reference, AttachedData> {
 				// eslint-disable-next-line @typescript-eslint/naming-convention
 				'X-Content-Type-Options': 'nosniff',
 				// eslint-disable-next-line @typescript-eslint/naming-convention
-				Allow: allowedMethods.join(', '),
+				'Allow': allowedMethods.join(', '),
 			},
 			isHeadMethod ? new BufferStream() : new BufferStream(statusMessageBuffer),
 			undefined,

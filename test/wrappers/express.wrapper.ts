@@ -12,7 +12,7 @@ import type { ServerWrapper } from './server.wrapper';
 const pipeline = promisify(streamPipeline);
 
 export class ExpressServerWrapper implements ServerWrapper {
-	server: Server | undefined;
+	serverInstance: Server | undefined;
 	context: { lastResult?: StreamResponse<unknown> | true | undefined };
 	app: express.Express;
 
@@ -21,9 +21,16 @@ export class ExpressServerWrapper implements ServerWrapper {
 		this.context = context;
 	}
 
+	get server() {
+		if (!this.serverInstance) {
+			throw new Error('server not existing');
+		}
+		return this.serverInstance;
+	}
+
 	async listen() {
 		await new Promise(resolve => {
-			this.server = this.app.listen(() => {
+			this.serverInstance = this.app.listen(() => {
 				resolve(undefined);
 			});
 		});
@@ -31,17 +38,13 @@ export class ExpressServerWrapper implements ServerWrapper {
 
 	async close() {
 		await new Promise((resolve, reject) => {
-			if (this.server) {
-				this.server.close(err => {
-					if (err) {
-						reject(err);
-						return;
-					}
-					resolve(undefined);
-				});
-			} else {
-				throw new Error('cannot close server (not existing)');
-			}
+			this.server.close(err => {
+				if (err) {
+					reject(err);
+					return;
+				}
+				resolve(undefined);
+			});
 		});
 	}
 

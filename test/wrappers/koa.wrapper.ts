@@ -10,7 +10,7 @@ import type { ServerWrapper } from './server.wrapper';
 
 export class KoaServerWrapper implements ServerWrapper {
 	app: Koa;
-	server: Server | undefined;
+	serverInstance: Server | undefined;
 	context: { lastResult?: StreamResponse<unknown> | true | undefined };
 
 	constructor(context: { lastResult?: StreamResponse<unknown> | true | undefined }) {
@@ -18,9 +18,16 @@ export class KoaServerWrapper implements ServerWrapper {
 		this.context = context;
 	}
 
+	get server() {
+		if (!this.serverInstance) {
+			throw new Error('server not existing');
+		}
+		return this.serverInstance;
+	}
+
 	async listen() {
 		await new Promise(resolve => {
-			this.server = this.app.listen(() => {
+			this.serverInstance = this.app.listen(() => {
 				resolve(undefined);
 			});
 		});
@@ -28,17 +35,13 @@ export class KoaServerWrapper implements ServerWrapper {
 
 	async close() {
 		await new Promise((resolve, reject) => {
-			if (this.server) {
-				this.server.close(err => {
-					if (err) {
-						reject(err);
-						return;
-					}
-					resolve(undefined);
-				});
-			} else {
-				throw new Error('cannot close server (not existing)');
-			}
+			this.server.close(err => {
+				if (err) {
+					reject(err);
+					return;
+				}
+				resolve(undefined);
+			});
 		});
 	}
 
