@@ -36,7 +36,7 @@
     "eslint-find-rules": "^4.1.0",
     "eslint-import-resolver-typescript": "~3.6.0",
     "eslint-plugin-import": "~2.29.0",
-    "eslint-plugin-jsdoc": "~48.0.6",
+    "eslint-plugin-jsdoc": "~48.1.0",
     "eslint-plugin-node": "~11.1.0",
     "eslint-plugin-sonarjs": "~0.23.0",
     "eslint-plugin-unicorn": "~51.0.1",
