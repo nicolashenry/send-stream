@@ -29,8 +29,7 @@
     "@types/mocha": "~10.0.4",
     "@types/range-parser": "~1.2.7",
     "@types/supertest": "~6.0.2",
-    "@typescript-eslint/eslint-plugin": "~7.1.0",
-    "@typescript-eslint/parser": "~7.1.0",
+    "@typescript-eslint/utils": "~7.1.0",
     "cross-env": "~7.0.2",
     "eslint": "~8.57.0",
     "eslint-find-rules": "^4.1.0",
@@ -50,7 +49,8 @@
     "rimraf": "~5.0.0",
     "supertest": "~6.3.4",
     "ts-node": "~10.9.1",
-    "typescript": "~5.3.2"
+    "typescript": "~5.3.2",
+    "typescript-eslint": "~7.1.0"
   },
   "license": "MIT",
   "dependencies": {
@@ -68,7 +68,7 @@
     "watch": "tsc -b -w",
     "prepublishOnly": "npm run test && npm run lint",
     "prepack": "npm run clean-build",
-    "lint": "eslint . --ext .ts --max-warnings 0 --report-unused-disable-directives",
+    "lint": "eslint . --max-warnings 0 --report-unused-disable-directives",
     "test-no-coverage": "cross-env TS_NODE_PROJECT=test/tsconfig.json mocha test/*.spec.ts",
     "test-coverage": "cross-env TS_NODE_PROJECT=test/tsconfig.json nyc mocha test/*.spec.ts",
     "test": "npm run test-coverage",

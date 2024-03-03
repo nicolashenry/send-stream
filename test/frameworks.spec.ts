@@ -132,6 +132,7 @@ const frameworks = <const> [
 ];
 
 for (const [frameworkName, frameworkServer] of frameworks) {
+	// eslint-disable-next-line @typescript-eslint/no-loop-func
 	describe(frameworkName, () => {
 		const context: Context = { lastResult: undefined };
 
