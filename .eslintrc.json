@@ -53,6 +53,7 @@
     "@typescript-eslint/comma-spacing": "off", // deprecated: replaced by @stylistic/comma-spacing
     "@typescript-eslint/consistent-indexed-object-style": "warn",
     "@typescript-eslint/consistent-generic-constructors": "warn",
+    "@typescript-eslint/consistent-return": "warn",
     "@typescript-eslint/consistent-type-assertions": [
       "warn",
       {
@@ -558,7 +559,7 @@
       80
     ],
     "computed-property-spacing": "off", // deprecated: replaced by @stylistic/computed-property-spacing
-    "consistent-return": "warn",
+    "consistent-return": "off", // disabled by typescript-eslint
     "consistent-this": "off", // not needed: seems useless
     "constructor-super": "off", // disabled by typescript-eslint
     "curly": "warn",

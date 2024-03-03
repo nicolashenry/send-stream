@@ -1,6 +1,6 @@
 /* eslint-disable max-classes-per-file */
 /* eslint-disable @typescript-eslint/naming-convention */
-/* eslint-disable max-lines, max-lines-per-function, sonarjs/no-identical-functions, sonarjs/cognitive-complexity */
+/* eslint-disable max-lines, max-lines-per-function, sonarjs/no-identical-functions */
 /* eslint-env node, mocha */
 
 import * as assert from 'assert';
