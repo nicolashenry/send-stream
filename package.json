@@ -50,7 +50,7 @@
     "rimraf": "~5.0.0",
     "supertest": "~6.3.4",
     "ts-node": "~10.9.1",
-    "typescript": "~5.3.2"
+    "typescript": "~5.4.2"
   },
   "license": "MIT",
   "dependencies": {
