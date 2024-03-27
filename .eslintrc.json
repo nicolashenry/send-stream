@@ -372,6 +372,7 @@
     "@typescript-eslint/typedef": "off", // not needed: opposite of projet rules
     "@typescript-eslint/unbound-method": "warn",
     "@typescript-eslint/unified-signatures": "warn",
+    "@typescript-eslint/use-unknown-in-catch-callback-variable": "warn",
     "@stylistic/array-bracket-newline": "warn",
     "@stylistic/array-bracket-spacing": "warn",
     "@stylistic/array-element-newline": [
