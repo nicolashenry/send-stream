@@ -73,6 +73,6 @@ client.connect()
 		console.info('files have been uploaded');
 		await client.close();
 	})
-	.catch(err => {
+	.catch((err: unknown) => {
 		console.error('error:', err);
 	});

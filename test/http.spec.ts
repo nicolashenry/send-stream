@@ -102,7 +102,7 @@ describe('http', () => {
 					response.headers['X-Send-Stream-Error'] = response.error.name;
 				}
 				await response.send(res);
-			})().catch(err => {
+			})().catch((err: unknown) => {
 				res.statusCode = 500;
 				console.error(err);
 				if (!res.writableEnded) {
@@ -135,7 +135,7 @@ describe('http', () => {
 						response.headers['X-Send-Stream-Error'] = response.error.name;
 					}
 					await response.send(res);
-				})().catch(err => {
+				})().catch((err: unknown) => {
 					res.statusCode = 500;
 					console.error(err);
 					if (!res.writableEnded) {
@@ -676,7 +676,7 @@ describe('http', () => {
 						const response = await storage.prepareResponse(req.url!, req);
 						lastResult = response;
 						await response.send(res);
-					})().catch(err => {
+					})().catch((err: unknown) => {
 						res.statusCode = 500;
 						console.error(err);
 						if (!res.writableEnded) {
@@ -707,7 +707,7 @@ describe('http', () => {
 						const response = await storage.prepareResponse(req.url!, req);
 						lastResult = response;
 						await response.send(res);
-					})().catch(err => {
+					})().catch((err: unknown) => {
 						res.statusCode = 500;
 						console.error(err);
 						if (!res.writableEnded) {
@@ -750,7 +750,7 @@ describe('http', () => {
 						const response = await storage.prepareResponse(req.url!, req);
 						lastResult = response;
 						await response.send(res);
-					})().catch(err => {
+					})().catch((err: unknown) => {
 						res.statusCode = 500;
 						console.error(err);
 						if (!res.writableEnded) {
@@ -794,7 +794,7 @@ describe('http', () => {
 						const response = await storage.prepareResponse(req.url!, req);
 						lastResult = response;
 						await response.send(res);
-					})().catch(err => {
+					})().catch((err: unknown) => {
 						res.statusCode = 500;
 						console.error(err);
 						if (!res.writableEnded) {
@@ -827,7 +827,7 @@ describe('http', () => {
 							const response = await storage.prepareResponse(req.url!, req);
 							lastResult = response;
 							await response.send(res);
-						})().catch(err => {
+						})().catch((err: unknown) => {
 							res.statusCode = 500;
 							console.error(err);
 							if (!res.writableEnded) {
@@ -857,7 +857,7 @@ describe('http', () => {
 							const response = await storage.prepareResponse(req.url!, req);
 							lastResult = response;
 							await response.send(res);
-						})().catch(err => {
+						})().catch((err: unknown) => {
 							res.statusCode = 500;
 							console.error(err);
 							if (!res.writableEnded) {
@@ -889,7 +889,7 @@ describe('http', () => {
 							response.headers['X-Send-Stream-Resolved-Path']
 								= response.storageInfo?.attachedData.resolvedPath;
 							await response.send(res);
-						})().catch(err => {
+						})().catch((err: unknown) => {
 							res.statusCode = 500;
 							console.error(err);
 							if (!res.writableEnded) {
@@ -929,7 +929,7 @@ describe('http', () => {
 									= String('mtime' in storageInfo.attachedData.stats);
 							}
 							await response.send(res);
-						})().catch(err => {
+						})().catch((err: unknown) => {
 							res.statusCode = 500;
 							console.error(err);
 							if (!res.writableEnded) {
@@ -965,7 +965,7 @@ describe('http', () => {
 							result.headers['Content-Type'] = 'text/x-custom';
 							result.headers['ETag'] = 'W/"everything"';
 							await result.send(res);
-						})().catch(err => {
+						})().catch((err: unknown) => {
 							res.statusCode = 500;
 							console.error(err);
 							if (!res.writableEnded) {
@@ -1003,7 +1003,7 @@ describe('http', () => {
 								result.headers['X-Send-Stream-Error'] = result.error.name;
 							}
 							await result.send(res);
-						})().catch(err => {
+						})().catch((err: unknown) => {
 							res.statusCode = 500;
 							console.error(err);
 							if (!res.writableEnded) {
@@ -1037,7 +1037,7 @@ describe('http', () => {
 							const result = await storage.prepareResponse(req.url!, req);
 							lastResult = result;
 							await result.send(res);
-						})().catch(err => {
+						})().catch((err: unknown) => {
 							res.statusCode = 500;
 							console.error(err);
 							if (!res.writableEnded) {
@@ -1090,7 +1090,7 @@ describe('http', () => {
 								const result = await storage.prepareResponse(req.url!, req);
 								lastResult = result;
 								await result.send(res);
-							})().catch(err => {
+							})().catch((err: unknown) => {
 								res.statusCode = 500;
 								console.error(err);
 								if (!res.writableEnded) {
@@ -1144,7 +1144,7 @@ describe('http', () => {
 						const result = await storage.prepareResponse(req.url!, req, { etag: false });
 						lastResult = result;
 						await result.send(res);
-					})().catch(err => {
+					})().catch((err: unknown) => {
 						res.statusCode = 500;
 						console.error(err);
 						if (!res.writableEnded) {
@@ -1179,7 +1179,7 @@ describe('http', () => {
 							);
 							lastResult = result;
 							await result.send(res);
-						})().catch(err => {
+						})().catch((err: unknown) => {
 							res.statusCode = 500;
 							console.error(err);
 							if (!res.writableEnded) {
@@ -1217,7 +1217,7 @@ describe('http', () => {
 					} finally {
 						response.dispose();
 					}
-				})().catch(err => {
+				})().catch((err: unknown) => {
 					res.statusCode = 500;
 					console.error(err);
 					if (!res.writableEnded) {
@@ -1247,7 +1247,7 @@ describe('http', () => {
 					lastResult = true;
 					// eslint-disable-next-line @typescript-eslint/no-non-null-assertion
 					await storage.send(req.url!, req, res);
-				})().catch(err => {
+				})().catch((err: unknown) => {
 					res.statusCode = 500;
 					console.error(err);
 					if (!res.writableEnded) {
@@ -1681,7 +1681,7 @@ describe('http', () => {
 									response.headers['X-Send-Stream-Error'] = response.error.name;
 								}
 								await response.send(res);
-							})().catch(err => {
+							})().catch((err: unknown) => {
 								res.statusCode = 500;
 								console.error(err);
 								if (!res.writableEnded) {
@@ -1763,7 +1763,7 @@ describe('http', () => {
 								response.headers['X-Send-Stream-Error'] = response.error.name;
 							}
 							await response.send(res);
-						})().catch(err => {
+						})().catch((err: unknown) => {
 							res.statusCode = 500;
 							console.error(err);
 							if (!res.writableEnded) {
@@ -1803,7 +1803,7 @@ describe('http', () => {
 							result.headers['X-Send-Stream-Error'] = result.error.name;
 						}
 						await result.send(res);
-					})().catch(err => {
+					})().catch((err: unknown) => {
 						res.statusCode = 500;
 						console.error(err);
 						if (!res.writableEnded) {
@@ -1888,7 +1888,7 @@ describe('http', () => {
 						const result = await storage.prepareResponse(req.url!, req);
 						lastResult = result;
 						await result.send(res);
-					})().catch(err => {
+					})().catch((err: unknown) => {
 						res.statusCode = 500;
 						console.error(err);
 						if (!res.writableEnded) {
@@ -1923,7 +1923,7 @@ describe('http', () => {
 						const result = await storage.prepareResponse(req.url!, req);
 						lastResult = result;
 						await result.send(res);
-					})().catch(err => {
+					})().catch((err: unknown) => {
 						res.statusCode = 500;
 						console.error(err);
 						if (!res.writableEnded) {
@@ -1958,7 +1958,7 @@ describe('http', () => {
 						const result = await storage.prepareResponse(req.url!, req);
 						lastResult = result;
 						await result.send(res);
-					})().catch(err => {
+					})().catch((err: unknown) => {
 						res.statusCode = 500;
 						console.error(err);
 						if (!res.writableEnded) {
@@ -1992,7 +1992,7 @@ describe('http', () => {
 						lastResult = result;
 						await result.send(res);
 						res.destroy(new Error('olala'));
-					})().catch(err => {
+					})().catch((err: unknown) => {
 						res.statusCode = 500;
 						console.error(err);
 						if (!res.writableEnded) {
@@ -2047,7 +2047,7 @@ describe('http', () => {
 						const result = await errorStorage.prepareResponse(req.url!, req);
 						lastResult = result;
 						await result.send(res);
-					})().catch(err => {
+					})().catch((err: unknown) => {
 						res.statusCode = 500;
 						console.error(err);
 						if (!res.writableEnded) {
@@ -2102,7 +2102,7 @@ describe('http', () => {
 						const result = await errorStorage.prepareResponse(req.url!, req);
 						lastResult = result;
 						await result.send(res, { ignorePrematureClose: false });
-					})().catch(err => {
+					})().catch((err: unknown) => {
 						res.statusCode = 500;
 						console.error(err);
 						if (!res.writableEnded) {
@@ -2166,7 +2166,7 @@ describe('http', () => {
 							return <T> p.call(this, destination, options);
 						};
 						await resp.send(res);
-					})().catch(err => {
+					})().catch((err: unknown) => {
 						res.statusCode = 500;
 						console.error(err);
 						if (!res.writableEnded) {
@@ -2231,7 +2231,7 @@ describe('http', () => {
 							return <T> p.call(this, destination, options);
 						};
 						await resp.send(res);
-					})().catch(err => {
+					})().catch((err: unknown) => {
 						res.statusCode = 500;
 						console.error(err);
 						if (!res.stream.writableEnded) {
@@ -2302,7 +2302,7 @@ describe('http', () => {
 						);
 						lastResult = result;
 						await result.send(stream);
-					})().catch(err => {
+					})().catch((err: unknown) => {
 						stream.respond({ ':status': 500 });
 						stream.end(String(err));
 					});
@@ -2386,7 +2386,7 @@ describe('http', () => {
 						);
 						lastResult = result;
 						await result.send(res);
-					})().catch(err => {
+					})().catch((err: unknown) => {
 						res.statusCode = 500;
 						console.error(err);
 						if (!res.stream.writableEnded) {
@@ -2476,7 +2476,7 @@ describe('http', () => {
 						);
 						lastResult = result;
 						await result.send(res);
-					})().catch(err => {
+					})().catch((err: unknown) => {
 						res.statusCode = 500;
 						console.error(err);
 						if (!res.stream.writableEnded) {
@@ -2564,7 +2564,7 @@ describe('http', () => {
 						);
 						lastResult = result;
 						await result.send(stream);
-					})().catch(err => {
+					})().catch((err: unknown) => {
 						stream.respond({ ':status': 500 });
 						stream.end(String(err));
 					});
@@ -2657,7 +2657,7 @@ describe('http', () => {
 						);
 						lastResult = result;
 						await result.send(stream);
-					})().catch(err => {
+					})().catch((err: unknown) => {
 						stream.respond({ ':status': 500 });
 						stream.end(String(err));
 					});

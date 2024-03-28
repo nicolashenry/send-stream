@@ -34,6 +34,6 @@ app.listen(3001)
 	.then(() => {
 		console.info('listening on https://localhost:3001');
 	})
-	.catch(err => {
+	.catch((err: unknown) => {
 		console.error(err);
 	});

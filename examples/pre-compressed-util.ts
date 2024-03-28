@@ -50,6 +50,6 @@ precompressWithGzipAndBrotli(join(__dirname, 'assets'))
 	.then(() => {
 		console.info('files have been precompressed');
 	})
-	.catch(err => {
+	.catch((err: unknown) => {
 		console.error('error:', err);
 	});

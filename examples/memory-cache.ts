@@ -58,8 +58,8 @@ class FullCacheStorage extends GenericFileSystemStorage<CachedFileDescriptor> {
 							.then(cache => {
 								callback(null, cache);
 							})
-							.catch((err: Error) => {
-								callback(err, Number.NaN);
+							.catch((err: unknown) => {
+								callback(err instanceof Error ? err : new Error(String(err)), Number.NaN);
 							});
 					},
 					fstat: (
@@ -199,6 +199,6 @@ storage.cached
 				console.info('listening on http://localhost:3000');
 			});
 	})
-	.catch(err => {
+	.catch((err: unknown) => {
 		console.error(err);
 	});

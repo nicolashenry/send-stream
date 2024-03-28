@@ -29,7 +29,7 @@ app.on('stream', (stream, headers) => {
 		}
 		const result = await storage.prepareResponse(headers[':path'], headers);
 		await result.send(stream);
-	})().catch(err => {
+	})().catch((err: unknown) => {
 		console.error(err);
 		if (stream.headersSent) {
 			stream.destroy(err instanceof Error ? err : new Error(String(err)));

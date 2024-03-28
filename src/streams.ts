@@ -72,12 +72,12 @@ export class MultiStream extends PassThrough {
 				// eslint-disable-next-line no-underscore-dangle
 				super._destroy(error, callback);
 			})
-			.catch((closeError: Error) => {
+			.catch((closeError: unknown) => {
 				// eslint-disable-next-line no-underscore-dangle
 				super._destroy(
 					error
 						? new Error(`${ String(error) }\nthen\n${ String(closeError) }`)
-						: closeError,
+						: new Error(String(closeError)),
 					callback,
 				);
 			});

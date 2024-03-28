@@ -56,7 +56,7 @@ describe('static', () => {
 					result.headers['X-Send-Stream-Error'] = result.error.name;
 				}
 				await result.send(res);
-			})().catch(err => {
+			})().catch((err: unknown) => {
 				console.error(err);
 				if (!res.headersSent) {
 					res.statusCode = 500;

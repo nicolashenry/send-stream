@@ -16,7 +16,7 @@ const app = http.createServer((req, res) => {
 		}
 		const result = await storage.prepareResponse(req.url, req);
 		await result.send(res);
-	})().catch(err => {
+	})().catch((err: unknown) => {
 		console.error(err);
 		if (res.headersSent) {
 			res.destroy(err instanceof Error ? err : new Error(String(err)));

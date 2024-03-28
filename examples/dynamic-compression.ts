@@ -25,6 +25,6 @@ app.listen(3000)
 	.then(() => {
 		console.info('listening on http://localhost:3000');
 	})
-	.catch(err => {
+	.catch((err: unknown) => {
 		console.error(err);
 	});

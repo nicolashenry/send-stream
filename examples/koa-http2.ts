@@ -36,7 +36,7 @@ const server = http2.createSecureServer(
 	},
 	(req, res) => {
 		app.callback()(req, res)
-			.catch(err => {
+			.catch((err: unknown) => {
 				console.error(err);
 			});
 	},

@@ -21,7 +21,7 @@ export class VanillaServerWrapper implements ServerWrapper {
 				if (this.listener) {
 					await this.listener(req, res);
 				}
-			})().catch(err => {
+			})().catch((err: unknown) => {
 				console.error(err);
 				if (res.headersSent) {
 					res.destroy(err instanceof Error ? err : new Error(String(err)));

@@ -69,6 +69,7 @@
     "prepublishOnly": "npm run test && npm run lint",
     "prepack": "npm run clean-build",
     "lint": "eslint . --ext .ts --max-warnings 0 --report-unused-disable-directives",
+    "lint-fix": "eslint . --ext .ts --max-warnings 0 --report-unused-disable-directives --fix",
     "test-no-coverage": "cross-env TS_NODE_PROJECT=test/tsconfig.json mocha test/*.spec.ts",
     "test-coverage": "cross-env TS_NODE_PROJECT=test/tsconfig.json nyc mocha test/*.spec.ts",
     "test": "npm run test-coverage",

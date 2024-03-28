@@ -22,7 +22,7 @@ const app = http2.createSecureServer(options, (req, res) => {
 	(async () => {
 		const result = await storage.prepareResponse(req.url, req);
 		await result.send(res);
-	})().catch(err => {
+	})().catch((err: unknown) => {
 		console.error(err);
 		if (res.headersSent) {
 			res.stream.destroy(err instanceof Error ? err : new Error(String(err)));

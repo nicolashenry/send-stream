@@ -101,7 +101,7 @@ client.connect()
 		await app.listen(3000);
 		console.info('listening on http://localhost:3000');
 	})
-	.catch(err => {
+	.catch((err: unknown) => {
 		console.error(err);
 	});
 

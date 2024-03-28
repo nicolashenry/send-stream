@@ -35,7 +35,7 @@ const server = https.createServer(
 	},
 	(req, res) => {
 		app.callback()(req, res)
-			.catch(err => {
+			.catch((err: unknown) => {
 				console.error(err);
 			});
 	},
