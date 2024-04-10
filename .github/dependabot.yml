@@ -9,3 +9,12 @@ updates:
     prefix: fix
     prefix-development: chore
     include: scope
+- package-ecosystem: github-actions
+  directory: "/"
+  schedule:
+    interval: daily
+  open-pull-requests-limit: 99
+  commit-message:
+    prefix: fix
+    prefix-development: chore
+    include: scope
