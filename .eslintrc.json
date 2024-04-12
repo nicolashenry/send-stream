@@ -15,7 +15,7 @@
     "import",
     "jsdoc",
     "unicorn",
-    "node",
+    "n",
     "sonarjs",
     "@regru/prefer-early-return"
   ],
