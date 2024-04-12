@@ -75,7 +75,7 @@ export class ExpressServerWrapper implements ServerWrapper {
 				res.set(result.headers);
 				await pipeline(result.stream, res);
 			} catch (err: unknown) {
-				// eslint-disable-next-line node/callback-return
+				// eslint-disable-next-line n/callback-return
 				next(err);
 			}
 		});
@@ -116,7 +116,7 @@ export class ExpressServerWrapper implements ServerWrapper {
 				res.set(result.headers);
 				await pipeline(result.stream, res);
 			} catch (err: unknown) {
-				// eslint-disable-next-line node/callback-return
+				// eslint-disable-next-line n/callback-return
 				next(err);
 			}
 		});
@@ -164,7 +164,7 @@ export class ExpressServerWrapper implements ServerWrapper {
 				res.set(result.headers);
 				await pipeline(result.stream, res);
 			} catch (err: unknown) {
-				// eslint-disable-next-line node/callback-return
+				// eslint-disable-next-line n/callback-return
 				next(err);
 			}
 		});

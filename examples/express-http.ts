@@ -22,7 +22,7 @@ app.get('*', async (req, res, next) => {
 		}
 		await result.send(res);
 	} catch (err: unknown) {
-		// eslint-disable-next-line node/callback-return
+		// eslint-disable-next-line n/callback-return
 		next(err);
 	}
 });

@@ -13,9 +13,9 @@ const app = fastify({
 	exposeHeadRoutes: true,
 	http2: true,
 	https: {
-		// eslint-disable-next-line node/no-sync
+		// eslint-disable-next-line n/no-sync
 		key: fs.readFileSync(join(__dirname, 'cert', 'localhost.key')),
-		// eslint-disable-next-line node/no-sync
+		// eslint-disable-next-line n/no-sync
 		cert: fs.readFileSync(join(__dirname, 'cert', 'localhost.crt')),
 	},
 });

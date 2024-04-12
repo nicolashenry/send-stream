@@ -6,7 +6,7 @@
 
 import type { Readable } from 'stream';
 import { posix } from 'path';
-// eslint-disable-next-line node/prefer-global/url
+// eslint-disable-next-line n/prefer-global/url
 import { URL } from 'url';
 
 import { fastify } from 'fastify';
