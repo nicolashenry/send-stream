@@ -19,9 +19,9 @@ jobs:
         NODE_VERSION: ${{ matrix.node-version }}
 
       steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@b4ffde65f46336ab88eb53be808477a3936bae11 # v4
       - name: Use Node.js ${{ matrix.node-version }}
-        uses: actions/setup-node@v4
+        uses: actions/setup-node@60edb5dd545a775178f52524783378180af0d1f8 # v4
         with:
           node-version: ${{ matrix.node-version }}
       - run: npm ci
@@ -41,15 +41,15 @@ jobs:
       NODE_VERSION: ${{ matrix.node-version }}
 
     steps:
-    - uses: actions/checkout@v4
+    - uses: actions/checkout@b4ffde65f46336ab88eb53be808477a3936bae11 # v4
     - name: Use Node.js ${{ matrix.node-version }}
-      uses: actions/setup-node@v4
+      uses: actions/setup-node@60edb5dd545a775178f52524783378180af0d1f8 # v4
       with:
         node-version: ${{ matrix.node-version }}
     - run: npm ci
     - run: npm run test-coverage
     - name: Upload coverage to Codecov
-      uses: codecov/codecov-action@v4
+      uses: codecov/codecov-action@84508663e988701840491b86de86b666e8a86bed # v4
       with:
         token: ${{ secrets.CODECOV_TOKEN }}
         env_vars: OS,NODE_VERSION
