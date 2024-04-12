@@ -1111,31 +1111,31 @@
     "unicorn/template-indent": "warn",
     "unicorn/text-encoding-identifier-case": "off", // too restrictive
     "unicorn/throw-new-error": "warn",
-    "node/callback-return": "warn",
-    "node/exports-style": "warn", // not needed: covered by typescript
-    "node/file-extension-in-import": "off", // not needed: covered by typescript
-    "node/global-require": "off", // not needed: covered by typescript
-    "node/handle-callback-err": "warn",
-    "node/no-callback-literal": "warn",
-    "node/no-deprecated-api": "warn",
-    "node/no-exports-assign": "off", // not needed: covered by typescript
-    "node/no-extraneous-import": "warn",
-    "node/no-extraneous-require": "off", // not needed: seems useless
-    "node/no-missing-import": "off", // not needed: covered by typescript
-    "node/no-missing-require": "off", // not needed: covered by typescript
-    "node/no-mixed-requires": "off", // not needed: seems useless
-    "node/no-new-require": "off", // not needed: seems useless
-    "node/no-path-concat": "warn",
-    "node/no-process-env": "warn",
-    "node/no-process-exit": "warn",
-    "node/no-restricted-import": "off", // not needed: not any import to exclude
-    "node/no-restricted-require": "off", // not needed: seems useless
-    "node/no-sync": "warn",
-    "node/no-unpublished-bin": "warn",
-    "node/no-unpublished-import": "warn",
-    "node/no-unpublished-require": "off", // not needed: seems useless
-    "node/no-unsupported-features/es-builtins": "warn",
-    "node/no-unsupported-features/es-syntax": [
+    "n/callback-return": "warn",
+    "n/exports-style": "warn", // not needed: covered by typescript
+    "n/file-extension-in-import": "off", // not needed: covered by typescript
+    "n/global-require": "off", // not needed: covered by typescript
+    "n/handle-callback-err": "warn",
+    "n/no-callback-literal": "warn",
+    "n/no-deprecated-api": "warn",
+    "n/no-exports-assign": "off", // not needed: covered by typescript
+    "n/no-extraneous-import": "warn",
+    "n/no-extraneous-require": "off", // not needed: seems useless
+    "n/no-missing-import": "off", // not needed: covered by typescript
+    "n/no-missing-require": "off", // not needed: covered by typescript
+    "n/no-mixed-requires": "off", // not needed: seems useless
+    "n/no-new-require": "off", // not needed: seems useless
+    "n/no-path-concat": "warn",
+    "n/no-process-env": "warn",
+    "n/no-process-exit": "warn",
+    "n/no-restricted-import": "off", // not needed: not any import to exclude
+    "n/no-restricted-require": "off", // not needed: seems useless
+    "n/no-sync": "warn",
+    "n/no-unpublished-bin": "warn",
+    "n/no-unpublished-import": "warn",
+    "n/no-unpublished-require": "off", // not needed: seems useless
+    "n/no-unsupported-features/es-builtins": "warn",
+    "n/no-unsupported-features/es-syntax": [
       "warn",
       {
         "ignores": [
@@ -1143,18 +1143,18 @@
         ]
       }
     ],
-    "node/no-unsupported-features/node-builtins": "warn",
-    "node/prefer-global/buffer": "warn",
-    "node/prefer-global/console": "warn",
-    "node/prefer-global/process": "warn",
-    "node/prefer-global/text-decoder": "warn",
-    "node/prefer-global/text-encoder": "warn",
-    "node/prefer-global/url-search-params": "warn",
-    "node/prefer-global/url": "warn",
-    "node/prefer-promises/dns": "warn",
-    "node/prefer-promises/fs": "warn",
-    "node/process-exit-as-throw": "warn",
-    "node/shebang": "warn",
+    "n/no-unsupported-features/node-builtins": "warn",
+    "n/prefer-global/buffer": "warn",
+    "n/prefer-global/console": "warn",
+    "n/prefer-global/process": "warn",
+    "n/prefer-global/text-decoder": "warn",
+    "n/prefer-global/text-encoder": "warn",
+    "n/prefer-global/url-search-params": "warn",
+    "n/prefer-global/url": "warn",
+    "n/prefer-promises/dns": "warn",
+    "n/prefer-promises/fs": "warn",
+    "n/process-exit-as-throw": "warn",
+    "n/shebang": "warn",
     "sonarjs/cognitive-complexity": ["warn", 140],
     "sonarjs/elseif-without-else": "off", // not needed: seems useless
     "sonarjs/max-switch-cases": "warn",
