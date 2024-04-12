@@ -3,7 +3,7 @@ import { open, fstat, close, createReadStream, opendir, readdir, constants } fro
 import { join } from 'path';
 import { Readable } from 'stream';
 import { promisify } from 'util';
-// eslint-disable-next-line node/prefer-global/url
+// eslint-disable-next-line n/prefer-global/url
 import { URL } from 'url';
 
 import { Storage } from './storage';

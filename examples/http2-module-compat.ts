@@ -11,9 +11,9 @@ import { FileSystemStorage } from '../src/send-stream';
 const storage = new FileSystemStorage(join(__dirname, 'assets'));
 
 const options = {
-	// eslint-disable-next-line node/no-sync
+	// eslint-disable-next-line n/no-sync
 	key: fs.readFileSync(join(__dirname, 'cert', 'localhost.key')),
-	// eslint-disable-next-line node/no-sync
+	// eslint-disable-next-line n/no-sync
 	cert: fs.readFileSync(join(__dirname, 'cert', 'localhost.crt')),
 	allowHTTP1: true,
 };

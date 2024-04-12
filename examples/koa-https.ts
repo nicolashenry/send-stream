@@ -17,7 +17,7 @@ const storage = new FileSystemStorage(join(__dirname, 'assets'));
 app.use(async (ctx, next) => {
 	const result = await storage.prepareResponse(ctx.request.path, ctx.req);
 	if (result.statusCode === 404) {
-		// eslint-disable-next-line node/callback-return
+		// eslint-disable-next-line n/callback-return
 		await next();
 		return;
 	}
@@ -28,9 +28,9 @@ app.use(async (ctx, next) => {
 
 const server = https.createServer(
 	{
-		// eslint-disable-next-line node/no-sync
+		// eslint-disable-next-line n/no-sync
 		key: fs.readFileSync(join(__dirname, 'cert', 'localhost.key')),
-		// eslint-disable-next-line node/no-sync
+		// eslint-disable-next-line n/no-sync
 		cert: fs.readFileSync(join(__dirname, 'cert', 'localhost.crt')),
 	},
 	(req, res) => {
