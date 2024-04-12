@@ -1013,12 +1013,14 @@
     "unicorn/import-style": "off", // not needed: seems useless
     "unicorn/new-for-builtins": "warn",
     "unicorn/no-abusive-eslint-disable": "warn",
+    "unicorn/no-anonymous-default-export": "warn",
     "unicorn/no-array-callback-reference": "off", // not needed: covered by typescript
     "unicorn/no-array-for-each": "warn",
     "unicorn/no-array-method-this-argument": "warn",
     "unicorn/no-array-push-push": "warn",
     "unicorn/no-array-reduce": "off", // not needed: seems useless
     "unicorn/no-await-expression-member": "warn",
+    "unicorn/no-await-in-promise-methods": "warn",
     "unicorn/no-console-spaces": "warn",
     "unicorn/no-document-cookie": "off", // not needed: not executed in a browser
     "unicorn/no-empty-file": "warn",
@@ -1035,6 +1037,7 @@
     "unicorn/no-null": "off", // not needed: seems useless
     "unicorn/no-object-as-default-parameter": "warn",
     "unicorn/no-process-exit": "warn",
+    "unicorn/no-single-promise-in-promise-methods": "warn",
     "unicorn/no-static-only-class": "warn",
     "unicorn/no-thenable": "warn",
     "unicorn/no-this-assignment": "off", // not needed: covered by @typescript-eslint/no-this-alias
