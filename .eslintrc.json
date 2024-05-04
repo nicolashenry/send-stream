@@ -416,6 +416,7 @@
       {}
     ],
     "@stylistic/indent-binary-ops": ["warn", "tab"],
+    "@stylistic/jsx-function-call-newline": "off", // not needed: seems useless
     "@stylistic/jsx-quotes": "off", // not needed: seems useless
     "@stylistic/key-spacing": "warn",
     "@stylistic/keyword-spacing": "warn",
