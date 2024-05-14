@@ -73,7 +73,7 @@ export type Uint8ArrayOrStreamRange = StreamRange | Uint8Array;
 /**
  * Random bytes function returing promise
  */
-export const randomBytes = promisify(cryptoRandomBytes);
+export const randomBytes: (size: number) => Promise<Buffer> = promisify(cryptoRandomBytes);
 
 /**
  * Transform stats to etag
@@ -101,7 +101,7 @@ export function statsToEtag(size: number, mtimeMs: number, contentEncoding?: str
  * @param timeMs - time in milliseconds
  * @returns utc string
  */
-export function millisecondsToUTCString(timeMs: number) {
+export function millisecondsToUTCString(timeMs: number): string {
 	return new Date(timeMs).toUTCString();
 }
 
@@ -167,7 +167,7 @@ export function isRangeFresh(
 	requestHeaders: RequestHeaders,
 	etag: string | false,
 	lastModified: string | false,
-) {
+): boolean {
 	const { 'if-range': ifRange } = requestHeaders;
 
 	if (!ifRange) {
@@ -294,7 +294,7 @@ export function getFreshStatus(
 	requestHeaders: RequestHeaders,
 	etag: string | false,
 	lastModified: string | false,
-) {
+): 412 | 304 | 200 {
 	const {
 		'if-match': ifMatch,
 		'if-none-match': ifNoneMatch,

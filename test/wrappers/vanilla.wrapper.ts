@@ -40,7 +40,7 @@ export class VanillaServerWrapper implements ServerWrapper {
 		this.context = context;
 	}
 
-	async listen() {
+	async listen(): Promise<void> {
 		await new Promise(resolve => {
 			this.server = this.server.listen(() => {
 				resolve(undefined);
@@ -48,7 +48,7 @@ export class VanillaServerWrapper implements ServerWrapper {
 		});
 	}
 
-	async close() {
+	async close(): Promise<void> {
 		await new Promise((resolve, reject) => {
 			this.server.close(err => {
 				if (err) {
@@ -64,7 +64,7 @@ export class VanillaServerWrapper implements ServerWrapper {
 		storage: Storage<Reference, AttachedData>,
 		reference: Reference,
 		opts: PrepareResponseOptions & { noResult?: boolean } = {},
-	) {
+	): void {
 		this.listener = async (req, res) => {
 			if (opts.noResult) {
 				this.context.lastResult = true;
@@ -89,7 +89,7 @@ export class VanillaServerWrapper implements ServerWrapper {
 		root: string,
 		path?: string | string[],
 		opts?: PrepareResponseOptions & FileSystemStorageOptions & { noResult?: boolean; removeHeader?: string },
-	) {
+	): void {
 		this.listener = async (req, res) => {
 			if (opts?.noResult) {
 				this.context.lastResult = true;
@@ -122,7 +122,7 @@ export class VanillaServerWrapper implements ServerWrapper {
 		root: string,
 		path?: string | string[],
 		opts?: PrepareResponseOptions & FileSystemStorageOptions & { noResult?: boolean },
-	) {
+	): void {
 		this.listener = async (req, res) => {
 			if (opts?.noResult) {
 				this.context.lastResult = true;

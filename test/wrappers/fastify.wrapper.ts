@@ -22,11 +22,11 @@ export class FastifyServerWrapper implements ServerWrapper {
 		this.server = this.app.server;
 	}
 
-	async listen() {
+	async listen(): Promise<void> {
 		await this.app.listen({ port: 0, host: '0.0.0.0' });
 	}
 
-	async close() {
+	async close(): Promise<void> {
 		await this.app.close();
 	}
 
@@ -34,7 +34,7 @@ export class FastifyServerWrapper implements ServerWrapper {
 		storage: Storage<Reference, AttachedData>,
 		reference: Reference,
 		opts: PrepareResponseOptions & { noResult?: boolean } = {},
-	) {
+	): void {
 		this.app.get('*', async (request, reply) => {
 			if (opts.noResult) {
 				this.context.lastResult = true;
@@ -59,7 +59,7 @@ export class FastifyServerWrapper implements ServerWrapper {
 		root: string,
 		path?: string | string[],
 		opts?: PrepareResponseOptions & FileSystemStorageOptions & { noResult?: boolean; removeHeader?: string },
-	) {
+	): void {
 		this.app.get('*', async (request, reply) => {
 			if (opts?.noResult) {
 				this.context.lastResult = true;
@@ -92,7 +92,7 @@ export class FastifyServerWrapper implements ServerWrapper {
 		root: string,
 		path?: string | string[],
 		opts?: PrepareResponseOptions & FileSystemStorageOptions & { noResult?: boolean },
-	) {
+	): void {
 		this.app.get('*', async (request, reply) => {
 			if (opts?.noResult) {
 				this.context.lastResult = true;

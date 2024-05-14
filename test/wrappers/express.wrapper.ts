@@ -21,14 +21,14 @@ export class ExpressServerWrapper implements ServerWrapper {
 		this.context = context;
 	}
 
-	get server() {
+	get server(): Server {
 		if (!this.serverInstance) {
 			throw new Error('server not existing');
 		}
 		return this.serverInstance;
 	}
 
-	async listen() {
+	async listen(): Promise<void> {
 		await new Promise(resolve => {
 			this.serverInstance = this.app.listen(() => {
 				resolve(undefined);
@@ -36,7 +36,7 @@ export class ExpressServerWrapper implements ServerWrapper {
 		});
 	}
 
-	async close() {
+	async close(): Promise<void> {
 		await new Promise((resolve, reject) => {
 			this.server.close(err => {
 				if (err) {
@@ -52,7 +52,7 @@ export class ExpressServerWrapper implements ServerWrapper {
 		storage: Storage<Reference, AttachedData>,
 		reference: Reference,
 		opts: PrepareResponseOptions & { noResult?: boolean } = {},
-	) {
+	): void {
 		// eslint-disable-next-line @typescript-eslint/no-misused-promises
 		this.app.get('*', async (req, res, next) => {
 			try {
@@ -85,7 +85,7 @@ export class ExpressServerWrapper implements ServerWrapper {
 		root: string,
 		path?: string | string[],
 		opts?: PrepareResponseOptions & FileSystemStorageOptions & { noResult?: boolean; removeHeader?: string },
-	) {
+	): void {
 		// eslint-disable-next-line @typescript-eslint/no-misused-promises
 		this.app.get('*', async (req, res, next) => {
 			try {
@@ -126,7 +126,7 @@ export class ExpressServerWrapper implements ServerWrapper {
 		root: string,
 		path?: string | string[],
 		opts?: PrepareResponseOptions & FileSystemStorageOptions & { noResult?: boolean },
-	) {
+	): void {
 		// eslint-disable-next-line @typescript-eslint/no-misused-promises
 		this.app.get('*', async (req, res, next) => {
 			try {

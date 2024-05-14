@@ -36,13 +36,13 @@ import {
  * @param path - the path to escape
  * @returns the escaped path
  */
-export function escapeHTMLInPath(path: string) {
+export function escapeHTMLInPath(path: string): string {
 	// & is the only character to escape. '<', '>' and '"' are already excluded from listing
 	return path.replace(/&/ug, '&amp;');
 }
 
-// eslint-disable-next-line no-control-regex
-export const FORBIDDEN_CHARACTERS = /[/?<>\\:*|":\u0000-\u001F\u0080-\u009F]/u;
+// eslint-disable-next-line no-control-regex, @typescript-eslint/no-inferrable-types
+export const FORBIDDEN_CHARACTERS: RegExp = /[/?<>\\:*|":\u0000-\u001F\u0080-\u009F]/u;
 
 /**
  * File system storage
@@ -156,7 +156,7 @@ export class GenericFileSystemStorage<FileDescriptor> extends Storage<FilePath, 
 	 * @returns path array
 	 * @throws when the path can not be parsed
 	 */
-	parsePath(path: FilePath) {
+	parsePath(path: FilePath): { pathParts: readonly string[]; haveTrailingSlash: boolean } {
 		let pathParts;
 
 		if (typeof path === 'string') {
@@ -263,7 +263,7 @@ export class GenericFileSystemStorage<FileDescriptor> extends Storage<FilePath, 
 	 * @param path - file path
 	 * @returns file handle
 	 */
-	async safeOpen(path: string) {
+	async safeOpen(path: string): Promise<FileDescriptor | undefined> {
 		let fd;
 		try {
 			fd = await this.fsOpen(path, this.fsConstants.O_RDONLY);
@@ -279,7 +279,7 @@ export class GenericFileSystemStorage<FileDescriptor> extends Storage<FilePath, 
 	 * @param _path - file path (unused but can be useful for caching on override)
 	 * @returns Stat object
 	 */
-	async stat(fd: FileDescriptor, _path: string) {
+	async stat(fd: FileDescriptor, _path: string): Promise<Stats> {
 		return this.fsFstat(fd);
 	}
 
@@ -289,7 +289,7 @@ export class GenericFileSystemStorage<FileDescriptor> extends Storage<FilePath, 
 	 * @param _path - file path (unused but can be useful for caching on override)
 	 * @returns Stat object
 	 */
-	async earlyClose(fd: FileDescriptor, _path: string) {
+	async earlyClose(fd: FileDescriptor, _path: string): Promise<void> {
 		return this.fsClose(fd);
 	}
 
@@ -454,7 +454,8 @@ export class GenericFileSystemStorage<FileDescriptor> extends Storage<FilePath, 
 	 * @param storageInfo - storage information
 	 * @yields html parts
 	 */
-	async *getDirectoryListing(storageInfo: StorageInfo<GenericFileData<FileDescriptor>>) {
+	async *getDirectoryListing(storageInfo: StorageInfo<GenericFileData<FileDescriptor>>):
+	AsyncGenerator<string, void, void> {
 		const { attachedData: { pathParts } } = storageInfo;
 
 		const isNotRoot = pathParts.length > 1;
@@ -492,7 +493,7 @@ export class GenericFileSystemStorage<FileDescriptor> extends Storage<FilePath, 
 	 * @param storageInfo - storage information
 	 * @returns the list of files
 	 */
-	async opendir(storageInfo: StorageInfo<GenericFileData<FileDescriptor>>) {
+	async opendir(storageInfo: StorageInfo<GenericFileData<FileDescriptor>>): Promise<Dir | Dirent[]> {
 		return this.fsOpendir
 			? this.fsOpendir(storageInfo.attachedData.resolvedPath)
 			: this.fsReaddir(storageInfo.attachedData.resolvedPath, { withFileTypes: true });

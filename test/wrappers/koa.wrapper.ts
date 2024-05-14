@@ -18,14 +18,14 @@ export class KoaServerWrapper implements ServerWrapper {
 		this.context = context;
 	}
 
-	get server() {
+	get server(): Server {
 		if (!this.serverInstance) {
 			throw new Error('server not existing');
 		}
 		return this.serverInstance;
 	}
 
-	async listen() {
+	async listen(): Promise<void> {
 		await new Promise(resolve => {
 			this.serverInstance = this.app.listen(() => {
 				resolve(undefined);
@@ -33,7 +33,7 @@ export class KoaServerWrapper implements ServerWrapper {
 		});
 	}
 
-	async close() {
+	async close(): Promise<void> {
 		await new Promise((resolve, reject) => {
 			this.server.close(err => {
 				if (err) {
@@ -49,7 +49,7 @@ export class KoaServerWrapper implements ServerWrapper {
 		storage: Storage<Reference, AttachedData>,
 		reference: Reference,
 		opts: PrepareResponseOptions & { noResult?: boolean } = {},
-	) {
+	): void {
 		this.app.use(async ctx => {
 			if (opts.noResult) {
 				this.context.lastResult = true;
@@ -73,7 +73,7 @@ export class KoaServerWrapper implements ServerWrapper {
 		root: string,
 		path?: string | string[],
 		opts?: PrepareResponseOptions & FileSystemStorageOptions & { noResult?: boolean; removeHeader?: string },
-	) {
+	): void {
 		this.app.use(async ctx => {
 			if (opts?.noResult) {
 				this.context.lastResult = true;
@@ -105,7 +105,7 @@ export class KoaServerWrapper implements ServerWrapper {
 		root: string,
 		path?: string | string[],
 		opts?: PrepareResponseOptions & FileSystemStorageOptions & { noResult?: boolean },
-	) {
+	): void {
 		this.app.use(async ctx => {
 			if (opts?.noResult) {
 				this.context.lastResult = true;

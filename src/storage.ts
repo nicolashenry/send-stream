@@ -508,7 +508,7 @@ export abstract class Storage<Reference, AttachedData> {
 		req: http.IncomingMessage | http2.Http2ServerRequest | http2.IncomingHttpHeaders,
 		res: http.ServerResponse | http2.Http2ServerResponse | http2.ServerHttp2Stream,
 		opts: StorageSendOptions = {},
-	) {
+	): Promise<void> {
 		const response = await this.prepareResponse(reference, req, opts);
 		try {
 			await response.send(res, opts);
@@ -526,7 +526,7 @@ export abstract class Storage<Reference, AttachedData> {
 	 * @returns compressed stream
 	 * @throws if content encoding is not supported
 	 */
-	createCompressedStream(stream: Readable, contentEncoding: string, expectedSize?: number) {
+	createCompressedStream(stream: Readable, contentEncoding: string, expectedSize?: number): Readable {
 		switch (contentEncoding) {
 		case 'br': {
 			const res = pipeline(
@@ -573,7 +573,8 @@ export abstract class Storage<Reference, AttachedData> {
 	 * @param allowedMethods - allowed methods for Allow header
 	 * @returns Method Not Allowed response
 	 */
-	createMethodNotAllowedError(isHeadMethod: boolean, allowedMethods: readonly string[]) {
+	createMethodNotAllowedError(isHeadMethod: boolean, allowedMethods: readonly string[]):
+	StreamResponse<AttachedData> {
 		// Method Not Allowed
 		// eslint-disable-next-line @typescript-eslint/no-non-null-assertion
 		const statusMessageBuffer = Buffer.from(http.STATUS_CODES['405']!);
@@ -601,7 +602,8 @@ export abstract class Storage<Reference, AttachedData> {
 	 * @param error - the error causing this response
 	 * @returns the error response
 	 */
-	createStorageError(isHeadMethod: boolean, error: unknown) {
+	createStorageError(isHeadMethod: boolean, error: unknown):
+	StreamResponse<AttachedData> {
 		// Not Found
 		// eslint-disable-next-line @typescript-eslint/no-non-null-assertion
 		const statusMessageBuffer = Buffer.from(http.STATUS_CODES['404']!);
@@ -630,7 +632,7 @@ export abstract class Storage<Reference, AttachedData> {
 	createNotModifiedResponse(
 		responseHeaders: ResponseHeaders,
 		storageInfo: StorageInfo<AttachedData>,
-	) {
+	): StreamResponse<AttachedData> {
 		// Not Modified
 		return new StreamResponse(304, responseHeaders, new BufferStream(), storageInfo);
 	}
@@ -641,7 +643,8 @@ export abstract class Storage<Reference, AttachedData> {
 	 * @param storageInfo - the current storage info
 	 * @returns the Precondition Failed error response
 	 */
-	createPreconditionFailedError(isHeadMethod: boolean, storageInfo: StorageInfo<AttachedData>) {
+	createPreconditionFailedError(isHeadMethod: boolean, storageInfo: StorageInfo<AttachedData>):
+	StreamResponse<AttachedData> {
 		// Precondition Failed
 		// eslint-disable-next-line @typescript-eslint/no-non-null-assertion
 		const statusMessageBuffer = Buffer.from(http.STATUS_CODES['412']!);
@@ -668,7 +671,8 @@ export abstract class Storage<Reference, AttachedData> {
 	 * @param storageInfo - the current storage info
 	 * @returns the Range Not Satisfiable error response
 	 */
-	createRangeNotSatisfiableError(isHeadMethod: boolean, size: number, storageInfo: StorageInfo<AttachedData>) {
+	createRangeNotSatisfiableError(isHeadMethod: boolean, size: number, storageInfo: StorageInfo<AttachedData>):
+	StreamResponse<AttachedData> {
 		// Range Not Satisfiable
 		// eslint-disable-next-line @typescript-eslint/no-non-null-assertion
 		const statusMessageBuffer = Buffer.from(http.STATUS_CODES['416']!);
@@ -704,7 +708,7 @@ export abstract class Storage<Reference, AttachedData> {
 		responseHeaders: ResponseHeaders,
 		stream: Readable,
 		storageInfo: StorageInfo<AttachedData>,
-	) {
+	): StreamResponse<AttachedData> {
 		// Ok | Partial Content
 		return new StreamResponse(statusCode, responseHeaders, stream, storageInfo);
 	}

@@ -56,7 +56,7 @@ export class StreamResponse<AttachedData> {
 	async send(
 		res: ServerResponse | Http2ServerResponse | ServerHttp2Stream,
 		{ ignorePrematureClose = true }: SendOptions = {},
-	) {
+	): Promise<void> {
 		const { statusCode } = this;
 		const { headers: responseHeaders, stream: readStream } = this;
 
@@ -90,7 +90,7 @@ export class StreamResponse<AttachedData> {
 	/**
 	 * Disposes of resources within the stream response object
 	 */
-	dispose() {
+	dispose(): void {
 		this.stream.destroy();
 	}
 }
