@@ -48,7 +48,7 @@
     "mongodb": "6.6.1",
     "nyc": "15.1.0",
     "rimraf": "5.0.7",
-    "supertest": "6.3.4",
+    "supertest": "7.0.0",
     "ts-node": "10.9.2",
     "typescript": "5.4.5"
   },
