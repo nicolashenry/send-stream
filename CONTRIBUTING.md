@@ -110,7 +110,7 @@ npm run build
 To check that your code is ok with the tests (the tests have to cover all parts of the code), you can execute this command:
 
 ```
-npm run test-coverage
+npm run test
 ```
 
 To check that your code is ok with our linting rules, you can execute this command:
