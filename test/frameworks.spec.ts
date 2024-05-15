@@ -3,13 +3,13 @@
 
 import * as assert from 'assert';
 import * as fs from 'fs';
-import { createBrotliDecompress } from 'zlib';
 import { join } from 'path';
-import { Readable, pipeline } from 'stream';
+import { Readable } from 'stream';
 import { promisify } from 'util';
 
 import request from 'supertest';
 import * as memfs from 'memfs';
+import type { BodyPart } from 'byteranges';
 
 import type {
 	StorageInfo,
@@ -26,87 +26,7 @@ import { FastifyServerWrapper } from './wrappers/fastify.wrapper';
 import { KoaServerWrapper } from './wrappers/koa.wrapper';
 import { ExpressServerWrapper } from './wrappers/express.wrapper';
 import { VanillaServerWrapper } from './wrappers/vanilla.wrapper';
-
-function brotliParser(res: request.Response, cb: (err: Error | null, body: unknown) => void) {
-	const readable = new Readable({
-		// eslint-disable-next-line @typescript-eslint/no-empty-function
-		read() {},
-	});
-
-	res.on('data', chunk => {
-		readable.push(chunk);
-	});
-	res.on('error', (err: Error | undefined) => {
-		readable.destroy(err);
-	});
-	res.on('end', () => {
-		readable.push(null);
-	});
-
-	const decompress = pipeline(readable, createBrotliDecompress(), err => {
-		if (!err) {
-			return;
-		}
-		cb(err, null);
-	});
-
-	const chunks: Buffer[] = [];
-	let length = 0;
-	decompress.on('data', (chunk: Buffer | string) => {
-		const buffer = Buffer.isBuffer(chunk) ? chunk : Buffer.from(chunk);
-		chunks.push(buffer);
-		length += buffer.length;
-	});
-	decompress.on('error', err => {
-		cb(err, null);
-	});
-	decompress.on('end', () => {
-		const concatChunks = Buffer.concat(chunks, length);
-		cb(null, Buffer.isEncoding(res.charset)
-			? concatChunks.toString(res.charset)
-			: concatChunks.toString());
-	});
-}
-
-function multipartHandler(res: request.Response, cb: (err: Error | null, body: unknown) => void) {
-	const chunks: Buffer[] = [];
-	let length = 0;
-	res.on('data', (chunk: Buffer | string) => {
-		const buffer = Buffer.isBuffer(chunk) ? chunk : Buffer.from(chunk);
-		chunks.push(buffer);
-		length += buffer.length;
-	});
-	let end = false;
-	res.on('error', (err: Error) => {
-		end = true;
-		cb(err, null);
-	});
-	res.on('end', () => {
-		end = true;
-		const concatChunks = Buffer.concat(chunks, length);
-		res.text = Buffer.isEncoding(res.charset)
-			? concatChunks.toString(res.charset)
-			: concatChunks.toString();
-		cb(null, res.text);
-	});
-	res.on('close', () => {
-		if (end) {
-			return;
-		}
-		cb(new Error('incomplete data'), null);
-	});
-}
-
-function shouldNotHaveHeader(header: string) {
-	return (res: request.Response) => {
-		const { [header.toLowerCase()]: value } = <Record<string, string>> res.header;
-		assert.strictEqual(
-			value,
-			undefined,
-			`should not have header ${ header } (actual value: "${ value }")`,
-		);
-	};
-}
+import { brotliParser, shouldNotHaveHeader, multipartHandler, checkMultipartByteRangeString } from './utils';
 
 interface Context {
 	lastResult: StreamResponse<unknown> | true | undefined;
@@ -2280,20 +2200,34 @@ for (const [frameworkName, frameworkServer] of frameworks) {
 						await app.close();
 					});
 					it('should respond 206 to a multiple range request', async () => {
-						await request(app.server)
+						await request(app.server, {})
 							.get('/')
 							.set('Range', 'bytes=0-0,2-2')
 							.parse(multipartHandler)
 							.expect(206)
 							.expect('Content-Type', /^multipart\/byteranges/u)
 							.expect(res => {
-								if (
-									// eslint-disable-next-line @stylistic/max-len
-									!/^--[^\r\n]+\r\ncontent-type: text\/plain; charset=UTF-8\r\ncontent-range: bytes 0-0\/5\r\n\r\nw\r\n--[^\r\n]+\r\ncontent-type: text\/plain; charset=UTF-8\r\ncontent-range: bytes 2-2\/5\r\n\r\nr\r\n--[^\r\n]+--$/u
-										.test(<string> res.body)
-								) {
-									throw new Error('multipart/byteranges seems invalid');
-								}
+								const parts = <BodyPart[]>res.files;
+								checkMultipartByteRangeString({
+									parts,
+									index: 0,
+									type: 'text/plain; charset=UTF-8',
+									unit: 'bytes',
+									start: 0,
+									end: 0,
+									length: 5,
+									stringValue: 'w',
+								});
+								checkMultipartByteRangeString({
+									parts,
+									index: 1,
+									type: 'text/plain; charset=UTF-8',
+									unit: 'bytes',
+									start: 2,
+									end: 2,
+									length: 5,
+									stringValue: 'r',
+								});
 							});
 					});
 				});

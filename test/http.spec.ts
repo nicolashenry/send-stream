@@ -12,6 +12,7 @@ import type { AddressInfo } from 'net';
 import { once } from 'events';
 
 import request from 'supertest';
+import type { BodyPart } from 'byteranges';
 
 import type {
 	FileSystemStorageOptions,
@@ -25,56 +26,13 @@ import type {
 } from '../src/send-stream';
 import { FileSystemStorage, getFreshStatus } from '../src/send-stream';
 
-function shouldNotHaveHeader(header: string) {
-	return (res: request.Response) => {
-		const { [header.toLowerCase()]: value } = <Record<string, string>> res.header;
-		assert.strictEqual(
-			value,
-			undefined,
-			`should not have header ${ header } (actual value: "${ value }")`,
-		);
-	};
-}
-
-function shouldHaveHeader(header: string) {
-	return (res: request.Response) => {
-		const { [header.toLowerCase()]: value } = <Record<string, string>> res.header;
-		assert.notStrictEqual(
-			value,
-			undefined,
-			`should not have header ${ header } (actual value: "${ value }")`,
-		);
-	};
-}
-
-function multipartHandler(res: request.Response, cb: (err: Error | null, body: unknown) => void) {
-	const chunks: Buffer[] = [];
-	let length = 0;
-	res.on('data', (chunk: Buffer | string) => {
-		const buffer = Buffer.isBuffer(chunk) ? chunk : Buffer.from(chunk);
-		chunks.push(buffer);
-		length += buffer.length;
-	});
-	let end = false;
-	res.on('error', (err: Error) => {
-		end = true;
-		cb(err, null);
-	});
-	res.on('end', () => {
-		end = true;
-		const concatChunks = Buffer.concat(chunks, length);
-		res.text = Buffer.isEncoding(res.charset)
-			? concatChunks.toString(res.charset)
-			: concatChunks.toString();
-		cb(null, res.text);
-	});
-	res.on('close', () => {
-		if (end) {
-			return;
-		}
-		cb(new Error('incomplete data'), null);
-	});
-}
+import {
+	checkMultipartByteRangeString,
+	multipartHandler,
+	rawRequest,
+	shouldHaveHeader,
+	shouldNotHaveHeader,
+} from './utils';
 
 async function createAndListenServer(fn: (req: http.IncomingMessage, res: http.ServerResponse) => void) {
 	const app = http.createServer(fn);
@@ -522,21 +480,35 @@ describe('http', () => {
 						.expect('Content-Type', /^multipart\/byteranges/u)
 						.parse(multipartHandler)
 						.expect(res => {
-							if (
-								// eslint-disable-next-line @stylistic/max-len
-								!/^--[^\r\n]+\r\ncontent-type: text\/plain; charset=UTF-8\r\ncontent-range: bytes 1-1\/9\r\n\r\n2\r\n--[^\r\n]+\r\ncontent-type: text\/plain; charset=UTF-8\r\ncontent-range: bytes 3-8\/9\r\n\r\n456789\r\n--[^\r\n]+--$/u
-									.test(<string> res.body)
-							) {
-								throw new Error('multipart/byteranges seems invalid');
-							}
+							const parts = <BodyPart[]>res.files;
+							checkMultipartByteRangeString({
+								parts,
+								index: 0,
+								type: 'text/plain; charset=UTF-8',
+								unit: 'bytes',
+								start: 1,
+								end: 1,
+								length: 9,
+								stringValue: '2',
+							});
+							checkMultipartByteRangeString({
+								parts,
+								index: 1,
+								type: 'text/plain; charset=UTF-8',
+								unit: 'bytes',
+								start: 3,
+								end: 8,
+								length: 9,
+								stringValue: '456789',
+							});
 						});
 				});
 
-				it('should respond with 206 is all ranges can be combined', async () => {
+				it('should respond with 206 if all ranges can be combined', async () => {
 					await request(app)
 						.get('/nums.txt')
 						.set('Range', 'bytes=1-2,3-5')
-						.parse(multipartHandler)
+						.expect('Content-Type', /^text\/plain/u)
 						.expect('Content-Range', 'bytes 1-5/9')
 						.expect(206, '23456');
 				});
@@ -615,49 +587,49 @@ describe('http', () => {
 
 		describe('relative paths', () => {
 			it('should 404 on relative path', async () => {
-				await request(app)
+				await rawRequest(app)
 					.get('/pets/../name.txt')
 					.expect('X-Send-Stream-Error', 'NotNormalizedError')
 					.expect(404);
 			});
 
 			it('should 404 on relative path on head', async () => {
-				await request(app)
+				await rawRequest(app)
 					.head('/pets/../name.txt')
 					.expect('X-Send-Stream-Error', 'NotNormalizedError')
 					.expect(404);
 			});
 
 			it('should 404 on relative path with query params', async () => {
-				await request(app)
+				await rawRequest(app)
 					.get('/pets/../name.txt?foo=bar')
 					.expect('X-Send-Stream-Error', 'NotNormalizedError')
 					.expect(404);
 			});
 
 			it('should 404 on relative path with dot', async () => {
-				await request(app)
+				await rawRequest(app)
 					.get('/name.txt/.')
 					.expect('X-Send-Stream-Error', 'NotNormalizedError')
 					.expect(404);
 			});
 
 			it('should 404 on relative path with dot and query params', async () => {
-				await request(app)
+				await rawRequest(app)
 					.get('/name.txt/.?foo=bar')
 					.expect('X-Send-Stream-Error', 'NotNormalizedError')
 					.expect(404);
 			});
 
 			it('should 404 on relative path with dot bis', async () => {
-				await request(app)
+				await rawRequest(app)
 					.get('/./name.txt')
 					.expect('X-Send-Stream-Error', 'NotNormalizedError')
 					.expect(404);
 			});
 
 			it('should 404 on relative path with dot and query params bis', async () => {
-				await request(app)
+				await rawRequest(app)
 					.get('/./name.txt?foo=bar')
 					.expect('X-Send-Stream-Error', 'NotNormalizedError')
 					.expect(404);
@@ -1316,7 +1288,6 @@ describe('http', () => {
 					await request(app)
 						.get('/nums.txt')
 						.set('Range', 'bytes=0-2,4-5')
-						.parse(multipartHandler)
 						.expect('Accept-Ranges', 'bytes')
 						.expect(shouldNotHaveHeader('Content-Range'))
 						.expect(200, '123456789');
@@ -1582,7 +1553,7 @@ describe('http', () => {
 						app.close(done);
 					});
 					it('should not join root', async () => {
-						await request(app)
+						await rawRequest(app)
 							.get('/pets/../name.txt')
 							.expect('X-Send-Stream-Error', 'NotNormalizedError')
 							.expect(404);
@@ -1661,7 +1632,7 @@ describe('http', () => {
 						app.close(done);
 					});
 					it('should restrict paths to within root', async () => {
-						await request(app)
+						await rawRequest(app)
 							.get('/pets/../../http.spec.ts')
 							.expect('X-Send-Stream-Error', 'NotNormalizedError')
 							.expect(404);
@@ -1694,7 +1665,7 @@ describe('http', () => {
 						app.close(done);
 					});
 					it('should restrict paths to within root with path parts', async () => {
-						await request(app)
+						await rawRequest(app)
 							.get('/pets/../../http.spec.ts')
 							.expect('X-Send-Stream-Error', 'InvalidPathError')
 							.expect(404);
@@ -1710,7 +1681,7 @@ describe('http', () => {
 						app.close(done);
 					});
 					it('should allow .. in root', async () => {
-						await request(app)
+						await rawRequest(app)
 							.get('/pets/../../http.spec.ts')
 							.expect('X-Send-Stream-Error', 'NotNormalizedError')
 							.expect(404);
@@ -1726,7 +1697,7 @@ describe('http', () => {
 						app.close(done);
 					});
 					it('should not allow root transversal', async () => {
-						await request(app)
+						await rawRequest(app)
 							.get('/../name.dir/name.txt')
 							.expect('X-Send-Stream-Error', 'NotNormalizedError')
 							.expect(404);
@@ -1742,7 +1713,7 @@ describe('http', () => {
 						app.close(done);
 					});
 					it('should not allow root path disclosure', async () => {
-						await request(app)
+						await rawRequest(app)
 							.get('/pets/../../fixtures-http/name.txt')
 							.expect('X-Send-Stream-Error', 'NotNormalizedError')
 							.expect(404);
@@ -1777,7 +1748,7 @@ describe('http', () => {
 				});
 
 				it('should consider .. malicious', async () => {
-					await request(app)
+					await rawRequest(app)
 						.get('/../http.spec.ts')
 						.expect('X-Send-Stream-Error', 'NotNormalizedError')
 						.expect(404);

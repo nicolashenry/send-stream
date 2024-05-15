@@ -10,16 +10,7 @@ import request from 'supertest';
 import type { FileSystemStorageOptions, PrepareResponseOptions, StreamResponse } from '../src/send-stream';
 import { FileSystemStorage, TrailingSlashError } from '../src/send-stream';
 
-function shouldNotHaveHeader(header: string) {
-	return (res: request.Response) => {
-		const { [header.toLowerCase()]: value } = <Record<string, string>> res.header;
-		assert.strictEqual(
-			value,
-			undefined,
-			`should not have header ${ header } (actual value: "${ value }")`,
-		);
-	};
-}
+import { rawRequest, shouldNotHaveHeader } from './utils';
 
 describe('static', () => {
 	const fixtures = path.join(__dirname, '/fixtures-static');
@@ -303,7 +294,7 @@ describe('static', () => {
 				});
 
 				it('should 404 when traversing past root', async () => {
-					await request(server)
+					await rawRequest(server)
 						.get('/users/../../todo.txt')
 						.expect('X-Send-Stream-Error', 'NotNormalizedError')
 						.expect(404);
@@ -369,28 +360,28 @@ describe('static', () => {
 				server.close(done);
 			});
 			it('should catch urlencoded ../', async () => {
-				await request(server)
+				await rawRequest(server)
 					.get('/users/%2e%2e/%2e%2e/todo.txt')
 					.expect('X-Send-Stream-Error', 'NotNormalizedError')
 					.expect(404);
 			});
 
 			it('should not allow root path disclosure', async () => {
-				await request(server)
+				await rawRequest(server)
 					.get('/users/../../fixtures/todo.txt')
 					.expect('X-Send-Stream-Error', 'NotNormalizedError')
 					.expect(404);
 			});
 
 			it('should catch urlencoded ../ bis', async () => {
-				await request(server)
+				await rawRequest(server)
 					.get('/users/%2e%2e/%2e%2e/static.spec.ts')
 					.expect('X-Send-Stream-Error', 'NotNormalizedError')
 					.expect(404);
 			});
 
 			it('should not allow root path disclosure bis', async () => {
-				await request(server)
+				await rawRequest(server)
 					.get('/users/../../fixtures/static.spec.ts')
 					.expect('X-Send-Stream-Error', 'NotNormalizedError')
 					.expect(404);
