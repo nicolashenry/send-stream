@@ -303,7 +303,8 @@
     "@typescript-eslint/no-use-before-define": "warn",
     "@typescript-eslint/no-useless-constructor": "warn",
     "@typescript-eslint/no-useless-empty-export": "warn",
-    "@typescript-eslint/no-useless-template-literals": "warn",
+    "@typescript-eslint/no-useless-template-expression": "warn",
+    "@typescript-eslint/no-useless-template-literals": "off", // deprecated: replaced by @typescript-eslint/no-useless-template-expression
     "@typescript-eslint/no-var-requires": "off", // not needed: seems useless
     "@typescript-eslint/object-curly-spacing": "off", // deprecated: replaced by @stylistic/object-curly-spacing
     "@typescript-eslint/padding-line-between-statements": "off", // deprecated: replaced by @stylistic/padding-line-between-statements
@@ -346,7 +347,7 @@
     "@typescript-eslint/prefer-regexp-exec": "warn",
     "@typescript-eslint/prefer-return-this-type": "warn",
     "@typescript-eslint/prefer-string-starts-ends-with": "warn",
-    "@typescript-eslint/prefer-ts-expect-error": "warn",
+    "@typescript-eslint/prefer-ts-expect-error": "off", // deprecated: replaced by @typescript-eslint/ban-ts-comment
     "@typescript-eslint/promise-function-async": "warn",
     "@typescript-eslint/quotes": "off", // deprecated: replaced by @stylistic/quotes
     "@typescript-eslint/require-array-sort-compare": "warn",
