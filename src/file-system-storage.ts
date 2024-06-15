@@ -191,7 +191,7 @@ export class GenericFileSystemStorage<FileDescriptor> extends Storage<FilePath, 
 			if (
 				pathParts.length === 0
 				|| pathParts[0] !== ''
-				|| pathParts.findIndex(part => /^\.\.?$/u.test(part)) !== -1
+				|| pathParts.some(part => /^\.\.?$/u.test(part))
 			) {
 				const pathArray = String(path.map(v => `'${ v }'`).join(', '));
 				throw new InvalidPathError(
