@@ -44,7 +44,7 @@
     "@typescript-eslint/await-thenable": "warn",
     "@typescript-eslint/ban-ts-comment": "warn",
     "@typescript-eslint/ban-tslint-comment": "warn",
-    "@typescript-eslint/ban-types": "warn",
+    "@typescript-eslint/ban-types": "off", // deprecated: replaced by @typescript-eslint/no-restricted-types
     "@typescript-eslint/block-spacing": "off", // deprecated: replaced by @stylistic/block-spacing
     "@typescript-eslint/brace-style": "off", // deprecated: replaced by @stylistic/brace-style
     "@typescript-eslint/class-literal-property-style": "warn",
@@ -271,6 +271,7 @@
     "@typescript-eslint/no-redundant-type-constituents": "warn",
     "@typescript-eslint/no-require-imports": "warn",
     "@typescript-eslint/no-restricted-imports": "off", // not needed: seems useless
+    "@typescript-eslint/no-restricted-types": "warn",
     "@typescript-eslint/no-shadow": [
       "warn",
       {
