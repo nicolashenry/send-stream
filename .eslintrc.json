@@ -278,7 +278,7 @@
       }
     ],
     "@typescript-eslint/no-this-alias": "warn",
-    "@typescript-eslint/no-throw-literal": "warn",
+    "@typescript-eslint/no-throw-literal": "off", // deprecated: replaced by @typescript-eslint/only-throw-error
     "@typescript-eslint/no-type-alias": "off", // deprecated: replaced by @typescript-eslint/consistent-type-definitions
     "@typescript-eslint/no-unnecessary-boolean-literal-compare": "warn",
     "@typescript-eslint/no-unnecessary-condition": "warn",
@@ -1179,7 +1179,7 @@
     "n/prefer-promises/dns": "warn",
     "n/prefer-promises/fs": "warn",
     "n/process-exit-as-throw": "warn",
-    "n/shebang": "warn",
+    "n/shebang": "off", // deprecated: replaced by n/hashbang
     "sonarjs/cognitive-complexity": ["warn", 140],
     "sonarjs/elseif-without-else": "off", // not needed: seems useless
     "sonarjs/max-switch-cases": "warn",
