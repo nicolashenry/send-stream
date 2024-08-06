@@ -2127,6 +2127,7 @@ describe('http', () => {
 						// eslint-disable-next-line @typescript-eslint/no-non-null-assertion
 						const resp = await errorStorage.prepareResponse(req.url!, req);
 						lastResult = resp;
+						// eslint-disable-next-line @typescript-eslint/unbound-method
 						const { stream: { pipe: p }, stream } = resp;
 						stream.pipe = function pipe<T extends NodeJS.WritableStream>(
 							this: Readable,
@@ -2192,6 +2193,7 @@ describe('http', () => {
 					(async () => {
 						const resp = await errorStorage.prepareResponse(req.url, req);
 						lastResult = resp;
+						// eslint-disable-next-line @typescript-eslint/unbound-method
 						const { stream: { pipe: p }, stream } = resp;
 						stream.pipe = function pipe<T extends NodeJS.WritableStream>(
 							this: Readable,
