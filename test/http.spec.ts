@@ -3,13 +3,13 @@
 /* eslint-disable max-lines, max-lines-per-function, sonarjs/no-identical-functions */
 /* eslint-env node, mocha */
 
-import * as assert from 'assert';
-import * as http from 'http';
-import * as http2 from 'http2';
-import { normalize, join } from 'path';
-import { Readable } from 'stream';
-import type { AddressInfo } from 'net';
-import { once } from 'events';
+import * as assert from 'node:assert';
+import * as http from 'node:http';
+import * as http2 from 'node:http2';
+import { normalize, join } from 'node:path';
+import { Readable } from 'node:stream';
+import type { AddressInfo } from 'node:net';
+import { once } from 'node:events';
 
 import request from 'supertest';
 import type { BodyPart } from 'byteranges';
@@ -1477,7 +1477,7 @@ describe('http', () => {
 				describe('when "ignore" 1 (using regexp as text)', () => {
 					let app: http.Server;
 					before(async () => {
-						app = await createServer({ ignorePattern: '^\\.[^.]', root: fixtures });
+						app = await createServer({ ignorePattern: String.raw`^\.[^.]`, root: fixtures });
 					});
 					after(done => {
 						app.close(done);

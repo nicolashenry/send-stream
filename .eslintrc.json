@@ -243,6 +243,7 @@
     "@typescript-eslint/no-dynamic-delete": "warn",
     "@typescript-eslint/no-empty-function": "warn",
     "@typescript-eslint/no-empty-interface": "warn",
+    "@typescript-eslint/no-empty-object-type": "warn",
     "@typescript-eslint/no-explicit-any": "warn",
     "@typescript-eslint/no-extra-non-null-assertion": "warn",
     "@typescript-eslint/no-extra-parens": "off", // disabled by typescript-eslint
@@ -287,11 +288,13 @@
     "@typescript-eslint/no-unnecessary-type-arguments": "warn",
     "@typescript-eslint/no-unnecessary-type-assertion": "warn",
     "@typescript-eslint/no-unnecessary-type-constraint": "warn",
+    "@typescript-eslint/no-unnecessary-type-parameters": "warn",
     "@typescript-eslint/no-unsafe-argument": "warn",
     "@typescript-eslint/no-unsafe-assignment": "warn",
     "@typescript-eslint/no-unsafe-call": "warn",
     "@typescript-eslint/no-unsafe-declaration-merging": "warn",
     "@typescript-eslint/no-unsafe-enum-comparison": "warn",
+    "@typescript-eslint/no-unsafe-function-type": "warn",
     "@typescript-eslint/no-unsafe-member-access": "warn",
     "@typescript-eslint/no-unsafe-return": "warn",
     "@typescript-eslint/no-unsafe-unary-minus": "warn",
@@ -307,7 +310,9 @@
     "@typescript-eslint/no-useless-empty-export": "warn",
     "@typescript-eslint/no-useless-template-literals": "off", // deprecated: replaced by @typescript-eslint/no-unnecessary-template-expression
     "@typescript-eslint/no-var-requires": "off", // not needed: seems useless
+    "@typescript-eslint/no-wrapper-object-types": "warn",
     "@typescript-eslint/object-curly-spacing": "off", // deprecated: replaced by @stylistic/object-curly-spacing
+    "@typescript-eslint/only-throw-error": "warn",
     "@typescript-eslint/padding-line-between-statements": "off", // deprecated: replaced by @stylistic/padding-line-between-statements
     "@typescript-eslint/parameter-properties": [
       "warn",
@@ -423,6 +428,7 @@
     "@stylistic/key-spacing": "warn",
     "@stylistic/keyword-spacing": "warn",
     "@stylistic/linebreak-style": "off", // too restrictive
+    "@stylistic/line-comment-position": "warn",
     "@stylistic/lines-around-comment": "off", // too restrictive
     "@stylistic/lines-between-class-members": ["warn", "always", { "exceptAfterSingleLine": true }],
     "@stylistic/max-len": [
@@ -432,6 +438,7 @@
       }
     ],
     "@stylistic/max-statements-per-line": "warn",
+    "@stylistic/multiline-comment-style": "warn",
     "@stylistic/multiline-ternary": ["warn", "always-multiline"],
     "@stylistic/new-parens": "warn",
     "@stylistic/newline-per-chained-call": "warn",
@@ -945,8 +952,10 @@
     "jsdoc/check-property-names": "warn",
     "jsdoc/check-syntax": "warn",
     "jsdoc/check-tag-names": "warn",
+    "jsdoc/check-template-names": "warn",
     "jsdoc/check-types": "warn",
     "jsdoc/check-values": "warn",
+    "jsdoc/convert-to-jsdoc-comments": "warn",
     "jsdoc/empty-tags": "warn",
     "jsdoc/implements-on-classes": "warn",
     "jsdoc/imports-as-dependencies": "warn",
@@ -987,6 +996,7 @@
     "jsdoc/require-returns-description": "warn",
     "jsdoc/require-returns-type": "off", // not needed: covered by typescript
     "jsdoc/require-returns": "warn",
+    "jsdoc/require-template": "warn",
     "jsdoc/require-throws": "warn",
     "jsdoc/require-yields": "warn",
     "jsdoc/require-yields-check": "warn",
@@ -1004,6 +1014,7 @@
       }
     ],
     "unicorn/consistent-destructuring": "warn",
+    "unicorn/consistent-empty-array-spread": "warn",
     "unicorn/consistent-function-scoping": "warn",
     "unicorn/custom-error-definition": "warn",
     "unicorn/empty-brace-spaces": "warn",
@@ -1029,13 +1040,17 @@
     "unicorn/no-empty-file": "warn",
     "unicorn/no-for-loop": "warn",
     "unicorn/no-instanceof-array": "warn",
+    "unicorn/no-invalid-fetch-options": "warn",
     "unicorn/no-invalid-remove-event-listener": "off", // not needed: not executed in a browser
     "unicorn/no-hex-escape": "warn",
     "unicorn/no-keyword-prefix": "off", // not needed: seems useless
+    "unicorn/no-length-as-slice-end": "warn",
     "unicorn/no-lonely-if": "warn",
+    "unicorn/no-magic-array-flat-depth": "warn",
     "unicorn/no-new-array": "warn",
     "unicorn/no-nested-ternary": "off", // not needed: seems useless
     "unicorn/no-negated-condition": "warn",
+    "unicorn/no-negation-in-equality-check": "warn",
     "unicorn/no-new-buffer": "warn",
     "unicorn/no-null": "off", // not needed: seems useless
     "unicorn/no-object-as-default-parameter": "warn",
@@ -1099,10 +1114,12 @@
     "unicorn/prefer-set-has": "warn",
     "unicorn/prefer-set-size": "warn",
     "unicorn/prefer-spread": "off", // buggy: false positives
+    "unicorn/prefer-string-raw": "warn",
     "unicorn/prefer-string-replace-all": "off", // too soon
     "unicorn/prefer-string-slice": "warn",
     "unicorn/prefer-string-starts-ends-with": "warn",
     "unicorn/prefer-string-trim-start-end": "warn",
+    "unicorn/prefer-structured-clone": "warn",
     "unicorn/prefer-switch": "warn",
     "unicorn/prefer-ternary": "warn",
     "unicorn/prefer-top-level-await": "off", // too soon
@@ -1122,6 +1139,7 @@
     "n/file-extension-in-import": "off", // not needed: covered by typescript
     "n/global-require": "off", // not needed: covered by typescript
     "n/handle-callback-err": "warn",
+    "n/hashbang": "warn",
     "n/no-callback-literal": "warn",
     "n/no-deprecated-api": "warn",
     "n/no-exports-assign": "off", // not needed: covered by typescript
@@ -1157,6 +1175,7 @@
     "n/prefer-global/text-encoder": "warn",
     "n/prefer-global/url-search-params": "warn",
     "n/prefer-global/url": "warn",
+    "n/prefer-node-protocol": "warn",
     "n/prefer-promises/dns": "warn",
     "n/prefer-promises/fs": "warn",
     "n/process-exit-as-throw": "warn",

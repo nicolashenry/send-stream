@@ -2,7 +2,7 @@
  * This example shows how to use this library with Koa using HTTP
  */
 
-import { join } from 'path';
+import { join } from 'node:path';
 
 import Koa from 'koa';
 

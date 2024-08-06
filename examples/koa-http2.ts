@@ -2,9 +2,9 @@
  * This example shows how to use this library with Koa using HTTP 2
  */
 
-import * as http2 from 'http2';
-import * as fs from 'fs';
-import { join } from 'path';
+import * as http2 from 'node:http2';
+import * as fs from 'node:fs';
+import { join } from 'node:path';
 
 import Koa from 'koa';
 

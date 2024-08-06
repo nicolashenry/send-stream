@@ -1,6 +1,6 @@
-import { Readable, pipeline as streamPipeline } from 'stream';
-import type { Server } from 'http';
-import { promisify } from 'util';
+import { Readable, pipeline as streamPipeline } from 'node:stream';
+import type { Server } from 'node:http';
+import { promisify } from 'node:util';
 
 import express from 'express';
 

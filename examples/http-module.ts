@@ -2,8 +2,8 @@
  * This example shows how to use this library with vanilla NodeJS http module
  */
 
-import * as http from 'http';
-import { join } from 'path';
+import * as http from 'node:http';
+import { join } from 'node:path';
 
 import { FileSystemStorage } from '../src/send-stream';
 

@@ -2,11 +2,11 @@
  * This file is an example of file/directory upload to MongoDB/GridFS to use with ./mongodb-gridfs.ts example
  */
 
-import * as crypto from 'crypto';
-import fs from 'fs';
-import { join, relative, sep } from 'path';
-import { pipeline } from 'stream';
-import { promisify } from 'util';
+import * as crypto from 'node:crypto';
+import fs from 'node:fs';
+import { join, relative, sep } from 'node:path';
+import { pipeline } from 'node:stream';
+import { promisify } from 'node:util';
 
 import { charset, contentType } from 'mime-types';
 import * as mongodb from 'mongodb';

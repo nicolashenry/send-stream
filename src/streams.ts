@@ -1,4 +1,4 @@
-import { Readable, PassThrough } from 'stream';
+import { Readable, PassThrough } from 'node:stream';
 
 import type { Uint8ArrayOrStreamRange } from './utils';
 

@@ -1,4 +1,4 @@
-import type { Server } from 'http';
+import type { Server } from 'node:http';
 
 import type { Storage, FileSystemStorageOptions, PrepareResponseOptions } from '../../src/send-stream';
 

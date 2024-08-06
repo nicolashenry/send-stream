@@ -1,11 +1,11 @@
 /* eslint-disable max-lines, max-lines-per-function, sonarjs/no-identical-functions */
 /* eslint-env node, mocha */
 
-import * as assert from 'assert';
-import * as fs from 'fs';
-import { join } from 'path';
-import { Readable } from 'stream';
-import { promisify } from 'util';
+import * as assert from 'node:assert';
+import * as fs from 'node:fs';
+import { join } from 'node:path';
+import { Readable } from 'node:stream';
+import { promisify } from 'node:util';
 
 import request from 'supertest';
 import * as memfs from 'memfs';
@@ -820,7 +820,7 @@ for (const [frameworkName, frameworkServer] of frameworks) {
 							app.send(__dirname, '/fixtures-frameworks/hello.txt', {
 								contentEncodingMappings: [
 									{
-										matcher: '^(?<path>.*\\.txt)$',
+										matcher: String.raw`^(?<path>.*\.txt)$`,
 										encodings: [
 											{
 												name: 'br',

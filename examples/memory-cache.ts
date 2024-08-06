@@ -2,12 +2,12 @@
  * This example shows how to implement a storage putting everything into memory (and calculating SHA1 etags)
  */
 
-import { join } from 'path';
-import * as crypto from 'crypto';
-import type { Stats } from 'fs';
-import { fstat, close, createReadStream, readdir, constants, open as openFn, opendir as opendirFn } from 'fs';
-import { promisify } from 'util';
-import { Readable } from 'stream';
+import { join } from 'node:path';
+import * as crypto from 'node:crypto';
+import type { Stats } from 'node:fs';
+import { fstat, close, createReadStream, readdir, constants, open as openFn, opendir as opendirFn } from 'node:fs';
+import { promisify } from 'node:util';
+import { Readable } from 'node:stream';
 
 import { fastify } from 'fastify';
 

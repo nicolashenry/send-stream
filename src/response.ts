@@ -1,9 +1,9 @@
-import { ServerResponse } from 'http';
-import type { ServerHttp2Stream } from 'http2';
-import { Http2ServerResponse } from 'http2';
-import type { Readable } from 'stream';
-import { pipeline as streamPipeline } from 'stream';
-import { promisify } from 'util';
+import { ServerResponse } from 'node:http';
+import type { ServerHttp2Stream } from 'node:http2';
+import { Http2ServerResponse } from 'node:http2';
+import type { Readable } from 'node:stream';
+import { pipeline as streamPipeline } from 'node:stream';
+import { promisify } from 'node:util';
 
 import type { ResponseHeaders } from './utils';
 import type { StorageInfo, SendOptions } from './types';
@@ -28,6 +28,7 @@ async function pipeline(
 
 /**
  * Stream response
+ * @template AttachedData - attached data type
  */
 export class StreamResponse<AttachedData> {
 	/**

@@ -1,5 +1,6 @@
 /**
  * Storage error
+ * @template T - reference type
  */
 export class StorageError<T> extends Error {
 	/**
@@ -35,6 +36,7 @@ export class MethodNotAllowedStorageError extends StorageError<undefined> {
 
 /**
  * Precondition failed storage error
+ * @template T - reference type
  */
 export class PreconditionFailedStorageError<T> extends StorageError<T> {
 	/**
@@ -50,6 +52,7 @@ export class PreconditionFailedStorageError<T> extends StorageError<T> {
 
 /**
  * Range not satisfiable storage error
+ * @template T - reference type
  */
 export class RangeNotSatisfiableStorageError<T> extends StorageError<T> {
 	/**

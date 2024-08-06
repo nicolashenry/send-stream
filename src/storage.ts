@@ -1,8 +1,8 @@
-import * as http from 'http';
-import * as http2 from 'http2';
-import type { Readable } from 'stream';
-import { pipeline } from 'stream';
-import * as zlib from 'zlib';
+import * as http from 'node:http';
+import * as http2 from 'node:http2';
+import type { Readable } from 'node:stream';
+import { pipeline } from 'node:stream';
+import * as zlib from 'node:zlib';
 
 import contentDisposition from 'content-disposition';
 import { lookup, charset } from 'mime-types';
@@ -41,6 +41,8 @@ const DEFAULT_MAX_RANGES = 200;
 
 /**
  * send-stream storage base class
+ * @template Reference - reference type
+ * @template AttachedData - attached data type
  */
 export abstract class Storage<Reference, AttachedData> {
 	/**

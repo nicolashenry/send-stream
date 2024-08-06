@@ -4,10 +4,10 @@
  * See ./mongodb-gridfs-util.ts to have an example of file/directory upload to MongoDB/GridFS
  */
 
-import type { Readable } from 'stream';
-import { posix } from 'path';
+import type { Readable } from 'node:stream';
+import { posix } from 'node:path';
 // eslint-disable-next-line n/prefer-global/url
-import { URL } from 'url';
+import { URL } from 'node:url';
 
 import { fastify } from 'fastify';
 import * as mongodb from 'mongodb';

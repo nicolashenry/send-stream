@@ -2,9 +2,9 @@
  * This example shows how to use this library with vanilla NodeJS https module
  */
 
-import * as fs from 'fs';
-import * as https from 'https';
-import { join } from 'path';
+import * as fs from 'node:fs';
+import * as https from 'node:https';
+import { join } from 'node:path';
 
 import { FileSystemStorage } from '../src/send-stream';
 

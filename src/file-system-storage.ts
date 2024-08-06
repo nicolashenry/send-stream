@@ -1,10 +1,10 @@
-import type { Dir, Dirent, Stats } from 'fs';
-import { open, fstat, close, createReadStream, opendir, readdir, constants } from 'fs';
-import { join } from 'path';
-import { Readable } from 'stream';
-import { promisify } from 'util';
+import type { Dir, Dirent, Stats } from 'node:fs';
+import { open, fstat, close, createReadStream, opendir, readdir, constants } from 'node:fs';
+import { join } from 'node:path';
+import { Readable } from 'node:stream';
+import { promisify } from 'node:util';
 // eslint-disable-next-line n/prefer-global/url
-import { URL } from 'url';
+import { URL } from 'node:url';
 
 import { Storage } from './storage';
 import type { StorageRequestHeaders, StorageInfo } from './types';
@@ -46,6 +46,7 @@ export const FORBIDDEN_CHARACTERS: RegExp = /[/?<>\\:*|":\u0000-\u001F\u0080-\u0
 
 /**
  * File system storage
+ * @template FileDescriptor - file descriptor type
  */
 export class GenericFileSystemStorage<FileDescriptor> extends Storage<FilePath, GenericFileData<FileDescriptor>> {
 	/**

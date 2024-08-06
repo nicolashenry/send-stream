@@ -1,5 +1,5 @@
-import { randomBytes as cryptoRandomBytes } from 'crypto';
-import { promisify } from 'util';
+import { randomBytes as cryptoRandomBytes } from 'node:crypto';
+import { promisify } from 'node:util';
 
 /**
  * Request headers
@@ -215,6 +215,7 @@ function parseMultiValueHeader(header: string) {
 
 /**
  * Get accepted content encodings
+ * @template T - encoding object type
  * @param acceptEncoding - Accept-Encoding header value
  * @param encodingPreferences - order of preference
  * @param identityEncodingPreference - identity encoding preference

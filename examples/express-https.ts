@@ -2,9 +2,9 @@
  * This example shows how to use this library with Express using HTTPS
  */
 
-import * as https from 'https';
-import * as fs from 'fs';
-import { join } from 'path';
+import * as https from 'node:https';
+import * as fs from 'node:fs';
+import { join } from 'node:path';
 
 import express from 'express';
 

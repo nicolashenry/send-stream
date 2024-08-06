@@ -1,8 +1,8 @@
 /* eslint-disable jsdoc/require-jsdoc */
-import * as assert from 'assert';
-import { Readable, pipeline } from 'stream';
-import { createBrotliDecompress } from 'zlib';
-import * as http from 'http';
+import * as assert from 'node:assert';
+import { Readable, pipeline } from 'node:stream';
+import { createBrotliDecompress } from 'node:zlib';
+import * as http from 'node:http';
 
 import type request from 'supertest';
 import type { BodyPart } from 'byteranges';

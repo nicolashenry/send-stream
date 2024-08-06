@@ -2,10 +2,10 @@
  * This example shows how to extend FileSystemStorage to add SHA1 ETag cache
  */
 
-import { join } from 'path';
-import * as crypto from 'crypto';
-import * as fs from 'fs';
-import { promisify } from 'util';
+import { join } from 'node:path';
+import * as crypto from 'node:crypto';
+import * as fs from 'node:fs';
+import { promisify } from 'node:util';
 
 import { fastify } from 'fastify';
 

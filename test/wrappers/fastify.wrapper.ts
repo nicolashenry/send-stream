@@ -1,5 +1,5 @@
-import { Readable } from 'stream';
-import type { Server } from 'http';
+import { Readable } from 'node:stream';
+import type { Server } from 'node:http';
 
 import type { FastifyInstance } from 'fastify';
 import { fastify } from 'fastify';

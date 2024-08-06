@@ -2,7 +2,7 @@
  * This example shows how to use options to activate directory listing
  */
 
-import { join } from 'path';
+import { join } from 'node:path';
 
 import { fastify } from 'fastify';
 

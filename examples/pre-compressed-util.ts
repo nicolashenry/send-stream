@@ -2,11 +2,11 @@
  * This file is an example of file precompressing to use with ./pre-compressed.ts example
  */
 
-import fs from 'fs';
-import { join } from 'path';
-import { pipeline } from 'stream';
-import { promisify } from 'util';
-import zlib from 'zlib';
+import fs from 'node:fs';
+import { join } from 'node:path';
+import { pipeline } from 'node:stream';
+import { promisify } from 'node:util';
+import zlib from 'node:zlib';
 
 const promisifiedStreamPipeline = promisify(pipeline);
 

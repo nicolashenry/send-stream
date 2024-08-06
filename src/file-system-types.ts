@@ -1,10 +1,11 @@
-import type { Readable } from 'stream';
-import type { Dir, Stats, Dirent } from 'fs';
+import type { Readable } from 'node:stream';
+import type { Dir, Stats, Dirent } from 'node:fs';
 
 import type { StorageOptions } from './types';
 
 /**
- * File data with generic file descriptor used by file storage
+ * File data with generic file descriptor used by file
+ * @template FileDescriptor - file descriptor type
  */
 export interface GenericFileData<FileDescriptor> {
 	/**
@@ -32,6 +33,7 @@ export type FileData = GenericFileData<number>;
 
 /**
  * "fs" module like type with generic file descriptor used by this library
+ * @template FileDescriptor - file descriptor type
  */
 export interface GenericFSModule<FileDescriptor> {
 	constants: {
@@ -132,6 +134,7 @@ export interface RegexpContentEncodingMapping {
 
 /**
  * FileSystemStorage options with generic file descriptor
+ * @template FileDescriptor - file descriptor type
  */
 export interface GenericFileSystemStorageOptions<FileDescriptor> extends StorageOptions {
 	/**

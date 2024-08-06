@@ -1,9 +1,9 @@
 /* eslint-env node, mocha */
 
-import * as assert from 'assert';
-import { once } from 'events';
-import * as http from 'http';
-import * as path from 'path';
+import * as assert from 'node:assert';
+import { once } from 'node:events';
+import * as http from 'node:http';
+import * as path from 'node:path';
 
 import request from 'supertest';
 

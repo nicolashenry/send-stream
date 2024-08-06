@@ -1,6 +1,6 @@
-import { Readable } from 'stream';
-import type { IncomingMessage, Server, ServerResponse } from 'http';
-import { createServer } from 'http';
+import { Readable } from 'node:stream';
+import type { IncomingMessage, Server, ServerResponse } from 'node:http';
+import { createServer } from 'node:http';
 
 import type { Storage, FileSystemStorageOptions, PrepareResponseOptions, StreamResponse } from '../../src/send-stream';
 import { FileSystemStorage } from '../../src/send-stream';
