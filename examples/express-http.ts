@@ -9,6 +9,7 @@ import express from 'express';
 import { FileSystemStorage } from '../src/send-stream';
 
 const app = express();
+app.disable('x-powered-by');
 
 const storage = new FileSystemStorage(join(__dirname, 'assets'));
 

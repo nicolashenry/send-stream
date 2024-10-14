@@ -2,8 +2,9 @@
  * This example shows how to use this library with Koa using HTTP 2
  */
 
-import * as http2 from 'node:http2';
-import * as fs from 'node:fs';
+import { createSecureServer } from 'node:http2';
+// eslint-disable-next-line n/no-sync
+import { readFileSync } from 'node:fs';
 import { join } from 'node:path';
 
 import Koa from 'koa';
@@ -26,12 +27,12 @@ app.use(async (ctx, next) => {
 	ctx.body = result.stream;
 });
 
-const server = http2.createSecureServer(
+const server = createSecureServer(
 	{
 		// eslint-disable-next-line n/no-sync
-		key: fs.readFileSync(join(__dirname, 'cert', 'localhost.key')),
+		key: readFileSync(join(__dirname, 'cert', 'localhost.key')),
 		// eslint-disable-next-line n/no-sync
-		cert: fs.readFileSync(join(__dirname, 'cert', 'localhost.crt')),
+		cert: readFileSync(join(__dirname, 'cert', 'localhost.crt')),
 		allowHTTP1: true,
 	},
 	(req, res) => {

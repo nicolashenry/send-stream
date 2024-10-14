@@ -2,18 +2,18 @@
  * This file is an example of file/directory upload to MongoDB/GridFS to use with ./mongodb-gridfs.ts example
  */
 
-import * as crypto from 'node:crypto';
+import { createHash } from 'node:crypto';
 import fs from 'node:fs';
 import { join, relative, sep } from 'node:path';
 import { pipeline } from 'node:stream';
 import { promisify } from 'node:util';
 
 import { charset, contentType } from 'mime-types';
-import * as mongodb from 'mongodb';
+import { MongoClient, GridFSBucket } from 'mongodb';
 
 const promisifiedStreamPipeline = promisify(pipeline);
 
-async function uploadToGridFS(rootPath: string, directoryPath: string, bucket: mongodb.GridFSBucket) {
+async function uploadToGridFS(rootPath: string, directoryPath: string, bucket: GridFSBucket) {
 	const directoryFiles = await fs.promises.readdir(directoryPath, { withFileTypes: true });
 	await Promise.all(directoryFiles.map(async file => {
 		const filepath = join(directoryPath, file.name);
@@ -28,7 +28,8 @@ async function uploadToGridFS(rootPath: string, directoryPath: string, bucket: m
 		const mimeType = contentType(file.name);
 		const mimeTypeCharset = mimeType ? charset(mimeType) : undefined;
 		const hashCopy = fs.createReadStream(filepath);
-		const hash = crypto.createHash('sha1');
+		// eslint-disable-next-line sonarjs/hashing
+		const hash = createHash('sha1');
 		hash.setEncoding('hex');
 		await promisifiedStreamPipeline(
 			hashCopy,
@@ -38,6 +39,7 @@ async function uploadToGridFS(rootPath: string, directoryPath: string, bucket: m
 		const uploadCopy = fs.createReadStream(filepath);
 		await promisifiedStreamPipeline(
 			uploadCopy,
+			// eslint-disable-next-line sonarjs/no-reference-error
 			<NodeJS.WritableStream> <unknown> bucket.openUploadStream(
 				relative(rootPath, filepath)
 					.split(sep)
@@ -59,13 +61,13 @@ async function uploadToGridFS(rootPath: string, directoryPath: string, bucket: m
 const uri = 'mongodb://localhost:27017';
 const dbName = 'test';
 
-const client = new mongodb.MongoClient(uri);
+const client = new MongoClient(uri);
 
 client.connect()
 	.then(async () => {
 		const db = client.db(dbName);
 
-		const bucket = new mongodb.GridFSBucket(db);
+		const bucket = new GridFSBucket(db);
 
 		const directory = join(__dirname, 'assets');
 

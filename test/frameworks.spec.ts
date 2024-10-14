@@ -1,14 +1,14 @@
 /* eslint-disable max-lines, max-lines-per-function, sonarjs/no-identical-functions */
 /* eslint-env node, mocha */
 
-import * as assert from 'node:assert';
-import * as fs from 'node:fs';
+import { strictEqual, notStrictEqual, fail, deepStrictEqual, ok } from 'node:assert';
+import { stat } from 'node:fs';
 import { join } from 'node:path';
 import { Readable } from 'node:stream';
 import { promisify } from 'node:util';
 
 import request from 'supertest';
-import * as memfs from 'memfs';
+import { memfs } from 'memfs';
 import type { BodyPart } from 'byteranges';
 
 import type {
@@ -18,6 +18,7 @@ import type {
 	FilePath,
 	StorageRequestHeaders,
 	StreamResponse,
+	GenericFSModule,
 } from '../src/send-stream';
 import { Storage, FileSystemStorage, BufferStream } from '../src/send-stream';
 
@@ -59,14 +60,15 @@ for (const [frameworkName, frameworkServer] of frameworks) {
 			context.lastResult = undefined;
 		});
 
+		// eslint-disable-next-line sonarjs/no-reference-error
 		afterEach('destroy check', function checkDestroy(this: Mocha.Context) {
 			if (this.currentTest?.state !== 'passed') {
 				context.lastResult = undefined;
 				return;
 			}
-			assert.notStrictEqual(context.lastResult, undefined, 'missing last result');
+			notStrictEqual(context.lastResult, undefined, 'missing last result');
 			if (context.lastResult && context.lastResult !== true) {
-				assert.strictEqual(context.lastResult.stream.destroyed, true, 'last result not destroyed');
+				strictEqual(context.lastResult.stream.destroyed, true, 'last result not destroyed');
 			}
 			context.lastResult = undefined;
 		});
@@ -416,7 +418,7 @@ for (const [frameworkName, frameworkServer] of frameworks) {
 							.expect(shouldNotHaveHeader('Content-Length'))
 							.expect('Content-Encoding', 'br')
 							.expect(200);
-						assert.deepStrictEqual(body, '{\n\t"foo": 123,\n\t"bar": 456\n}\n');
+						deepStrictEqual(body, '{\n\t"foo": 123,\n\t"bar": 456\n}\n');
 					});
 					it('not return compressed text when identity is required', async () => {
 						await request(app.server)
@@ -480,7 +482,7 @@ for (const [frameworkName, frameworkServer] of frameworks) {
 							.expect(shouldNotHaveHeader('Content-Length'))
 							.expect('Content-Encoding', 'br')
 							.expect(200);
-						assert.deepStrictEqual(body, '{\n\t"foo": 123,\n\t"bar": 456\n}\n');
+						deepStrictEqual(body, '{\n\t"foo": 123,\n\t"bar": 456\n}\n');
 					});
 					it('return compressed text when length >= dynamicCompressionMinLength', async () => {
 						const { body } = <{ body: string }> await request(app.server)
@@ -491,7 +493,7 @@ for (const [frameworkName, frameworkServer] of frameworks) {
 							.expect(shouldNotHaveHeader('Content-Length'))
 							.expect('Content-Encoding', 'br')
 							.expect(200);
-						assert.deepStrictEqual(body, '{ "name": "tobi" }');
+						deepStrictEqual(body, '{ "name": "tobi" }');
 					});
 
 					it('not return compressed text when length < dynamicCompressionMinLength', async () => {
@@ -526,7 +528,7 @@ for (const [frameworkName, frameworkServer] of frameworks) {
 							.expect(shouldNotHaveHeader('Content-Length'))
 							.expect('Content-Encoding', 'br')
 							.expect(200);
-						assert.ok(body.startsWith('<!DOCTYPE html>'));
+						ok(body.startsWith('<!DOCTYPE html>'));
 					});
 				});
 
@@ -557,7 +559,7 @@ for (const [frameworkName, frameworkServer] of frameworks) {
 							.expect(shouldNotHaveHeader('Content-Length'))
 							.expect('Content-Encoding', 'br')
 							.expect(200);
-						assert.deepStrictEqual(body, '{\n\t"foo": 123,\n\t"bar": 456\n}\n');
+						deepStrictEqual(body, '{\n\t"foo": 123,\n\t"bar": 456\n}\n');
 					});
 					it('return png without compression', async () => {
 						await request(app.server)
@@ -635,7 +637,7 @@ for (const [frameworkName, frameworkServer] of frameworks) {
 							await request(app.server)
 								.get('/fixtures-frameworks/some.path/index.json')
 								.set('Accept-Encoding', 'br, gzip, identity');
-							assert.fail();
+							fail();
 						} catch {
 							await Promise.resolve(undefined);
 						}
@@ -645,7 +647,7 @@ for (const [frameworkName, frameworkServer] of frameworks) {
 							await request(app.server)
 								.get('/fixtures-frameworks/some.path/index.json')
 								.set('Accept-Encoding', 'gzip, identity');
-							assert.fail();
+							fail();
 						} catch {
 							await Promise.resolve(undefined);
 						}
@@ -1208,7 +1210,7 @@ for (const [frameworkName, frameworkServer] of frameworks) {
 							.expect('Content-Length', '22')
 							.expect('Content-Type', /^application\/json/u)
 							.expect(200);
-						assert.deepStrictEqual(body, '{ "name": "tobi" }');
+						deepStrictEqual(body, '{ "name": "tobi" }');
 					});
 
 					it('should return brotli if .gz path exists and gzip weight is set to 0', async () => {
@@ -1221,7 +1223,7 @@ for (const [frameworkName, frameworkServer] of frameworks) {
 							.expect('Content-Length', '22')
 							.expect('Content-Type', /^application\/json/u)
 							.expect(200);
-						assert.deepStrictEqual(body, '{ "name": "tobi" }');
+						deepStrictEqual(body, '{ "name": "tobi" }');
 					});
 				});
 
@@ -2047,7 +2049,7 @@ for (const [frameworkName, frameworkServer] of frameworks) {
 					await app.close();
 				});
 				it('should answer 304 when data is fresh', async () => {
-					const stats = await promisify(fs.stat)(join(__dirname, '/fixtures-frameworks/user.json'));
+					const stats = await promisify(stat)(join(__dirname, '/fixtures-frameworks/user.json'));
 					await request(app.server)
 						.get('/')
 						.set('If-Modified-Since', new Date(stats.mtimeMs).toUTCString())
@@ -2091,7 +2093,7 @@ for (const [frameworkName, frameworkServer] of frameworks) {
 						await app.close();
 					});
 					it('should respond 206 to a range request if range fresh (last modified)', async () => {
-						const stats = await promisify(fs.stat)(join(__dirname, '/fixtures-frameworks/hello.txt'));
+						const stats = await promisify(stat)(join(__dirname, '/fixtures-frameworks/hello.txt'));
 						await request(app.server)
 							.get('/')
 							.set('Range', 'bytes=0-0')
@@ -2157,7 +2159,7 @@ for (const [frameworkName, frameworkServer] of frameworks) {
 						await app.close();
 					});
 					it('should respond 206 to a range request if range fresh (empty last modified)', async () => {
-						const stats = await promisify(fs.stat)(join(__dirname, '/fixtures-frameworks/hello.txt'));
+						const stats = await promisify(stat)(join(__dirname, '/fixtures-frameworks/hello.txt'));
 						await request(app.server)
 							.get('/')
 							.set('Range', 'bytes=0-0')
@@ -2379,7 +2381,7 @@ for (const [frameworkName, frameworkServer] of frameworks) {
 							try {
 								await request(app.server)
 									.get('/');
-								assert.fail();
+								fail();
 							} catch {
 								await Promise.resolve(undefined);
 							}
@@ -2444,7 +2446,7 @@ for (const [frameworkName, frameworkServer] of frameworks) {
 								.get('/')
 								.set('Range', 'bytes=0-0,2-2')
 								.parse(multipartHandler);
-							assert.fail();
+							fail();
 						} catch {
 							await Promise.resolve(undefined);
 						}
@@ -2491,7 +2493,7 @@ for (const [frameworkName, frameworkServer] of frameworks) {
 								.get('/')
 								.set('Range', 'bytes=0-0,2-2')
 								.parse(multipartHandler);
-							assert.fail();
+							fail();
 						} catch {
 							await Promise.resolve(undefined);
 						}
@@ -2563,7 +2565,7 @@ for (const [frameworkName, frameworkServer] of frameworks) {
 								.get('/')
 								.set('Range', 'bytes=0-0,2-2')
 								.parse(multipartHandler);
-							assert.fail();
+							fail();
 						} catch {
 							await Promise.resolve(undefined);
 						}
@@ -2699,11 +2701,13 @@ for (const [frameworkName, frameworkServer] of frameworks) {
 
 			describe('when fsModule option used', () => {
 				let app: ServerWrapper;
+				const { fs } = memfs();
 				before(async () => {
 					app = frameworkServer(context);
-					await memfs.fs.promises.writeFile('/foo.txt', 'bar');
+					await fs.promises.mkdir('/app', { recursive: true });
+					await fs.promises.writeFile('/app/foo.txt', 'bar');
 
-					app.send('/', '/foo.txt', { fsModule: <typeof fs> <unknown> memfs.fs });
+					app.send('/app/', '/foo.txt', { fsModule: <GenericFSModule<number>> <unknown> fs });
 
 					await app.listen();
 				});
@@ -2719,11 +2723,17 @@ for (const [frameworkName, frameworkServer] of frameworks) {
 
 			describe('when fsModule option used with onDirectory = list-files', () => {
 				let app: ServerWrapper;
+				const { fs } = memfs();
 				before(async () => {
 					app = frameworkServer(context);
-					await memfs.fs.promises.writeFile('/foo.txt', 'bar');
+					await fs.promises.mkdir('/app', { recursive: true });
+					await fs.promises.writeFile('/app/foo.txt', 'bar');
 
-					app.send('/', '/', { fsModule: <typeof fs> <unknown> memfs.fs, onDirectory: 'list-files' });
+					app.send(
+						'/app/',
+						'/',
+						{ fsModule: <GenericFSModule<number>> <unknown> fs, onDirectory: 'list-files' },
+					);
 
 					await app.listen();
 				});

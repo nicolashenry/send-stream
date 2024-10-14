@@ -2,8 +2,10 @@
  * This example shows how to use this library with vanilla NodeJS http2 module (compat API)
  */
 
-import * as fs from 'node:fs';
-import * as http2 from 'node:http2';
+// eslint-disable-next-line n/no-sync
+import { readFileSync } from 'node:fs';
+import type { Http2ServerRequest, Http2ServerResponse } from 'node:http2';
+import { createSecureServer } from 'node:http2';
 import { join } from 'node:path';
 
 import { FileSystemStorage } from '../src/send-stream';
@@ -12,13 +14,13 @@ const storage = new FileSystemStorage(join(__dirname, 'assets'));
 
 const options = {
 	// eslint-disable-next-line n/no-sync
-	key: fs.readFileSync(join(__dirname, 'cert', 'localhost.key')),
+	key: readFileSync(join(__dirname, 'cert', 'localhost.key')),
 	// eslint-disable-next-line n/no-sync
-	cert: fs.readFileSync(join(__dirname, 'cert', 'localhost.crt')),
+	cert: readFileSync(join(__dirname, 'cert', 'localhost.crt')),
 	allowHTTP1: true,
 };
 
-const app = http2.createSecureServer(options, (req, res) => {
+const app = createSecureServer(options, (req: Http2ServerRequest, res: Http2ServerResponse) => {
 	(async () => {
 		const result = await storage.prepareResponse(req.url, req);
 		await result.send(res);

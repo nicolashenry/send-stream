@@ -2,7 +2,8 @@
  * This example shows how to use this library with Fastify using HTTPS
  */
 
-import * as fs from 'node:fs';
+// eslint-disable-next-line n/no-sync
+import { readFileSync } from 'node:fs';
 import { join } from 'node:path';
 
 import { fastify } from 'fastify';
@@ -13,9 +14,9 @@ const app = fastify({
 	exposeHeadRoutes: true,
 	https: {
 		// eslint-disable-next-line n/no-sync
-		key: fs.readFileSync(join(__dirname, 'cert', 'localhost.key')),
+		key: readFileSync(join(__dirname, 'cert', 'localhost.key')),
 		// eslint-disable-next-line n/no-sync
-		cert: fs.readFileSync(join(__dirname, 'cert', 'localhost.crt')),
+		cert: readFileSync(join(__dirname, 'cert', 'localhost.crt')),
 	},
 });
 
@@ -30,7 +31,7 @@ app.get('*', async (request, reply) => {
 	await result.send(reply.raw);
 });
 
-app.listen(3001)
+app.listen({ port: 3001 })
 	.then(() => {
 		console.info('listening on https://localhost:3001');
 	})

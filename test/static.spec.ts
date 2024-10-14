@@ -1,9 +1,10 @@
 /* eslint-env node, mocha */
 
-import * as assert from 'node:assert';
+import { notStrictEqual, ok, strictEqual } from 'node:assert';
 import { once } from 'node:events';
-import * as http from 'node:http';
-import * as path from 'node:path';
+import type { IncomingMessage, Server, ServerResponse } from 'node:http';
+import { createServer } from 'node:http';
+import { join } from 'node:path';
 
 import request from 'supertest';
 
@@ -13,20 +14,20 @@ import { FileSystemStorage, TrailingSlashError } from '../src/send-stream';
 import { rawRequest, shouldNotHaveHeader } from './utils';
 
 describe('static', () => {
-	const fixtures = path.join(__dirname, '/fixtures-static');
+	const fixtures = join(__dirname, '/fixtures-static');
 
 	let lastResult: StreamResponse<unknown> | true | undefined;
 
-	async function createServer(
+	async function createTestServer(
 		dir?: string,
 		opts?: PrepareResponseOptions & FileSystemStorageOptions,
-		fn?: (req: http.IncomingMessage, res: http.ServerResponse) => void,
+		fn?: (req: IncomingMessage, res: ServerResponse) => void,
 	) {
 		const direct = dir ?? fixtures;
 
 		const storage = new FileSystemStorage(direct, opts);
 
-		const server = http.createServer((req, res) => {
+		const server = createServer((req, res) => {
 			(async () => {
 				if (fn) {
 					fn(req, res);
@@ -62,11 +63,12 @@ describe('static', () => {
 		return server;
 	}
 
+	// eslint-disable-next-line sonarjs/no-reference-error
 	afterEach('destroy check', function destroyCheck(this: Mocha.Context) {
 		if (this.currentTest?.state === 'passed') {
-			assert.notStrictEqual(lastResult, undefined, 'missing last result');
+			notStrictEqual(lastResult, undefined, 'missing last result');
 			if (lastResult && lastResult !== true) {
-				assert.strictEqual(lastResult.stream.destroyed, true, 'last result not destroyed');
+				strictEqual(lastResult.stream.destroyed, true, 'last result not destroyed');
 			}
 		}
 		lastResult = undefined;
@@ -74,9 +76,9 @@ describe('static', () => {
 
 	describe('serveStatic()', () => {
 		describe('basic operations', () => {
-			let server: http.Server;
+			let server: Server;
 			before(async () => {
-				server = await createServer();
+				server = await createTestServer();
 			});
 			after(done => {
 				server.close(done);
@@ -140,7 +142,7 @@ describe('static', () => {
 				await request(server)
 					.head('/todo.txt')
 					.expect(res => {
-						assert.ok((<string | undefined> res.text) === undefined, 'should not have body');
+						ok((<string | undefined> res.text) === undefined, 'should not have body');
 					})
 					.expect(200);
 			});
@@ -185,9 +187,9 @@ describe('static', () => {
 
 		describe('acceptRanges', () => {
 			describe('when false', () => {
-				let server: http.Server;
+				let server: Server;
 				before(async () => {
-					server = await createServer(fixtures, { maxRanges: 0 });
+					server = await createTestServer(fixtures, { maxRanges: 0 });
 				});
 				after(done => {
 					server.close(done);
@@ -210,9 +212,9 @@ describe('static', () => {
 			});
 
 			describe('when true', () => {
-				let server: http.Server;
+				let server: Server;
 				before(async () => {
-					server = await createServer(fixtures, { maxRanges: 1 });
+					server = await createTestServer(fixtures, { maxRanges: 1 });
 				});
 				after(done => {
 					server.close(done);
@@ -237,9 +239,9 @@ describe('static', () => {
 
 		describe('cacheControl', () => {
 			describe('when false', () => {
-				let server: http.Server;
+				let server: Server;
 				before(async () => {
-					server = await createServer(fixtures, { cacheControl: false });
+					server = await createTestServer(fixtures, { cacheControl: false });
 				});
 				after(done => {
 					server.close(done);
@@ -253,9 +255,9 @@ describe('static', () => {
 			});
 
 			describe('when true', () => {
-				let server: http.Server;
+				let server: Server;
 				before(async () => {
-					server = await createServer(fixtures, { cacheControl: 'public, max-age=0' });
+					server = await createTestServer(fixtures, { cacheControl: 'public, max-age=0' });
 				});
 				after(done => {
 					server.close(done);
@@ -271,9 +273,9 @@ describe('static', () => {
 
 		describe('fallthrough', () => {
 			describe('when false', () => {
-				let server: http.Server;
+				let server: Server;
 				before(async () => {
-					server = await createServer(fixtures, {});
+					server = await createTestServer(fixtures, {});
 				});
 				after(done => {
 					server.close(done);
@@ -303,9 +305,9 @@ describe('static', () => {
 		});
 
 		describe('hidden files', () => {
-			let server: http.Server;
+			let server: Server;
 			before(async () => {
-				server = await createServer(fixtures, { ignorePattern: false });
+				server = await createTestServer(fixtures, { ignorePattern: false });
 			});
 			after(done => {
 				server.close(done);
@@ -319,9 +321,9 @@ describe('static', () => {
 
 		describe('lastModified', () => {
 			describe('when false', () => {
-				let server: http.Server;
+				let server: Server;
 				before(async () => {
-					server = await createServer(fixtures, { lastModified: false });
+					server = await createTestServer(fixtures, { lastModified: false });
 				});
 				after(done => {
 					server.close(done);
@@ -335,9 +337,9 @@ describe('static', () => {
 			});
 
 			describe('when true', () => {
-				let server: http.Server;
+				let server: Server;
 				before(async () => {
-					server = await createServer(fixtures, {});
+					server = await createTestServer(fixtures, {});
 				});
 				after(done => {
 					server.close(done);
@@ -352,9 +354,9 @@ describe('static', () => {
 		});
 
 		describe('when traversing past root', () => {
-			let server: http.Server;
+			let server: Server;
 			before(async () => {
-				server = await createServer(fixtures, {});
+				server = await createTestServer(fixtures, {});
 			});
 			after(done => {
 				server.close(done);
@@ -389,9 +391,9 @@ describe('static', () => {
 		});
 
 		describe('when request has "Range" header', () => {
-			let server: http.Server;
+			let server: Server;
 			before(async () => {
-				server = await createServer();
+				server = await createTestServer();
 			});
 			after(done => {
 				server.close(done);

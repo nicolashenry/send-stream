@@ -3,7 +3,7 @@
  */
 
 import { join } from 'node:path';
-import * as crypto from 'node:crypto';
+import { createHash } from 'node:crypto';
 import type { Stats } from 'node:fs';
 import { fstat, close, createReadStream, readdir, constants, open as openFn, opendir as opendirFn } from 'node:fs';
 import { promisify } from 'node:util';
@@ -46,7 +46,8 @@ class FullCacheStorage extends GenericFileSystemStorage<CachedFileDescriptor> {
 					constants,
 					open: (
 						path: string,
-						flags: number,
+						_flags: number,
+						// eslint-disable-next-line sonarjs/no-reference-error
 						callback: (err: NodeJS.ErrnoException | null, fd: CachedFileDescriptor) => void,
 					) => {
 						const cached = this.cache.get(path);
@@ -151,7 +152,8 @@ class FullCacheStorage extends GenericFileSystemStorage<CachedFileDescriptor> {
 				{ start: 0, end: stats.size - 1, fd, autoClose: true },
 			);
 			const chunks: Buffer[] = [];
-			const hash = crypto.createHash('sha1');
+			// eslint-disable-next-line sonarjs/hashing
+			const hash = createHash('sha1');
 			hash.setEncoding('hex');
 			stream.on('data', chunk => {
 				chunks.push(<Buffer> chunk);
@@ -194,7 +196,7 @@ app.get('*', async (request, reply) => {
 storage.cached
 	.then(async () => {
 		console.info('all files are cached');
-		return app.listen(3000)
+		return app.listen({ port: 3000 })
 			.then(() => {
 				console.info('listening on http://localhost:3000');
 			});

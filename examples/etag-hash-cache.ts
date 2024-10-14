@@ -3,8 +3,9 @@
  */
 
 import { join } from 'node:path';
-import * as crypto from 'node:crypto';
-import * as fs from 'node:fs';
+import { createHash } from 'node:crypto';
+import type { Stats } from 'node:fs';
+import { readdir as syncReaddir, createReadStream } from 'node:fs';
 import { promisify } from 'node:util';
 
 import { fastify } from 'fastify';
@@ -16,7 +17,7 @@ import type {
 	FileSystemStorageOptions,
 } from '../src/send-stream';
 
-const readdir = promisify(fs.readdir);
+const readdir = promisify(syncReaddir);
 
 const app = fastify({ exposeHeadRoutes: true });
 
@@ -47,12 +48,13 @@ class EtagHashCacheStorage extends FileSystemStorage {
 		}));
 	}
 
-	async addFileInEtagCache(filePath: string, stats: fs.Stats, fd: number) {
-		const stream = fs.createReadStream(
+	async addFileInEtagCache(filePath: string, stats: Stats, fd: number) {
+		const stream = createReadStream(
 			filePath,
 			{ start: 0, end: stats.size - 1, fd },
 		);
-		const hash = crypto.createHash('sha1');
+		// eslint-disable-next-line sonarjs/hashing
+		const hash = createHash('sha1');
 		hash.setEncoding('hex');
 		stream.pipe(hash);
 		return new Promise<string>((resolve, reject) => {
@@ -92,7 +94,7 @@ app.get('*', async (request, reply) => {
 storage.etagsCached
 	.then(async () => {
 		console.info('all files have their hash etag cached');
-		return app.listen(3000)
+		return app.listen({ port: 3000 })
 			.then(() => {
 				console.info('listening on http://localhost:3000');
 			});

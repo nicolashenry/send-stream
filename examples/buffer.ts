@@ -60,7 +60,7 @@ app.get('*', async (request, reply) => {
 	);
 });
 
-app.listen(3000)
+app.listen({ port: 3000 })
 	.then(() => {
 		console.info('listening on http://localhost:3000');
 	})

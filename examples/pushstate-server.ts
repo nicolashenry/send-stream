@@ -30,6 +30,6 @@ app.get('*', async (request, reply) => {
 	await result.send(reply.raw);
 });
 
-app.listen(3000, () => {
+app.listen({ port: 3000 }, () => {
 	console.info('listening on http://localhost:3000');
 });

@@ -2,14 +2,14 @@
  * This example shows how to use this library with vanilla NodeJS http module
  */
 
-import * as http from 'node:http';
+import { createServer } from 'node:http';
 import { join } from 'node:path';
 
 import { FileSystemStorage } from '../src/send-stream';
 
 const storage = new FileSystemStorage(join(__dirname, 'assets'));
 
-const app = http.createServer((req, res) => {
+const app = createServer((req, res) => {
 	(async () => {
 		if (!req.url) {
 			throw new Error('url not set');

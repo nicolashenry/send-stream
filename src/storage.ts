@@ -1,8 +1,10 @@
-import * as http from 'node:http';
-import * as http2 from 'node:http2';
+import type { ServerResponse } from 'node:http';
+import { IncomingMessage, STATUS_CODES } from 'node:http';
+import type { IncomingHttpHeaders, Http2ServerResponse, ServerHttp2Stream } from 'node:http2';
+import { Http2ServerRequest } from 'node:http2';
 import type { Readable } from 'node:stream';
 import { pipeline } from 'node:stream';
-import * as zlib from 'node:zlib';
+import { createBrotliCompress, createGzip, constants as zlibConstants } from 'node:zlib';
 
 import contentDisposition from 'content-disposition';
 import { lookup, charset } from 'mime-types';
@@ -236,12 +238,12 @@ export abstract class Storage<Reference, AttachedData> {
 	 */
 	async prepareResponse(
 		reference: Reference,
-		req: http.IncomingMessage | http2.Http2ServerRequest | http2.IncomingHttpHeaders,
+		req: IncomingMessage | Http2ServerRequest | IncomingHttpHeaders,
 		opts: PrepareResponseOptions = {},
 	): Promise<StreamResponse<AttachedData>> {
 		let method;
 		let requestHeaders: StorageRequestHeaders;
-		if (req instanceof http.IncomingMessage || req instanceof http2.Http2ServerRequest) {
+		if (req instanceof IncomingMessage || req instanceof Http2ServerRequest) {
 			method = req.method;
 			requestHeaders = req.headers;
 		} else {
@@ -507,8 +509,8 @@ export abstract class Storage<Reference, AttachedData> {
 	 */
 	async send(
 		reference: Reference,
-		req: http.IncomingMessage | http2.Http2ServerRequest | http2.IncomingHttpHeaders,
-		res: http.ServerResponse | http2.Http2ServerResponse | http2.ServerHttp2Stream,
+		req: IncomingMessage | Http2ServerRequest | IncomingHttpHeaders,
+		res: ServerResponse | Http2ServerResponse | ServerHttp2Stream,
 		opts: StorageSendOptions = {},
 	): Promise<void> {
 		const response = await this.prepareResponse(reference, req, opts);
@@ -533,11 +535,11 @@ export abstract class Storage<Reference, AttachedData> {
 		case 'br': {
 			const res = pipeline(
 				stream,
-				zlib.createBrotliCompress({
+				createBrotliCompress({
 					params: {
-						[zlib.constants.BROTLI_PARAM_MODE]: zlib.constants.BROTLI_MODE_TEXT,
-						[zlib.constants.BROTLI_PARAM_QUALITY]: 4,
-						[zlib.constants.BROTLI_PARAM_SIZE_HINT]: expectedSize ?? 0,
+						[zlibConstants.BROTLI_PARAM_MODE]: zlibConstants.BROTLI_MODE_TEXT,
+						[zlibConstants.BROTLI_PARAM_QUALITY]: 4,
+						[zlibConstants.BROTLI_PARAM_SIZE_HINT]: expectedSize ?? 0,
 					},
 				}),
 				_err => {
@@ -552,7 +554,7 @@ export abstract class Storage<Reference, AttachedData> {
 		case 'gzip': {
 			const res = pipeline(
 				stream,
-				zlib.createGzip({ level: 6 }),
+				createGzip({ level: 6 }),
 				_err => {
 					// noop
 				},
@@ -579,7 +581,7 @@ export abstract class Storage<Reference, AttachedData> {
 	StreamResponse<AttachedData> {
 		// Method Not Allowed
 		// eslint-disable-next-line @typescript-eslint/no-non-null-assertion
-		const statusMessageBuffer = Buffer.from(http.STATUS_CODES['405']!);
+		const statusMessageBuffer = Buffer.from(STATUS_CODES['405']!);
 		return new StreamResponse<AttachedData>(
 			405,
 			{
@@ -608,7 +610,7 @@ export abstract class Storage<Reference, AttachedData> {
 	StreamResponse<AttachedData> {
 		// Not Found
 		// eslint-disable-next-line @typescript-eslint/no-non-null-assertion
-		const statusMessageBuffer = Buffer.from(http.STATUS_CODES['404']!);
+		const statusMessageBuffer = Buffer.from(STATUS_CODES['404']!);
 		return new StreamResponse<AttachedData>(
 			404,
 			{
@@ -649,7 +651,7 @@ export abstract class Storage<Reference, AttachedData> {
 	StreamResponse<AttachedData> {
 		// Precondition Failed
 		// eslint-disable-next-line @typescript-eslint/no-non-null-assertion
-		const statusMessageBuffer = Buffer.from(http.STATUS_CODES['412']!);
+		const statusMessageBuffer = Buffer.from(STATUS_CODES['412']!);
 		return new StreamResponse(
 			412,
 			{
@@ -677,7 +679,7 @@ export abstract class Storage<Reference, AttachedData> {
 	StreamResponse<AttachedData> {
 		// Range Not Satisfiable
 		// eslint-disable-next-line @typescript-eslint/no-non-null-assertion
-		const statusMessageBuffer = Buffer.from(http.STATUS_CODES['416']!);
+		const statusMessageBuffer = Buffer.from(STATUS_CODES['416']!);
 		return new StreamResponse(
 			416,
 			{

@@ -2,8 +2,9 @@
  * This example shows how to use this library with vanilla NodeJS https module
  */
 
-import * as fs from 'node:fs';
-import * as https from 'node:https';
+// eslint-disable-next-line n/no-sync
+import { readFileSync } from 'node:fs';
+import { createServer } from 'node:https';
 import { join } from 'node:path';
 
 import { FileSystemStorage } from '../src/send-stream';
@@ -12,12 +13,12 @@ const storage = new FileSystemStorage(join(__dirname, 'assets'));
 
 const options = {
 	// eslint-disable-next-line n/no-sync
-	key: fs.readFileSync(join(__dirname, 'cert', 'localhost.key')),
+	key: readFileSync(join(__dirname, 'cert', 'localhost.key')),
 	// eslint-disable-next-line n/no-sync
-	cert: fs.readFileSync(join(__dirname, 'cert', 'localhost.crt')),
+	cert: readFileSync(join(__dirname, 'cert', 'localhost.crt')),
 };
 
-const app = https.createServer(options, (req, res) => {
+const app = createServer(options, (req, res) => {
 	(async () => {
 		if (req.url === undefined) {
 			throw new Error('url not set');

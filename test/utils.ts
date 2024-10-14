@@ -1,8 +1,9 @@
 /* eslint-disable jsdoc/require-jsdoc */
-import * as assert from 'node:assert';
+import { strictEqual, notStrictEqual } from 'node:assert';
 import { Readable, pipeline } from 'node:stream';
 import { createBrotliDecompress } from 'node:zlib';
-import * as http from 'node:http';
+import type { Server } from 'node:http';
+import { request as httpRequest } from 'node:http';
 
 import type request from 'supertest';
 import type { BodyPart } from 'byteranges';
@@ -142,7 +143,7 @@ export function checkMultipartByteRangeString({
 export function shouldNotHaveHeader(header: string) {
 	return (res: request.Response) => {
 		const { [header.toLowerCase()]: value } = <Record<string, string>> res.header;
-		assert.strictEqual(
+		strictEqual(
 			value,
 			undefined,
 			`should not have header ${ header } (actual value: "${ value }")`,
@@ -153,7 +154,7 @@ export function shouldNotHaveHeader(header: string) {
 export function shouldHaveHeader(header: string) {
 	return (res: request.Response) => {
 		const { [header.toLowerCase()]: value } = <Record<string, string>> res.header;
-		assert.notStrictEqual(
+		notStrictEqual(
 			value,
 			undefined,
 			`should not have header ${ header } (actual value: "${ value }")`,
@@ -164,14 +165,14 @@ export function shouldHaveHeader(header: string) {
 class RawTestImpl implements PromiseLike<void> {
 	promise: Promise<void>;
 	tests: { statusOrHeader: string | number; headerValue: string | undefined }[] = [];
-	constructor(appObj: http.Server, method: 'HEAD' | 'GET', path: string) {
+	constructor(appObj: Server, method: 'HEAD' | 'GET', path: string) {
 		this.promise = new Promise((resolve, reject) => {
 			const address = appObj.address();
 			if (typeof address === 'string' || !address) {
 				reject(new TypeError(`unexpected type for address: ${ address }`));
 				return;
 			}
-			const req = http.request({
+			const req = httpRequest({
 				method,
 				host: '127.0.0.1',
 				port: address.port,
@@ -219,8 +220,8 @@ class RawTestImpl implements PromiseLike<void> {
 	// eslint-disable-next-line unicorn/no-thenable, @typescript-eslint/promise-function-async
 	then<TResult1 = void, TResult2 = never>(
 		// eslint-disable-next-line @typescript-eslint/no-invalid-void-type
-		onfulfilled?: ((value: void) => TResult1 | PromiseLike<TResult1>) | undefined | null,
-		onrejected?: ((reason: unknown) => TResult2 | PromiseLike<TResult2>) | undefined | null,
+		onfulfilled?: ((value: void) => TResult1 | PromiseLike<TResult1>) | null,
+		onrejected?: ((reason: unknown) => TResult2 | PromiseLike<TResult2>) | null,
 	): Promise<TResult1 | TResult2> {
 		return this.promise.then(onfulfilled, onrejected);
 	}
@@ -231,7 +232,7 @@ class RawTestImpl implements PromiseLike<void> {
 	}
 }
 
-export function rawRequest(appObj: http.Server) {
+export function rawRequest(appObj: Server) {
 	return {
 		get(path: string) {
 			return new RawTestImpl(appObj, 'GET', path);

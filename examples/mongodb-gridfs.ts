@@ -10,7 +10,8 @@ import { posix } from 'node:path';
 import { URL } from 'node:url';
 
 import { fastify } from 'fastify';
-import * as mongodb from 'mongodb';
+import type { GridFSFile, FindCursor } from 'mongodb';
+import { MongoClient, GridFSBucket } from 'mongodb';
 
 import type { StorageOptions, StorageInfo, StreamRange } from '../src/send-stream';
 import { Storage, StorageError } from '../src/send-stream';
@@ -28,16 +29,16 @@ interface FileWithMetadata {
 	};
 }
 
-type File = mongodb.GridFSFile & FileWithMetadata;
+type File = GridFSFile & FileWithMetadata;
 
 class GridFSStorage extends Storage<string, File> {
-	constructor(readonly bucket: mongodb.GridFSBucket, readonly opts?: StorageOptions) {
+	constructor(readonly bucket: GridFSBucket, readonly opts?: StorageOptions) {
 		super(opts);
 	}
 
 	async open(path: string) {
 		const filename = posix.relative('/', decodeURIComponent(new URL(`http://localhost${ path }`).pathname));
-		const files = await (<mongodb.FindCursor<File>> this.bucket.find({ filename }, { limit: 1 })).toArray();
+		const files = await (<FindCursor<File>> this.bucket.find({ filename }, { limit: 1 })).toArray();
 		if (files.length === 0) {
 			throw new StorageError(`filename ${ filename } not found`, path);
 		}
@@ -77,7 +78,7 @@ class GridFSStorage extends Storage<string, File> {
 	}
 }
 
-const client = new mongodb.MongoClient(uri);
+const client = new MongoClient(uri);
 
 const app = fastify({ exposeHeadRoutes: true });
 
@@ -85,7 +86,7 @@ client.connect()
 	.then(async () => {
 		const db = client.db(dbName);
 
-		const bucket = new mongodb.GridFSBucket(db);
+		const bucket = new GridFSBucket(db);
 
 		const storage = new GridFSStorage(bucket);
 
@@ -98,7 +99,7 @@ client.connect()
 			await result.send(reply.raw);
 		});
 
-		await app.listen(3000);
+		await app.listen({ port: 3000 });
 		console.info('listening on http://localhost:3000');
 	})
 	.catch((err: unknown) => {

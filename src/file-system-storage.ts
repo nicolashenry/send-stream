@@ -41,8 +41,8 @@ export function escapeHTMLInPath(path: string): string {
 	return path.replace(/&/ug, '&amp;');
 }
 
-// eslint-disable-next-line no-control-regex, @typescript-eslint/no-inferrable-types
-export const FORBIDDEN_CHARACTERS: RegExp = /[/?<>\\:*|":\u0000-\u001F\u0080-\u009F]/u;
+// eslint-disable-next-line no-control-regex, @typescript-eslint/no-inferrable-types, sonarjs/sonar-no-control-regex
+export const FORBIDDEN_CHARACTERS: RegExp = /[/?<>\\*|":\u0000-\u001F\u0080-\u009F]/u;
 
 /**
  * File system storage
@@ -494,10 +494,20 @@ export class GenericFileSystemStorage<FileDescriptor> extends Storage<FilePath, 
 	 * @param storageInfo - storage information
 	 * @returns the list of files
 	 */
-	async opendir(storageInfo: StorageInfo<GenericFileData<FileDescriptor>>): Promise<Dir | Dirent[]> {
+	async opendir(storageInfo: StorageInfo<GenericFileData<FileDescriptor>>): Promise<Dir | AsyncIterable<Dirent>> {
 		return this.fsOpendir
 			? this.fsOpendir(storageInfo.attachedData.resolvedPath)
-			: this.fsReaddir(storageInfo.attachedData.resolvedPath, { withFileTypes: true });
+			: {
+				[Symbol.asyncIterator]: async function *asyncIterator(this: GenericFileSystemStorage<FileDescriptor>) {
+					const res: Dirent[] = await this.fsReaddir(
+						storageInfo.attachedData.resolvedPath,
+						{ withFileTypes: true },
+					);
+					for (const r of res) {
+						yield r;
+					}
+				}.bind(this),
+			};
 	}
 
 	/**

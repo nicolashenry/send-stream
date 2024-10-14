@@ -43,6 +43,7 @@ export interface GenericFSModule<FileDescriptor> {
 	open: (
 		path: string,
 		flags: number,
+		// eslint-disable-next-line sonarjs/no-reference-error
 		callback: (err: NodeJS.ErrnoException | null, fd: FileDescriptor) => void
 	) => void;
 	fstat: (fd: FileDescriptor, callback: (err: NodeJS.ErrnoException | null, stats: Stats) => void) => void;

@@ -2,8 +2,9 @@
  * This example shows how to use this library with Koa using HTTPS
  */
 
-import * as https from 'node:https';
-import * as fs from 'node:fs';
+import { createServer } from 'node:https';
+// eslint-disable-next-line n/no-sync
+import { readFileSync } from 'node:fs';
 import { join } from 'node:path';
 
 import Koa from 'koa';
@@ -26,12 +27,12 @@ app.use(async (ctx, next) => {
 	ctx.body = result.stream;
 });
 
-const server = https.createServer(
+const server = createServer(
 	{
 		// eslint-disable-next-line n/no-sync
-		key: fs.readFileSync(join(__dirname, 'cert', 'localhost.key')),
+		key: readFileSync(join(__dirname, 'cert', 'localhost.key')),
 		// eslint-disable-next-line n/no-sync
-		cert: fs.readFileSync(join(__dirname, 'cert', 'localhost.crt')),
+		cert: readFileSync(join(__dirname, 'cert', 'localhost.crt')),
 	},
 	(req, res) => {
 		app.callback()(req, res)

@@ -3,9 +3,11 @@
 /* eslint-disable max-lines, max-lines-per-function, sonarjs/no-identical-functions */
 /* eslint-env node, mocha */
 
-import * as assert from 'node:assert';
-import * as http from 'node:http';
-import * as http2 from 'node:http2';
+import { fail, notStrictEqual, ok, strictEqual } from 'node:assert';
+import type { IncomingMessage, Server, ServerResponse } from 'node:http';
+import { createServer } from 'node:http';
+import type { Http2Server, ServerHttp2Session } from 'node:http2';
+import { connect as http2Connect, createServer as http2CreateServer } from 'node:http2';
 import { normalize, join } from 'node:path';
 import { Readable } from 'node:stream';
 import type { AddressInfo } from 'node:net';
@@ -34,8 +36,8 @@ import {
 	shouldNotHaveHeader,
 } from './utils';
 
-async function createAndListenServer(fn: (req: http.IncomingMessage, res: http.ServerResponse) => void) {
-	const app = http.createServer(fn);
+async function createAndListenServer(fn: (req: IncomingMessage, res: ServerResponse) => void) {
+	const app = createServer(fn);
 	app.listen();
 	await once(app, 'listening');
 	return app;
@@ -49,7 +51,7 @@ describe('http', () => {
 
 	let lastResult: StreamResponse<unknown> | true | undefined;
 
-	async function createServer(opts: PrepareResponseOptions & FileSystemStorageOptions & { root: string }) {
+	async function createTestServer(opts: PrepareResponseOptions & FileSystemStorageOptions & { root: string }) {
 		const storage = new FileSystemStorage(opts.root, opts);
 		return createAndListenServer((req, res) => {
 			(async () => {
@@ -70,18 +72,19 @@ describe('http', () => {
 		});
 	}
 
+	// eslint-disable-next-line sonarjs/no-reference-error
 	afterEach('destroy check', function destroyCheck(this: Mocha.Context) {
 		if (this.currentTest?.state === 'passed') {
-			assert.notStrictEqual(lastResult, undefined, 'missing last result');
+			notStrictEqual(lastResult, undefined, 'missing last result');
 			if (lastResult && lastResult !== true) {
-				assert.strictEqual(lastResult.stream.destroyed, true, 'last result not destroyed');
+				strictEqual(lastResult.stream.destroyed, true, 'last result not destroyed');
 			}
 		}
 		lastResult = undefined;
 	});
 
 	describe('prepare response and send', () => {
-		let app: http.Server;
+		let app: Server;
 		before(async () => {
 			const storage = new FileSystemStorage(fixtures);
 			app = await createAndListenServer((req, res) => {
@@ -180,7 +183,7 @@ describe('http', () => {
 				.expect(200)
 				.expect('Content-Length', '4')
 				.expect(res => {
-					assert.ok((<string | undefined> res.text) === undefined, 'should not have body');
+					ok((<string | undefined> res.text) === undefined, 'should not have body');
 				});
 		});
 
@@ -327,7 +330,7 @@ describe('http', () => {
 
 				it('should respond with 412 when ETag matched on not GET or HEAD', done => {
 					lastResult = true;
-					assert.strictEqual(getFreshStatus(false, { 'if-none-match': '"123"' }, '"123"', false), 412);
+					strictEqual(getFreshStatus(false, { 'if-none-match': '"123"' }, '"123"', false), 412);
 					done();
 				});
 			});
@@ -639,7 +642,7 @@ describe('http', () => {
 
 	describe('prepare response and send (alternate)', () => {
 		describe('should add a weak ETag header field when weakEtags is set to true', () => {
-			let app: http.Server;
+			let app: Server;
 			before(async () => {
 				const storage = new FileSystemStorage(fixtures, { weakEtags: true });
 				app = await createAndListenServer((req, res) => {
@@ -668,7 +671,7 @@ describe('http', () => {
 		});
 
 		describe('should error if no method', () => {
-			let app: http.Server;
+			let app: Server;
 			before(async () => {
 				const storage = new FileSystemStorage(fixtures, { weakEtags: true });
 				app = await createAndListenServer((req, res) => {
@@ -699,7 +702,7 @@ describe('http', () => {
 		});
 
 		describe('should handle custom file system stream implementation', () => {
-			let app: http.Server;
+			let app: Server;
 			before(async () => {
 				class CustomFileSystemStorage extends FileSystemStorage {
 					override async open(
@@ -746,7 +749,7 @@ describe('http', () => {
 		});
 
 		describe('should hang up on file stream error', () => {
-			let app: http.Server;
+			let app: Server;
 			class ErrorStorage extends FileSystemStorage {
 				override createReadableStream() {
 					return new Readable({
@@ -781,7 +784,7 @@ describe('http', () => {
 			it('should hang up on file stream error', async () => {
 				try {
 					await request(app).get('/name.txt');
-					assert.fail();
+					fail();
 				} catch {
 					await Promise.resolve(undefined);
 				}
@@ -790,7 +793,7 @@ describe('http', () => {
 
 		describe('send result', () => {
 			describe('should have headers when sending file', () => {
-				let app: http.Server;
+				let app: Server;
 				before(async () => {
 					const storage = new FileSystemStorage(fixtures);
 					app = await createAndListenServer((req, res) => {
@@ -820,7 +823,7 @@ describe('http', () => {
 			});
 
 			describe('should have headers on 404', () => {
-				let app: http.Server;
+				let app: Server;
 				before(async () => {
 					const storage = new FileSystemStorage(fixtures);
 					app = await createAndListenServer((req, res) => {
@@ -850,7 +853,7 @@ describe('http', () => {
 			});
 
 			describe('should provide path', () => {
-				let app: http.Server;
+				let app: Server;
 				before(async () => {
 					const storage = new FileSystemStorage(fixtures);
 					app = await createAndListenServer((req, res) => {
@@ -882,7 +885,7 @@ describe('http', () => {
 			});
 
 			describe('should provide stat', () => {
-				let app: http.Server;
+				let app: Server;
 				before(async () => {
 					const storage = new FileSystemStorage(fixtures);
 					app = await createAndListenServer((req, res) => {
@@ -925,7 +928,7 @@ describe('http', () => {
 			});
 
 			describe('should allow altering headers', () => {
-				let app: http.Server;
+				let app: Server;
 				before(async () => {
 					const storage = new FileSystemStorage(fixtures);
 					app = await createAndListenServer((req, res) => {
@@ -963,7 +966,7 @@ describe('http', () => {
 
 		describe('with conditional-GET', () => {
 			describe('should respond with 412 when weak ETag matched', () => {
-				let app: http.Server;
+				let app: Server;
 				before(async () => {
 					const storage = new FileSystemStorage(fixtures, { weakEtags: true });
 					app = await createAndListenServer((req, res) => {
@@ -1000,7 +1003,7 @@ describe('http', () => {
 			});
 
 			describe('should respond with 304 when weak ETag matched', () => {
-				let app: http.Server;
+				let app: Server;
 				before(async () => {
 					const storage = new FileSystemStorage(fixtures, { weakEtags: true });
 					app = await createAndListenServer((req, res) => {
@@ -1033,9 +1036,9 @@ describe('http', () => {
 			});
 
 			describe('statusCode option should disable 304 and always return statusCode', () => {
-				let app: http.Server;
+				let app: Server;
 				before(async () => {
-					app = await createServer({ root: fixtures, statusCode: 418 });
+					app = await createTestServer({ root: fixtures, statusCode: 418 });
 				});
 				after(done => {
 					app.close(done);
@@ -1053,7 +1056,7 @@ describe('http', () => {
 		describe('with Range request', () => {
 			describe('when if-range present', () => {
 				describe('should not respond with parts when weak etag unchanged', () => {
-					let app: http.Server;
+					let app: Server;
 					before(async () => {
 						const storage = new FileSystemStorage(fixtures, { weakEtags: true });
 						app = await createAndListenServer((req, res) => {
@@ -1090,9 +1093,9 @@ describe('http', () => {
 			});
 
 			describe('statusCode should disable byte ranges', () => {
-				let app: http.Server;
+				let app: Server;
 				before(async () => {
-					app = await createServer({ root: fixtures, statusCode: 418 });
+					app = await createTestServer({ root: fixtures, statusCode: 418 });
 				});
 				after(done => {
 					app.close(done);
@@ -1107,7 +1110,7 @@ describe('http', () => {
 		});
 
 		describe('etag', () => {
-			let app: http.Server;
+			let app: Server;
 			before(async () => {
 				const storage = new FileSystemStorage(fixtures);
 				app = await createAndListenServer((req, res) => {
@@ -1138,7 +1141,7 @@ describe('http', () => {
 
 		describe('max-age', () => {
 			describe('should be configurable', () => {
-				let app: http.Server;
+				let app: Server;
 				before(async () => {
 					const storage = new FileSystemStorage(fixtures);
 					app = await createAndListenServer((req, res) => {
@@ -1173,7 +1176,7 @@ describe('http', () => {
 	});
 
 	describe('prepare response and send (+dispose)', () => {
-		let app: http.Server;
+		let app: Server;
 		before(async () => {
 			const storage = new FileSystemStorage(fixtures);
 			app = await createAndListenServer((req, res) => {
@@ -1211,7 +1214,7 @@ describe('http', () => {
 	});
 
 	describe('direct send', () => {
-		let app: http.Server;
+		let app: Server;
 		before(async () => {
 			const storage = new FileSystemStorage(fixtures);
 			app = await createAndListenServer((req, res) => {
@@ -1243,9 +1246,9 @@ describe('http', () => {
 	describe('send(file, options)', () => {
 		describe('maxRanges', () => {
 			describe('should support disabling accept-ranges', () => {
-				let app: http.Server;
+				let app: Server;
 				before(async () => {
-					app = await createServer({ maxRanges: 0, root: fixtures });
+					app = await createTestServer({ maxRanges: 0, root: fixtures });
 				});
 				after(done => {
 					app.close(done);
@@ -1259,9 +1262,9 @@ describe('http', () => {
 			});
 
 			describe('should ignore requested range when maxRange is zero', () => {
-				let app: http.Server;
+				let app: Server;
 				before(async () => {
-					app = await createServer({ maxRanges: 0, root: fixtures });
+					app = await createTestServer({ maxRanges: 0, root: fixtures });
 				});
 				after(done => {
 					app.close(done);
@@ -1277,9 +1280,9 @@ describe('http', () => {
 			});
 
 			describe('should ignore requested range when maxRange below', () => {
-				let app: http.Server;
+				let app: Server;
 				before(async () => {
-					app = await createServer({ maxRanges: 1, root: fixtures });
+					app = await createTestServer({ maxRanges: 1, root: fixtures });
 				});
 				after(done => {
 					app.close(done);
@@ -1297,9 +1300,9 @@ describe('http', () => {
 
 		describe('cacheControl', () => {
 			describe('should support disabling cache-control', () => {
-				let app: http.Server;
+				let app: Server;
 				before(async () => {
-					app = await createServer({ cacheControl: false, root: fixtures });
+					app = await createTestServer({ cacheControl: false, root: fixtures });
 				});
 				after(done => {
 					app.close(done);
@@ -1313,9 +1316,9 @@ describe('http', () => {
 			});
 
 			describe('should ignore maxAge option', () => {
-				let app: http.Server;
+				let app: Server;
 				before(async () => {
-					app = await createServer({ cacheControl: false, root: fixtures });
+					app = await createTestServer({ cacheControl: false, root: fixtures });
 				});
 				after(done => {
 					app.close(done);
@@ -1330,9 +1333,9 @@ describe('http', () => {
 		});
 
 		describe('etag', () => {
-			let app: http.Server;
+			let app: Server;
 			before(async () => {
-				app = await createServer({ etag: false, root: fixtures });
+				app = await createTestServer({ etag: false, root: fixtures });
 			});
 			after(done => {
 				app.close(done);
@@ -1346,9 +1349,9 @@ describe('http', () => {
 		});
 
 		describe('lastModified', () => {
-			let app: http.Server;
+			let app: Server;
 			before(async () => {
-				app = await createServer({ lastModified: false, root: fixtures });
+				app = await createTestServer({ lastModified: false, root: fixtures });
 			});
 			after(done => {
 				app.close(done);
@@ -1363,9 +1366,9 @@ describe('http', () => {
 
 		describe('dotfiles', () => {
 			describe('should default to "ignore"', () => {
-				let app: http.Server;
+				let app: Server;
 				before(async () => {
-					app = await createServer({ root: fixtures });
+					app = await createTestServer({ root: fixtures });
 				});
 				after(done => {
 					app.close(done);
@@ -1379,9 +1382,9 @@ describe('http', () => {
 			});
 
 			describe('should ignore folder too', () => {
-				let app: http.Server;
+				let app: Server;
 				before(async () => {
-					app = await createServer({ root: fixtures });
+					app = await createTestServer({ root: fixtures });
 				});
 				after(done => {
 					app.close(done);
@@ -1395,9 +1398,9 @@ describe('http', () => {
 			});
 
 			describe('when "allow"', () => {
-				let app: http.Server;
+				let app: Server;
 				before(async () => {
-					app = await createServer({ ignorePattern: false, root: fixtures });
+					app = await createTestServer({ ignorePattern: false, root: fixtures });
 				});
 				after(done => {
 					app.close(done);
@@ -1424,9 +1427,9 @@ describe('http', () => {
 
 			describe('when "ignore"', () => {
 				describe('when "ignore" 1', () => {
-					let app: http.Server;
+					let app: Server;
 					before(async () => {
-						app = await createServer({ ignorePattern: /^\.[^.]/u, root: fixtures });
+						app = await createTestServer({ ignorePattern: /^\.[^.]/u, root: fixtures });
 					});
 					after(done => {
 						app.close(done);
@@ -1475,9 +1478,9 @@ describe('http', () => {
 				});
 
 				describe('when "ignore" 1 (using regexp as text)', () => {
-					let app: http.Server;
+					let app: Server;
 					before(async () => {
-						app = await createServer({ ignorePattern: String.raw`^\.[^.]`, root: fixtures });
+						app = await createTestServer({ ignorePattern: String.raw`^\.[^.]`, root: fixtures });
 					});
 					after(done => {
 						app.close(done);
@@ -1526,9 +1529,9 @@ describe('http', () => {
 				});
 
 				describe('when "ignore" 2', () => {
-					let app: http.Server;
+					let app: Server;
 					before(async () => {
-						app = await createServer({ ignorePattern: /^\.[^.]/u, root: join(fixtures, '.mine') });
+						app = await createTestServer({ ignorePattern: /^\.[^.]/u, root: join(fixtures, '.mine') });
 					});
 					after(done => {
 						app.close(done);
@@ -1545,9 +1548,9 @@ describe('http', () => {
 		describe('root', () => {
 			describe('when given', () => {
 				describe('should not join root', () => {
-					let app: http.Server;
+					let app: Server;
 					before(async () => {
-						app = await createServer({ root: fixtures });
+						app = await createTestServer({ root: fixtures });
 					});
 					after(done => {
 						app.close(done);
@@ -1561,9 +1564,9 @@ describe('http', () => {
 				});
 
 				describe('double slash should be ignored', () => {
-					let app: http.Server;
+					let app: Server;
 					before(async () => {
-						app = await createServer({ root: fixtures });
+						app = await createTestServer({ root: fixtures });
 					});
 					after(done => {
 						app.close(done);
@@ -1577,9 +1580,9 @@ describe('http', () => {
 				});
 
 				describe('double slash in sub path should be ignored', () => {
-					let app: http.Server;
+					let app: Server;
 					before(async () => {
-						app = await createServer({ root: fixtures });
+						app = await createTestServer({ root: fixtures });
 					});
 					after(done => {
 						app.close(done);
@@ -1593,9 +1596,9 @@ describe('http', () => {
 				});
 
 				describe('should work with trailing slash', () => {
-					let app: http.Server;
+					let app: Server;
 					before(async () => {
-						app = await createServer({ root: `${ fixtures }/` });
+						app = await createTestServer({ root: `${ fixtures }/` });
 					});
 					after(done => {
 						app.close(done);
@@ -1608,9 +1611,9 @@ describe('http', () => {
 				});
 
 				describe('should 404 on empty path', () => {
-					let app: http.Server;
+					let app: Server;
 					before(async () => {
-						app = await createServer({ root: join(fixtures, 'name.txt') });
+						app = await createTestServer({ root: join(fixtures, 'name.txt') });
 					});
 					after(done => {
 						app.close(done);
@@ -1624,23 +1627,23 @@ describe('http', () => {
 				});
 
 				describe('should restrict paths to within root', () => {
-					let app: http.Server;
+					let app: Server;
 					before(async () => {
-						app = await createServer({ root: fixtures });
+						app = await createTestServer({ root: fixtures });
 					});
 					after(done => {
 						app.close(done);
 					});
 					it('should restrict paths to within root', async () => {
 						await rawRequest(app)
-							.get('/pets/../../http.spec.ts')
+							.get('/pets/../../spec.ts')
 							.expect('X-Send-Stream-Error', 'NotNormalizedError')
 							.expect(404);
 					});
 				});
 
 				describe('should restrict paths to within root with path parts', () => {
-					let app: http.Server;
+					let app: Server;
 					before(async () => {
 						const storage = new FileSystemStorage(fixtures);
 						app = await createAndListenServer((req, res) => {
@@ -1673,9 +1676,9 @@ describe('http', () => {
 				});
 
 				describe('should allow .. in root', () => {
-					let app: http.Server;
+					let app: Server;
 					before(async () => {
-						app = await createServer({ root: `${ fixtures }/../fixtures-http` });
+						app = await createTestServer({ root: `${ fixtures }/../fixtures-http` });
 					});
 					after(done => {
 						app.close(done);
@@ -1689,9 +1692,9 @@ describe('http', () => {
 				});
 
 				describe('should not allow root transversal', () => {
-					let app: http.Server;
+					let app: Server;
 					before(async () => {
-						app = await createServer({ root: join(fixtures, 'name.d') });
+						app = await createTestServer({ root: join(fixtures, 'name.d') });
 					});
 					after(done => {
 						app.close(done);
@@ -1705,9 +1708,9 @@ describe('http', () => {
 				});
 
 				describe('should not allow root path disclosure', () => {
-					let app: http.Server;
+					let app: Server;
 					before(async () => {
-						app = await createServer({ root: fixtures });
+						app = await createTestServer({ root: fixtures });
 					});
 					after(done => {
 						app.close(done);
@@ -1722,7 +1725,7 @@ describe('http', () => {
 			});
 
 			describe('when missing', () => {
-				let app: http.Server;
+				let app: Server;
 				before(async () => {
 					const storage = new FileSystemStorage(fixtures);
 					app = await createAndListenServer((req, res) => {
@@ -1762,7 +1765,7 @@ describe('http', () => {
 			});
 		});
 		describe('other methods', () => {
-			let app: http.Server;
+			let app: Server;
 			before(async () => {
 				const storage = new FileSystemStorage(fixtures);
 				app = await createAndListenServer((req, res) => {
@@ -1806,9 +1809,9 @@ describe('http', () => {
 
 		describe('other methods (alternate)', () => {
 			describe('should not 405 on post allowed', () => {
-				let app: http.Server;
+				let app: Server;
 				before(async () => {
-					app = await createServer({ root: fixtures, allowedMethods: ['POST'] });
+					app = await createTestServer({ root: fixtures, allowedMethods: ['POST'] });
 				});
 				after(done => {
 					app.close(done);
@@ -1827,9 +1830,9 @@ describe('http', () => {
 			});
 
 			describe('should 405 on head not allowed', () => {
-				let app: http.Server;
+				let app: Server;
 				before(async () => {
-					app = await createServer({ root: fixtures, allowedMethods: ['GET'] });
+					app = await createTestServer({ root: fixtures, allowedMethods: ['GET'] });
 				});
 				after(done => {
 					app.close(done);
@@ -1847,7 +1850,7 @@ describe('http', () => {
 
 	describe('when something happenned too soon', () => {
 		describe('should ignore if headers already sent', () => {
-			let app: http.Server;
+			let app: Server;
 			before(async () => {
 				const storage = new FileSystemStorage(fixtures);
 				app = await createAndListenServer((req, res) => {
@@ -1875,7 +1878,7 @@ describe('http', () => {
 				try {
 					await request(app)
 						.get('/nums.txt');
-					assert.fail();
+					fail();
 				} catch {
 					await Promise.resolve(undefined);
 				}
@@ -1883,7 +1886,7 @@ describe('http', () => {
 		});
 
 		describe('should ignore if connection already destroyed', () => {
-			let app: http.Server;
+			let app: Server;
 			before(async () => {
 				const storage = new FileSystemStorage(fixtures);
 				app = await createAndListenServer((req, res) => {
@@ -1910,7 +1913,7 @@ describe('http', () => {
 				try {
 					await request(app)
 						.get('/nums.txt');
-					assert.fail();
+					fail();
 				} catch {
 					await Promise.resolve(undefined);
 				}
@@ -1918,7 +1921,7 @@ describe('http', () => {
 		});
 
 		describe('should ignore if connection already destroyed and no socket', () => {
-			let app: http.Server;
+			let app: Server;
 			before(async () => {
 				const storage = new FileSystemStorage(fixtures);
 				app = await createAndListenServer((req, res) => {
@@ -1945,7 +1948,7 @@ describe('http', () => {
 				try {
 					await request(app)
 						.get('/nums.txt');
-					assert.fail();
+					fail();
 				} catch {
 					await Promise.resolve(undefined);
 				}
@@ -1953,7 +1956,7 @@ describe('http', () => {
 		});
 
 		describe('should handle connection destroyed', () => {
-			let app: http.Server;
+			let app: Server;
 			before(async () => {
 				const storage = new FileSystemStorage(fixtures);
 				app = await createAndListenServer((req, res) => {
@@ -1979,7 +1982,7 @@ describe('http', () => {
 				try {
 					await request(app)
 						.get('/nums.txt');
-					assert.fail();
+					fail();
 				} catch {
 					await Promise.resolve(undefined);
 				}
@@ -1987,13 +1990,14 @@ describe('http', () => {
 		});
 
 		describe('should handle stream pipe error', () => {
-			let app: http.Server;
+			let app: Server;
 			before(async () => {
 				class ErrorStorage extends FileSystemStorage {
 					override createReadableStream(si: StorageInfo<FileData>): Readable {
-						// eslint-disable-next-line @typescript-eslint/no-this-alias
+						// eslint-disable-next-line @typescript-eslint/no-this-alias, sonarjs/no-this-alias
 						const st = this;
 						return new class extends Readable {
+							// eslint-disable-next-line sonarjs/no-reference-error
 							override pipe<T extends NodeJS.WritableStream>(
 								destination: T,
 								options?: { end?: boolean },
@@ -2002,6 +2006,7 @@ describe('http', () => {
 								return super.pipe(destination, options);
 							}
 
+							// eslint-disable-next-line @typescript-eslint/no-misused-promises
 							override async _destroy(error: Error | null, callback: (err?: Error | null) => void) {
 								await st.close(si);
 								callback(error);
@@ -2034,7 +2039,7 @@ describe('http', () => {
 				try {
 					await request(app)
 						.get('/nums.txt');
-					assert.fail();
+					fail();
 				} catch {
 					await Promise.resolve(undefined);
 				}
@@ -2042,11 +2047,11 @@ describe('http', () => {
 		});
 
 		describe('should handle stream pipe error with ignorePrematureClose parameter', () => {
-			let app: http.Server;
+			let app: Server;
 			before(async () => {
 				class ErrorStorage extends FileSystemStorage {
 					override createReadableStream(si: StorageInfo<FileData>): Readable {
-						// eslint-disable-next-line @typescript-eslint/no-this-alias
+						// eslint-disable-next-line @typescript-eslint/no-this-alias, sonarjs/no-this-alias
 						const st = this;
 						return new class extends Readable {
 							override pipe<T extends NodeJS.WritableStream>(
@@ -2057,6 +2062,7 @@ describe('http', () => {
 								return super.pipe(destination, options);
 							}
 
+							// eslint-disable-next-line @typescript-eslint/no-misused-promises
 							override async _destroy(error: Error | null, callback: (err?: Error | null) => void) {
 								await st.close(si);
 								callback(error);
@@ -2089,7 +2095,7 @@ describe('http', () => {
 				try {
 					await request(app)
 						.get('/nums.txt');
-					assert.fail();
+					fail();
 				} catch {
 					await Promise.resolve(undefined);
 				}
@@ -2097,11 +2103,11 @@ describe('http', () => {
 		});
 
 		describe('should handle stream read error on already closed stream', () => {
-			let app: http.Server;
+			let app: Server;
 			before(async () => {
 				class ErrorStorage extends FileSystemStorage {
 					override createReadableStream(si: StorageInfo<FileData>): Readable {
-						// eslint-disable-next-line @typescript-eslint/no-this-alias
+						// eslint-disable-next-line @typescript-eslint/no-this-alias, sonarjs/no-this-alias
 						const st = this;
 						return new class extends Readable {
 							override pipe<T extends NodeJS.WritableStream>(
@@ -2112,6 +2118,7 @@ describe('http', () => {
 								return super.pipe(destination, options);
 							}
 
+							// eslint-disable-next-line @typescript-eslint/no-misused-promises
 							override async _destroy(error: Error | null, callback: (err?: Error | null) => void) {
 								await st.close(si);
 								callback(error);
@@ -2154,7 +2161,7 @@ describe('http', () => {
 				try {
 					await request(app)
 						.get('/nums.txt');
-					assert.fail();
+					fail();
 				} catch {
 					await Promise.resolve(undefined);
 				}
@@ -2162,13 +2169,13 @@ describe('http', () => {
 		});
 
 		describe('should handle stream read error on already closed stream (http2)', () => {
-			let app: http2.Http2Server;
+			let app: Http2Server;
 			let address: AddressInfo;
-			const sessions: http2.ServerHttp2Session[] = [];
+			const sessions: ServerHttp2Session[] = [];
 			before(done => {
 				class ErrorStorage extends FileSystemStorage {
 					override createReadableStream(si: StorageInfo<FileData>): Readable {
-						// eslint-disable-next-line @typescript-eslint/no-this-alias
+						// eslint-disable-next-line @typescript-eslint/no-this-alias, sonarjs/no-this-alias
 						const st = this;
 						return new class extends Readable {
 							override pipe<T extends NodeJS.WritableStream>(
@@ -2179,6 +2186,7 @@ describe('http', () => {
 								return super.pipe(destination, options);
 							}
 
+							// eslint-disable-next-line @typescript-eslint/no-misused-promises
 							override async _destroy(error: Error | null, callback: (err?: Error | null) => void) {
 								await st.close(si);
 								callback(error);
@@ -2189,7 +2197,7 @@ describe('http', () => {
 
 				const errorStorage = new ErrorStorage(fixtures);
 
-				app = http2.createServer((req, res) => {
+				app = http2CreateServer((req, res) => {
 					(async () => {
 						const resp = await errorStorage.prepareResponse(req.url, req);
 						lastResult = resp;
@@ -2230,7 +2238,7 @@ describe('http', () => {
 				app.close(done);
 			});
 			it('should handle stream read error on already closed stream (http2)', done => {
-				const client = http2.connect(`http://localhost:${ address.port }`);
+				const client = http2Connect(`http://localhost:${ address.port }`);
 
 				const req = client.request({ ':path': '/name.txt' });
 
@@ -2259,12 +2267,12 @@ describe('http', () => {
 
 	describe('http2 server', () => {
 		describe('should 200 on simple request', () => {
-			let app: http2.Http2Server;
+			let app: Http2Server;
 			let address: AddressInfo;
-			const sessions: http2.ServerHttp2Session[] = [];
+			const sessions: ServerHttp2Session[] = [];
 			before(done => {
 				const storage = new FileSystemStorage(fixtures);
-				app = http2.createServer();
+				app = http2CreateServer();
 
 				app.on('stream', (stream, headers) => {
 					(async () => {
@@ -2298,7 +2306,7 @@ describe('http', () => {
 				app.close(done);
 			});
 			it('should 200 on simple request', done => {
-				const client = http2.connect(`http://localhost:${ address.port }`);
+				const client = http2Connect(`http://localhost:${ address.port }`);
 
 				let hasError = false;
 				client.on('error', err => {
@@ -2346,12 +2354,12 @@ describe('http', () => {
 		});
 
 		describe('should 200 on simple request with compatibility layer', () => {
-			let app: http2.Http2Server;
+			let app: Http2Server;
 			let address: AddressInfo;
-			const sessions: http2.ServerHttp2Session[] = [];
+			const sessions: ServerHttp2Session[] = [];
 			before(done => {
 				const storage = new FileSystemStorage(fixtures);
-				app = http2.createServer((req, res) => {
+				app = http2CreateServer((req, res) => {
 					(async () => {
 						const result = await storage.prepareResponse(
 							req.url,
@@ -2385,7 +2393,7 @@ describe('http', () => {
 				app.close(done);
 			});
 			it('should 200 on simple request with compatibility layer', done => {
-				const client = http2.connect(`http://localhost:${ address.port }`);
+				const client = http2Connect(`http://localhost:${ address.port }`);
 
 				let hasError = false;
 				client.on('error', err => {
@@ -2433,13 +2441,13 @@ describe('http', () => {
 		});
 
 		describe('should ignore if connection already destroyed', () => {
-			let app: http2.Http2Server;
+			let app: Http2Server;
 			let address: AddressInfo;
-			const sessions: http2.ServerHttp2Session[] = [];
+			const sessions: ServerHttp2Session[] = [];
 			before(done => {
 				const storage = new FileSystemStorage(fixtures);
 
-				app = http2.createServer((req, res) => {
+				app = http2CreateServer((req, res) => {
 					(async () => {
 						res.stream.destroy();
 						lastResult = true;
@@ -2478,7 +2486,7 @@ describe('http', () => {
 				app.close(done);
 			});
 			it('should ignore if connection already destroyed', done => {
-				const client = http2.connect(`http://localhost:${ address.port }`);
+				const client = http2Connect(`http://localhost:${ address.port }`);
 
 				let hasError = false;
 				client.on('error', err => {
@@ -2505,9 +2513,9 @@ describe('http', () => {
 		});
 
 		describe('should handle errors', () => {
-			let app: http2.Http2Server;
+			let app: Http2Server;
 			let address: AddressInfo;
-			const sessions: http2.ServerHttp2Session[] = [];
+			const sessions: ServerHttp2Session[] = [];
 			before(done => {
 				class ErrorStorage extends FileSystemStorage {
 					override createReadableStream(
@@ -2526,7 +2534,7 @@ describe('http', () => {
 					}
 				}
 				const storage = new ErrorStorage(fixtures);
-				app = http2.createServer();
+				app = http2CreateServer();
 
 				app.on('stream', (stream, headers) => {
 					(async () => {
@@ -2560,7 +2568,7 @@ describe('http', () => {
 				app.close(done);
 			});
 			it('should handle errors', done => {
-				const client = http2.connect(`http://localhost:${ address.port }`);
+				const client = http2Connect(`http://localhost:${ address.port }`);
 
 				let hasError = false;
 				client.on('error', err => {
@@ -2601,23 +2609,23 @@ describe('http', () => {
 					data += chunk;
 				});
 				req.on('end', () => {
+					client.close();
 					if (data !== '' && !hasError) {
 						hasError = true;
 						done(new Error(`body received ${ JSON.stringify(data) } does not equals "tobi"`));
 					}
-					client.close();
 				});
 				req.end();
 			});
 		});
 
 		describe('should 500 on missing method', () => {
-			let app: http2.Http2Server;
+			let app: Http2Server;
 			let address: AddressInfo;
-			const sessions: http2.ServerHttp2Session[] = [];
+			const sessions: ServerHttp2Session[] = [];
 			before(done => {
 				const storage = new FileSystemStorage(fixtures);
-				app = http2.createServer();
+				app = http2CreateServer();
 
 				app.on('stream', (stream, headers) => {
 					(async () => {
@@ -2656,7 +2664,7 @@ describe('http', () => {
 				app.close(done);
 			});
 			it('should 500 on missing method', done => {
-				const client = http2.connect(`http://localhost:${ address.port }`);
+				const client = http2Connect(`http://localhost:${ address.port }`);
 
 				let hasError = false;
 				client.on('error', err => {

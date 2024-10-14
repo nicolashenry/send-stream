@@ -1,5 +1,5 @@
-import type * as http from 'node:http';
-import type * as http2 from 'node:http2';
+import type { IncomingHttpHeaders } from 'node:http';
+import type { IncomingHttpHeaders as Http2IncomingHttpHeaders } from 'node:http2';
 
 /**
  * Charset mapping
@@ -101,7 +101,7 @@ interface AcceptEncodingHeader {
 /**
  * Request headers
  */
-export type StorageRequestHeaders = (http.IncomingHttpHeaders | http2.IncomingHttpHeaders) & AcceptEncodingHeader;
+export type StorageRequestHeaders = (IncomingHttpHeaders | Http2IncomingHttpHeaders) & AcceptEncodingHeader;
 
 /**
  * Storage options

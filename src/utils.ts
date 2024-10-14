@@ -204,9 +204,7 @@ export function contentRange(rangeType: string, size: number, range?: StreamRang
  * @returns splitted headers
  */
 function parseMultiValueHeader(header: string) {
-	const splitted = header
-		.replace(/^[ \t]+|(?<![ \t])[ \t]+$/gu, '')
-		.split(/[ \t]*,[ \t]*/u);
+	const splitted = header.split(',').map(value => value.trim());
 	while (splitted.length > 0 && splitted[0] === '') {
 		splitted.shift();
 	}
@@ -235,7 +233,7 @@ export function acceptEncodings<T extends { order: number }>(
 	}
 	const result = new Map<string, T & { weight: number }>();
 	for (const value of values) {
-		// eslint-disable-next-line @stylistic/max-len
+		// eslint-disable-next-line @stylistic/max-len, sonarjs/regex-complexity
 		const match = /^(?<rawEncoding>[-!#$%&'*+.^_`|~A-Za-z0-9]+)(?:[ \t]*;[ \t]*q=(?<weightOption>0(?:\.\d{1,3})?|1(?:\.0{1,3})?))?$/u
 			.exec(value);
 		if (!match || !match.groups) {

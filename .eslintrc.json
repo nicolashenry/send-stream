@@ -237,6 +237,7 @@
     "@typescript-eslint/no-base-to-string": "warn",
     "@typescript-eslint/no-confusing-non-null-assertion": "warn",
     "@typescript-eslint/no-confusing-void-expression": "warn",
+    "@typescript-eslint/no-deprecated": "warn",
     "@typescript-eslint/no-dupe-class-members": "warn",
     "@typescript-eslint/no-duplicate-enum-values": "warn",
     "@typescript-eslint/no-duplicate-type-constituents": "warn",
@@ -401,6 +402,7 @@
     "@stylistic/comma-spacing": "warn",
     "@stylistic/comma-style": "warn",
     "@stylistic/computed-property-spacing": "warn",
+    "@stylistic/curly-newline": "warn",
     "@stylistic/dot-location": [
       "warn",
       "property"
@@ -961,6 +963,7 @@
     "jsdoc/implements-on-classes": "warn",
     "jsdoc/imports-as-dependencies": "warn",
     "jsdoc/informative-docs": "off", // too restrictive
+    "jsdoc/lines-before-block": "off", // not needed: seems useless
     "jsdoc/match-description": "off", // not needed: seems useless
     "jsdoc/match-name": "off", // not needed: seems useless
     "jsdoc/multiline-blocks": "warn",
@@ -1016,6 +1019,7 @@
     ],
     "unicorn/consistent-destructuring": "warn",
     "unicorn/consistent-empty-array-spread": "warn",
+    "unicorn/consistent-existence-index-check": "warn",
     "unicorn/consistent-function-scoping": "warn",
     "unicorn/custom-error-definition": "warn",
     "unicorn/empty-brace-spaces": "warn",
@@ -1093,10 +1097,12 @@
     "unicorn/prefer-dom-node-text-content": "off", // not needed: not executed in a browser
     "unicorn/prefer-event-target": "warn",
     "unicorn/prefer-export-from": "warn",
+    "unicorn/prefer-global-this": "warn",
     "unicorn/prefer-keyboard-event-key": "off", // not needed: not executed in a browser
     "unicorn/prefer-includes": "warn",
     "unicorn/prefer-json-parse-buffer": "warn",
     "unicorn/prefer-logical-operator-over-ternary": "warn",
+    "unicorn/prefer-math-min-max": "warn",
     "unicorn/prefer-math-trunc": "warn",
     "unicorn/prefer-modern-dom-apis": "off", // not needed: not executed in a browser
     "unicorn/prefer-modern-math-apis": "warn",
@@ -1181,38 +1187,329 @@
     "n/prefer-promises/fs": "warn",
     "n/process-exit-as-throw": "warn",
     "n/shebang": "off", // deprecated: replaced by n/hashbang
-    "sonarjs/cognitive-complexity": ["warn", 140],
+    "sonarjs/accessor-pairs": "off", // not needed: seems useless
+    "sonarjs/alt-text": "off", // not needed: only for html/component
+    "sonarjs/anchor-has-content": "off", // not needed: only for html/component
+    "sonarjs/anchor-is-valid": "off", // not needed: only for html/component
+    "sonarjs/anchor-precedence": "warn",
+    "sonarjs/argument-type": "warn",
+    "sonarjs/arguments-order": "warn",
+    "sonarjs/arguments-usage": "warn",
+    "sonarjs/array-callback-without-return": "warn",
+    "sonarjs/array-constructor": "warn",
+    "sonarjs/arrow-function-convention": "warn",
+    "sonarjs/assertions-in-tests": "off", // not needed: too restrictive
+    "sonarjs/aws-apigateway-public-api": "off", // not needed: seems useless
+    "sonarjs/aws-ec2-rds-dms-public": "off", // not needed: seems useless
+    "sonarjs/aws-ec2-unencrypted-ebs-volume": "off", // not needed: seems useless
+    "sonarjs/aws-efs-unencrypted": "off", // not needed: seems useless
+    "sonarjs/aws-iam-all-privileges": "off", // not needed: seems useless
+    "sonarjs/aws-iam-all-resources-accessible": "off", // not needed: seems useless
+    "sonarjs/aws-iam-privilege-escalation": "off", // not needed: seems useless
+    "sonarjs/aws-iam-public-access": "off", // not needed: seems useless
+    "sonarjs/aws-opensearchservice-domain": "off", // not needed: seems useless
+    "sonarjs/aws-rds-unencrypted-databases": "off", // not needed: seems useless
+    "sonarjs/aws-restricted-ip-admin-access": "off", // not needed: seems useless
+    "sonarjs/aws-s3-bucket-granted-access": "off", // not needed: seems useless
+    "sonarjs/aws-s3-bucket-insecure-http": "off", // not needed: seems useless
+    "sonarjs/aws-s3-bucket-public-access": "off", // not needed: seems useless
+    "sonarjs/aws-s3-bucket-server-encryption": "off", // deprecated
+    "sonarjs/aws-s3-bucket-versioning": "off", // not needed: seems useless
+    "sonarjs/aws-sagemaker-unencrypted-notebook": "off", // not needed: seems useless
+    "sonarjs/aws-sns-unencrypted-topics": "off", // not needed: seems useless
+    "sonarjs/aws-sqs-unencrypted-queue": "off", // not needed: seems useless
+    "sonarjs/bitwise-operators": "warn",
+    "sonarjs/bool-param-default": "off", // too restrictive
+    "sonarjs/brace-style": "off", // deprecated
+    "sonarjs/call-argument-line": "warn",
+    "sonarjs/certificate-transparency": "warn",
+    "sonarjs/chai-determinate-assertion": "off", // not needed: seems useless
+    "sonarjs/class-name": "warn",
+    "sonarjs/class-prototype": "warn",
+    "sonarjs/code-eval": "warn",
+    "sonarjs/cognitive-complexity": ["warn", 180],
+    "sonarjs/comma-or-logical-or-case": "warn",
+    "sonarjs/comment-regex": "off", // not needed: seems useless
+    "sonarjs/concise-regex": "warn",
+    "sonarjs/conditional-indentation": "off", // deprecated
+    "sonarjs/confidential-information-logging": "warn",
+    "sonarjs/constructor-for-side-effects": "warn",
+    "sonarjs/content-length": "warn",
+    "sonarjs/content-security-policy": "warn",
+    "sonarjs/cookie-no-httponly": "warn",
+    "sonarjs/cookies": "off", // deprecated
+    "sonarjs/cors": "warn",
+    "sonarjs/csrf": "warn",
+    "sonarjs/cyclomatic-complexity": "off", // too restrictive
+    "sonarjs/declarations-in-global-scope": "off", // too restrictive
+    "sonarjs/default-param-last": "warn",
+    "sonarjs/deprecation": "off", // not needed: covered by @typescript-eslint/no-deprecated
+    "sonarjs/destructuring-assignment-syntax": "warn",
+    "sonarjs/different-types-comparison": "off", // not needed: covered by typescript
+    "sonarjs/disabled-auto-escaping": "warn",
+    "sonarjs/disabled-resource-integrity": "warn",
+    "sonarjs/disabled-timeout": "off", // not needed: seems useless
+    "sonarjs/dns-prefetching": "off", // deprecated
+    "sonarjs/duplicates-in-character-class": "warn",
     "sonarjs/elseif-without-else": "off", // not needed: seems useless
+    "sonarjs/empty-string-repetition": "warn",
+    "sonarjs/encryption": "off", // deprecated
+    "sonarjs/encryption-secure-mode": "warn",
+    "sonarjs/enforce-trailing-comma": "off", // deprecated
+    "sonarjs/existing-groups": "warn",
+    "sonarjs/expression-complexity": "off", // too restrictive
+    "sonarjs/file-header": "off", // not needed: seems useless
+    "sonarjs/file-name-differ-from-class": "off", // too restrictive
+    "sonarjs/file-permissions": "warn",
+    "sonarjs/file-uploads": "warn",
+    "sonarjs/fixme-tag": "warn",
+    "sonarjs/for-in": "warn",
+    "sonarjs/for-loop-increment-sign": "warn",
+    "sonarjs/frame-ancestors": "warn",
+    "sonarjs/function-inside-loop": "warn",
+    "sonarjs/function-name": "off", // too restrictive
+    "sonarjs/function-return-type": "off", // too restrictive
+    "sonarjs/future-reserved-words": "warn",
+    "sonarjs/generator-without-yield": "warn",
+    "sonarjs/hashing": "warn",
+    "sonarjs/hidden-files": "warn",
+    "sonarjs/hook-use-state": "off", // not needed: not react
+    "sonarjs/html-has-lang": "off", // not needed: only for html/component
+    "sonarjs/in-operator-type-error": "warn",
+    "sonarjs/inconsistent-function-call": "off", // not needed: covered by typescript
+    "sonarjs/index-of-compare-to-positive-number": "warn",
+    "sonarjs/insecure-cookie": "warn",
+    "sonarjs/insecure-jwt-token": "off", // not needed: seems useless
+    "sonarjs/inverted-assertion-arguments": "warn",
+    "sonarjs/jsx-key": "off", // not needed: seems useless
+    "sonarjs/jsx-no-constructed-context-values": "off", // not needed: seems useless
+    "sonarjs/jsx-no-useless-fragment": "off", // not needed: seems useless
+    "sonarjs/label-has-associated-control": "off", // not needed: only for html/component
+    "sonarjs/label-position": "warn",
+    "sonarjs/link-with-target-blank": "warn",
     "sonarjs/max-switch-cases": "warn",
+    "sonarjs/max-union-size": "off", // too restrictive
+    "sonarjs/media-has-caption": "off", // not needed: only for html/component
+    "sonarjs/misplaced-loop-counter": "warn",
+    "sonarjs/mouse-events-a11y": "off", // not needed: only for html/component
+    "sonarjs/nested-control-flow": ["warn", { "maximumNestingLevel": 8 }],
+    "sonarjs/new-cap": "off", // too restrictive
+    "sonarjs/new-operator-misuse": "warn",
+    "sonarjs/no-accessor-field-mismatch": "warn",
     "sonarjs/no-all-duplicated-branches": "warn",
+    "sonarjs/no-alphabetical-sort": "warn",
+    "sonarjs/no-angular-bypass-sanitization": "warn",
+    "sonarjs/no-array-delete": "warn",
+    "sonarjs/no-array-index-key": "off", // not needed: seems useless
+    "sonarjs/no-associative-arrays": "warn",
+    "sonarjs/no-base-to-string": "warn",
+    "sonarjs/no-built-in-override": "warn",
+    "sonarjs/no-case-label-in-switch": "warn",
+    "sonarjs/no-clear-text-protocols": "warn",
+    "sonarjs/no-code-after-done": "warn",
     "sonarjs/no-collapsible-if": "warn",
     "sonarjs/no-collection-size-mischeck": "warn",
+    "sonarjs/no-commented-code": "warn",
+    "sonarjs/no-dead-store": "warn",
+    "sonarjs/no-delete-var": "warn",
+    "sonarjs/no-deprecated-react": "off", // not needed: seems useless
+    "sonarjs/no-duplicate-in-composite": "warn",
     "sonarjs/no-duplicate-string": "off", // too restrictive
     "sonarjs/no-duplicated-branches": "warn",
     "sonarjs/no-element-overwrite": "warn",
+    "sonarjs/no-empty-after-reluctant": "warn",
+    "sonarjs/no-empty-alternatives": "warn",
     "sonarjs/no-empty-collection": "warn",
+    "sonarjs/no-empty-function": "warn",
+    "sonarjs/no-empty-group": "warn",
+    "sonarjs/no-empty-interface": "warn",
+    "sonarjs/no-empty-test-file": "warn",
+    "sonarjs/no-equals-in-for-termination": "warn",
+    "sonarjs/no-exclusive-tests": "warn",
+    "sonarjs/no-extend-native": "warn",
     "sonarjs/no-extra-arguments": "off", // not needed: covered by typescript
+    "sonarjs/no-extra-semi": "off", // deprecated
+    "sonarjs/no-find-dom-node": "off", // not needed: seems useless
+    "sonarjs/no-for-in-iterable": "warn",
+    "sonarjs/no-function-declaration-in-block": "warn",
+    "sonarjs/no-global-this": "warn",
+    "sonarjs/no-globals-shadowing": "warn",
     "sonarjs/no-gratuitous-expressions": "warn",
+    "sonarjs/no-hardcoded-credentials": "warn",
+    "sonarjs/no-hardcoded-ip": "warn",
+    "sonarjs/no-hook-setter-in-body": "off", // not needed: seems useless
     "sonarjs/no-identical-conditions": "warn",
-    "sonarjs/no-identical-functions": "warn",
     "sonarjs/no-identical-expressions": "warn",
+    "sonarjs/no-identical-functions": "warn",
+    "sonarjs/no-ignored-exceptions": "warn",
     "sonarjs/no-ignored-return": "warn",
+    "sonarjs/no-implicit-dependencies": "off", // not needed: covered by import/no-extraneous-dependencies
+    "sonarjs/no-implicit-global": "warn",
+    "sonarjs/no-in-misuse": "warn",
+    "sonarjs/no-incomplete-assertions": "warn",
+    "sonarjs/no-inconsistent-returns": "off", // not needed: covered by typescript
+    "sonarjs/no-incorrect-string-concat": "off", // not needed: covered by typescript
+    "sonarjs/no-infinite-loop": "warn",
+    "sonarjs/no-intrusive-permissions": "off", // too restrictive
+    "sonarjs/no-invalid-await": "warn",
+    "sonarjs/no-invariant-returns": "off", // too restrictive
     "sonarjs/no-inverted-boolean-check": "warn",
+    "sonarjs/no-ip-forward": "warn",
+    "sonarjs/no-labels": "warn",
+    "sonarjs/no-literal-call": "warn",
+    "sonarjs/no-lonely-if": "warn",
+    "sonarjs/no-mime-sniff": "warn",
+    "sonarjs/no-misleading-array-reverse": "warn",
+    "sonarjs/no-misused-promises": "off", // not needed: prefer @typescript-eslint/no-floating-promises
+    "sonarjs/no-mixed-content": "warn",
+    "sonarjs/no-nested-assignment": "warn",
+    "sonarjs/no-nested-conditional": "off", // not needed: seems useless
+    "sonarjs/no-nested-functions": "off", // too restrictive
+    "sonarjs/no-nested-incdec": "warn",
     "sonarjs/no-nested-switch": "warn",
     "sonarjs/no-nested-template-literals": "warn",
     "sonarjs/no-one-iteration-loop": "warn",
+    "sonarjs/no-os-command-from-path": "warn",
+    "sonarjs/no-parameter-reassignment": "warn",
+    "sonarjs/no-primitive-wrappers": "warn",
+    "sonarjs/no-redeclare": "warn",
+    "sonarjs/no-redundant-assignments": "warn",
     "sonarjs/no-redundant-boolean": "warn",
     "sonarjs/no-redundant-jump": "warn",
+    "sonarjs/no-redundant-optional": "off", // too restrictive
+    "sonarjs/no-redundant-parentheses": "off", // deprecated
+    "sonarjs/no-redundant-type-constituents": "warn",
+    "sonarjs/no-reference-error": "warn",
+    "sonarjs/no-referrer-policy": "warn",
+    "sonarjs/no-require-or-define": "warn",
+    "sonarjs/no-return-type-any": "warn",
+    "sonarjs/no-same-argument-assert": "warn",
     "sonarjs/no-same-line-conditional": "warn",
+    "sonarjs/no-self-compare": "warn",
     "sonarjs/no-small-switch": "warn",
+    "sonarjs/no-tab": "off", // deprecated
+    "sonarjs/no-table-as-layout": "off", // not needed: only for html/component
+    "sonarjs/no-this-alias": "warn",
+    "sonarjs/no-throw-literal": "warn",
+    "sonarjs/no-try-promise": "warn",
+    "sonarjs/no-undefined-argument": "warn",
+    "sonarjs/no-undefined-assignment": "off", // not needed: seems useless
+    "sonarjs/no-unenclosed-multiline-block": "warn",
+    "sonarjs/no-uniq-key": "off", // not needed: seems useless
+    "sonarjs/no-unknown-property": "off", // not needed: seems useless
+    "sonarjs/no-unreachable": "warn",
+    "sonarjs/no-unsafe": "off", // not needed: seems useless
+    "sonarjs/no-unsafe-unzip": "warn",
+    "sonarjs/no-unstable-nested-components": "off", // not needed: seems useless
+    "sonarjs/no-unthrown-error": "warn",
     "sonarjs/no-unused-collection": "warn",
+    "sonarjs/no-unused-expressions": "warn",
+    "sonarjs/no-unused-function-argument": "warn",
+    "sonarjs/no-unused-private-class-members": "warn",
     "sonarjs/no-use-of-empty-return-value": "off", // not needed: covered by typescript
+    "sonarjs/no-useless-call": "warn",
     "sonarjs/no-useless-catch": "warn",
+    "sonarjs/no-useless-constructor": "warn",
+    "sonarjs/no-useless-increment": "warn",
+    "sonarjs/no-useless-intersection": "warn",
+    "sonarjs/no-useless-react-setstate": "off", // not needed: seems useless
+    "sonarjs/no-var": "warn",
+    "sonarjs/no-variable-usage-before-declaration": "warn",
+    "sonarjs/no-vue-bypass-sanitization": "off", // not needed: seems useless
+    "sonarjs/no-weak-cipher": "warn",
+    "sonarjs/no-weak-keys": "warn",
+    "sonarjs/no-wildcard-import": "warn",
     "sonarjs/non-existent-operator": "warn",
+    "sonarjs/non-number-in-arithmetic-expression": "warn",
+    "sonarjs/null-dereference": "warn",
+    "sonarjs/object-alt-content": "off", // not needed: only for html/component
+    "sonarjs/object-shorthand": "warn",
+    "sonarjs/operation-returning-nan": "warn",
+    "sonarjs/os-command": "warn",
+    "sonarjs/post-message": "warn",
+    "sonarjs/prefer-default-last": "warn",
+    "sonarjs/prefer-enum-initializers": "warn",
+    "sonarjs/prefer-for-of": "warn",
+    "sonarjs/prefer-function-type": "warn",
     "sonarjs/prefer-immediate-return": "warn",
+    "sonarjs/prefer-namespace-keyword": "warn",
+    "sonarjs/prefer-nullish-coalescing": "off", // not needed: seems useless
     "sonarjs/prefer-object-literal": "warn",
+    "sonarjs/prefer-object-spread": "warn",
+    "sonarjs/prefer-promise-shorthand": "warn",
     "sonarjs/prefer-single-boolean-return": "warn",
+    "sonarjs/prefer-spread": "warn",
+    "sonarjs/prefer-string-starts-ends-with": "warn",
+    "sonarjs/prefer-template": "warn",
+    "sonarjs/prefer-type-guard": "warn",
     "sonarjs/prefer-while": "warn",
+    "sonarjs/process-argv": "off", // deprecated
+    "sonarjs/production-debug": "warn",
+    "sonarjs/pseudo-random": "warn",
+    "sonarjs/public-static-readonly": "warn",
+    "sonarjs/publicly-writable-directories": "warn",
+    "sonarjs/reduce-initial-value": "off", // not needed: seems useless
+    "sonarjs/redundant-type-aliases": "warn",
+    "sonarjs/regex-complexity": "warn",
+    "sonarjs/regular-expr": "off", // deprecated
+    "sonarjs/rules-of-hooks": "off", // not needed: seems useless
+    "sonarjs/semi": "off", // deprecated
+    "sonarjs/session-regeneration": "warn",
+    "sonarjs/shorthand-property-grouping": "off", // not needed: seems useless
+    "sonarjs/single-char-in-character-classes": "warn",
+    "sonarjs/single-character-alternation": "warn",
+    "sonarjs/slow-regex": "warn",
+    "sonarjs/sockets": "off", // deprecated
+    "sonarjs/sonar-block-scoped-var": "warn",
+    "sonarjs/sonar-jsx-no-leaked-render": "off", // not needed: seems useless
+    "sonarjs/sonar-max-lines": "off", // not needed: already handled by other rules
+    "sonarjs/sonar-max-lines-per-function": "off", // not needed: already handled by other rules
+    "sonarjs/sonar-max-params": "off", // not needed: already handled by other rules
+    "sonarjs/sonar-no-control-regex": "warn",
+    "sonarjs/sonar-no-dupe-keys": "warn",
+    "sonarjs/sonar-no-empty-character-class": "warn",
+    "sonarjs/sonar-no-fallthrough": "warn",
+    "sonarjs/sonar-no-invalid-regexp": "warn",
+    "sonarjs/sonar-no-magic-numbers": "off", // too restrictive
+    "sonarjs/sonar-no-misleading-character-class": "warn",
+    "sonarjs/sonar-no-regex-spaces": "warn",
+    "sonarjs/sonar-no-unused-class-component-methods": "warn",
+    "sonarjs/sonar-no-unused-vars": "warn",
+    "sonarjs/sonar-prefer-optional-chain": "off", // not needed: already handled by other rules
+    "sonarjs/sonar-prefer-read-only-props": "warn",
+    "sonarjs/sonar-prefer-regexp-exec": "warn",
+    "sonarjs/sql-queries": "warn",
+    "sonarjs/stable-tests": "warn",
+    "sonarjs/standard-input": "off", // deprecated
+    "sonarjs/stateful-regex": "warn",
+    "sonarjs/strict-transport-security": "warn",
+    "sonarjs/strings-comparison": "off", // too restrictive
+    "sonarjs/super-invocation": "warn",
+    "sonarjs/switch-without-default": "off", // too restrictive
+    "sonarjs/table-header": "off", // not needed: only for html/component
+    "sonarjs/table-header-reference": "off", // not needed: only for html/component
+    "sonarjs/test-check-exception": "warn",
+    "sonarjs/todo-tag": "warn",
+    "sonarjs/too-many-break-or-continue-in-loop": "off", // too restrictive
+    "sonarjs/unicode-aware-regex": "warn",
+    "sonarjs/unnecessary-character-escapes": "warn",
+    "sonarjs/unused-import": "warn",
+    "sonarjs/unused-named-groups": "off", // bug: false positives
+    "sonarjs/unverified-certificate": "warn",
+    "sonarjs/unverified-hostname": "warn",
+    "sonarjs/updated-const-var": "warn",
+    "sonarjs/updated-loop-counter": "warn",
+    "sonarjs/use-isnan": "warn",
+    "sonarjs/use-type-alias": "off", // too restrictive
+    "sonarjs/useless-string-operation": "off", // deprecated
+    "sonarjs/values-not-convertible-to-numbers": "warn",
+    "sonarjs/variable-name": "warn",
+    "sonarjs/void-use": "warn",
+    "sonarjs/weak-ssl": "warn",
+    "sonarjs/web-sql-database": "off", // deprecated
+    "sonarjs/x-powered-by": "warn",
+    "sonarjs/xml-parser-xxe": "warn",
+    "sonarjs/xpath": "off", // deprecated
     "@regru/prefer-early-return/prefer-early-return": "warn"
   }
 }
