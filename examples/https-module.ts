@@ -2,7 +2,6 @@
  * This example shows how to use this library with vanilla NodeJS https module
  */
 
-// eslint-disable-next-line n/no-sync
 import { readFileSync } from 'node:fs';
 import { createServer } from 'node:https';
 import { join } from 'node:path';

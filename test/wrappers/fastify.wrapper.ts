@@ -66,7 +66,7 @@ export class FastifyServerWrapper implements ServerWrapper {
 			}
 			if (opts?.removeHeader) {
 				// eslint-disable-next-line @typescript-eslint/no-dynamic-delete
-				delete (<Record<string, string>> request.raw.headers)[opts.removeHeader];
+				delete request.raw.headers[opts.removeHeader];
 			}
 			const storage = new FileSystemStorage(root, opts);
 			const result = await storage.prepareResponse(

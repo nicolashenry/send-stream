@@ -20,7 +20,10 @@ app.use(async (ctx, next) => {
 		return;
 	}
 	ctx.status = result.statusCode;
-	ctx.set(<Record<string, string>> result.headers);
+	const headers = Object.fromEntries(
+		Object.entries(result.headers).map(([key, value]) => [key, String(value)]),
+	);
+	ctx.set(headers);
 	ctx.body = result.stream;
 });
 

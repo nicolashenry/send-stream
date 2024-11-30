@@ -2209,6 +2209,7 @@ for (const [frameworkName, frameworkServer] of frameworks) {
 							.expect(206)
 							.expect('Content-Type', /^multipart\/byteranges/u)
 							.expect(res => {
+								// eslint-disable-next-line @typescript-eslint/no-unsafe-type-assertion
 								const parts = <BodyPart[]>res.files;
 								checkMultipartByteRangeString({
 									parts,
@@ -2606,6 +2607,7 @@ for (const [frameworkName, frameworkServer] of frameworks) {
 								if (res.get('ETag')) {
 									throw new Error('ETag should not be set');
 								}
+								// eslint-disable-next-line @typescript-eslint/no-unsafe-type-assertion
 								if ((<Buffer> res.body).toString() !== 'world') {
 									throw new Error('incorrect body');
 								}
@@ -2654,6 +2656,7 @@ for (const [frameworkName, frameworkServer] of frameworks) {
 								if (res.get('ETag')) {
 									throw new Error('ETag should not be set');
 								}
+								// eslint-disable-next-line @typescript-eslint/no-unsafe-type-assertion
 								if ((<Buffer> res.body).toString() !== 'hello world') {
 									throw new Error('incorrect body');
 								}
@@ -2707,6 +2710,7 @@ for (const [frameworkName, frameworkServer] of frameworks) {
 					await fs.promises.mkdir('/app', { recursive: true });
 					await fs.promises.writeFile('/app/foo.txt', 'bar');
 
+					// eslint-disable-next-line @typescript-eslint/no-unsafe-type-assertion
 					app.send('/app/', '/foo.txt', { fsModule: <GenericFSModule<number>> <unknown> fs });
 
 					await app.listen();
@@ -2732,6 +2736,7 @@ for (const [frameworkName, frameworkServer] of frameworks) {
 					app.send(
 						'/app/',
 						'/',
+						// eslint-disable-next-line @typescript-eslint/no-unsafe-type-assertion
 						{ fsModule: <GenericFSModule<number>> <unknown> fs, onDirectory: 'list-files' },
 					);
 

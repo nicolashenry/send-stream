@@ -156,14 +156,20 @@ class FullCacheStorage extends GenericFileSystemStorage<CachedFileDescriptor> {
 			const hash = createHash('sha1');
 			hash.setEncoding('hex');
 			stream.on('data', chunk => {
+				// eslint-disable-next-line @typescript-eslint/no-unsafe-type-assertion
 				chunks.push(<Buffer> chunk);
 				hash.write(chunk);
 			});
 			stream.on('error', reject);
 			stream.on('end', () => {
 				hash.end();
-				const newEtag = `"${ <string> hash.read() }"`;
-				const cache = { etag: newEtag, stats, chunks, size: chunks.reduce((p, c) => p + c.byteLength, 0) };
+				const etagStr = <unknown> hash.read();
+				if (typeof etagStr !== 'string') {
+					reject(new Error('hash calculation failed'));
+					return;
+				}
+				const etag = `"${ etagStr }"`;
+				const cache = { etag, stats, chunks, size: chunks.reduce((p, c) => p + c.byteLength, 0) };
 				this.cache.set(
 					filePath,
 					cache,

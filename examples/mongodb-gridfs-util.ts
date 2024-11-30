@@ -35,12 +35,15 @@ async function uploadToGridFS(rootPath: string, directoryPath: string, bucket: G
 			hashCopy,
 			hash,
 		);
-		const etag = `"${ <string> hash.read() }"`;
+		const etagStr = <unknown> hash.read();
+		if (typeof etagStr !== 'string') {
+			throw new TypeError('hash calculation failed');
+		}
+		const etag = `"${ etagStr }"`;
 		const uploadCopy = fs.createReadStream(filepath);
 		await promisifiedStreamPipeline(
 			uploadCopy,
-			// eslint-disable-next-line sonarjs/no-reference-error
-			<NodeJS.WritableStream> <unknown> bucket.openUploadStream(
+			bucket.openUploadStream(
 				relative(rootPath, filepath)
 					.split(sep)
 					.join('/'),

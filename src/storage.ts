@@ -356,7 +356,7 @@ export abstract class Storage<Reference, AttachedData> {
 				case 412:
 					earlyClose = true;
 					return this.createPreconditionFailedError(isHeadMethod, storageInfo);
-				default:
+				case 200:
 					break;
 				}
 			}

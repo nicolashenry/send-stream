@@ -299,6 +299,7 @@
     "@typescript-eslint/no-unsafe-function-type": "warn",
     "@typescript-eslint/no-unsafe-member-access": "warn",
     "@typescript-eslint/no-unsafe-return": "warn",
+    "@typescript-eslint/no-unsafe-type-assertion": "warn",
     "@typescript-eslint/no-unsafe-unary-minus": "warn",
     "@typescript-eslint/no-unused-expressions": "warn",
     "@typescript-eslint/no-unused-vars": [
@@ -358,6 +359,7 @@
     "@typescript-eslint/prefer-ts-expect-error": "off", // deprecated: replaced by @typescript-eslint/ban-ts-comment
     "@typescript-eslint/promise-function-async": "warn",
     "@typescript-eslint/quotes": "off", // deprecated: replaced by @stylistic/quotes
+    "@typescript-eslint/related-getter-setter-pairs": "warn",
     "@typescript-eslint/require-array-sort-compare": "warn",
     "@typescript-eslint/require-await": "warn",
     "@typescript-eslint/restrict-plus-operands": "warn",

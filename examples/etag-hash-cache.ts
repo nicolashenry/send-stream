@@ -60,9 +60,14 @@ class EtagHashCacheStorage extends FileSystemStorage {
 		return new Promise<string>((resolve, reject) => {
 			stream.on('end', () => {
 				hash.end();
-				const newEtag = `"${ <string> hash.read() }"`;
-				this.etagCache.set(filePath, newEtag);
-				resolve(newEtag);
+				const etagStr = <unknown> hash.read();
+				if (typeof etagStr !== 'string') {
+					reject(new Error('hash calculation failed'));
+					return;
+				}
+				const etag = `"${ etagStr }"`;
+				this.etagCache.set(filePath, etag);
+				resolve(etag);
 			});
 			stream.on('error', err => {
 				reject(err);

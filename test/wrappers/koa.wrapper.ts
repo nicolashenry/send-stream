@@ -64,7 +64,10 @@ export class KoaServerWrapper implements ServerWrapper {
 				result.headers['X-Send-Stream-Error'] = result.error.name;
 			}
 			ctx.status = result.statusCode;
-			ctx.set(<Record<string, string>> result.headers);
+			const headers = Object.fromEntries(
+				Object.entries(result.headers).map(([key, value]) => [key, String(value)]),
+			);
+			ctx.set(headers);
 			ctx.body = result.stream;
 		});
 	}
@@ -80,7 +83,7 @@ export class KoaServerWrapper implements ServerWrapper {
 			}
 			if (opts?.removeHeader) {
 				// eslint-disable-next-line @typescript-eslint/no-dynamic-delete
-				delete (<Record<string, string>> ctx.request.header)[opts.removeHeader];
+				delete ctx.request.header[opts.removeHeader];
 			}
 			const storage = new FileSystemStorage(root, opts);
 			const result = await storage.prepareResponse(
@@ -96,7 +99,10 @@ export class KoaServerWrapper implements ServerWrapper {
 				result.headers['X-Send-Stream-Resolved-Path'] = result.storageInfo.attachedData.resolvedPath;
 			}
 			ctx.status = result.statusCode;
-			ctx.set(<Record<string, string>> result.headers);
+			const headers = Object.fromEntries(
+				Object.entries(result.headers).map(([key, value]) => [key, String(value)]),
+			);
+			ctx.set(headers);
 			ctx.body = result.stream;
 		});
 	}
@@ -135,7 +141,10 @@ export class KoaServerWrapper implements ServerWrapper {
 				result.headers['X-Send-Stream-Resolved-Path'] = result.storageInfo.attachedData.resolvedPath;
 			}
 			ctx.status = result.statusCode;
-			ctx.set(<Record<string, string>> result.headers);
+			const headers = Object.fromEntries(
+				Object.entries(result.headers).map(([key, value]) => [key, String(value)]),
+			);
+			ctx.set(headers);
 			ctx.body = result.stream;
 		});
 	}

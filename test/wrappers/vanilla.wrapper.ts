@@ -96,7 +96,7 @@ export class VanillaServerWrapper implements ServerWrapper {
 			}
 			if (opts?.removeHeader) {
 				// eslint-disable-next-line @typescript-eslint/no-dynamic-delete
-				delete (<Record<string, string>> req.headers)[opts.removeHeader];
+				delete req.headers[opts.removeHeader];
 			}
 			const storage = new FileSystemStorage(root, opts);
 			const result = await storage.prepareResponse(

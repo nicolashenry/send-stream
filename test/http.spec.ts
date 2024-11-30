@@ -483,6 +483,7 @@ describe('http', () => {
 						.expect('Content-Type', /^multipart\/byteranges/u)
 						.parse(multipartHandler)
 						.expect(res => {
+							// eslint-disable-next-line @typescript-eslint/no-unsafe-type-assertion
 							const parts = <BodyPart[]>res.files;
 							checkMultipartByteRangeString({
 								parts,

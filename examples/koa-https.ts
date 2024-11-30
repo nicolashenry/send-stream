@@ -3,7 +3,6 @@
  */
 
 import { createServer } from 'node:https';
-// eslint-disable-next-line n/no-sync
 import { readFileSync } from 'node:fs';
 import { join } from 'node:path';
 
@@ -23,7 +22,10 @@ app.use(async (ctx, next) => {
 		return;
 	}
 	ctx.status = result.statusCode;
-	ctx.set(<Record<string, string>> result.headers);
+	const headers = Object.fromEntries(
+		Object.entries(result.headers).map(([key, value]) => [key, String(value)]),
+	);
+	ctx.set(headers);
 	ctx.body = result.stream;
 });
 

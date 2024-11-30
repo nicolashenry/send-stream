@@ -2,7 +2,6 @@
  * This example shows how to use this library with Fastify using HTTPS
  */
 
-// eslint-disable-next-line n/no-sync
 import { readFileSync } from 'node:fs';
 import { join } from 'node:path';
 

@@ -2,7 +2,6 @@
  * This example shows how to use this library with vanilla NodeJS http2 module (compat API)
  */
 
-// eslint-disable-next-line n/no-sync
 import { readFileSync } from 'node:fs';
 import type { Http2ServerRequest, Http2ServerResponse } from 'node:http2';
 import { createSecureServer } from 'node:http2';
