@@ -43,7 +43,7 @@
     "eslint-plugin-n": "17.14.0",
     "eslint-plugin-sonarjs": "2.0.4",
     "eslint-plugin-unicorn": "56.0.1",
-    "express": "4.21.1",
+    "express": "4.21.2",
     "fastify": "5.1.0",
     "koa": "2.15.3",
     "memfs": "4.14.0",
