@@ -30,7 +30,7 @@
     "@types/range-parser": "1.2.7",
     "@types/supertest": "6.0.2",
     "@typescript-eslint/eslint-plugin": "8.18.1",
-    "@typescript-eslint/parser": "8.18.1",
+    "@typescript-eslint/parser": "8.20.0",
     "@typescript-eslint/type-utils": "8.18.1",
     "@typescript-eslint/typescript-estree": "8.18.1",
     "@typescript-eslint/utils": "8.18.1",
