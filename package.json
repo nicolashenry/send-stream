@@ -31,7 +31,7 @@
     "@types/supertest": "6.0.2",
     "@typescript-eslint/eslint-plugin": "8.18.1",
     "@typescript-eslint/parser": "8.18.1",
-    "@typescript-eslint/type-utils": "8.18.1",
+    "@typescript-eslint/type-utils": "8.21.0",
     "@typescript-eslint/typescript-estree": "8.18.1",
     "@typescript-eslint/utils": "8.18.1",
     "byteranges": "1.1.0",
