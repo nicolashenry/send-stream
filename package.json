@@ -36,7 +36,7 @@
     "@typescript-eslint/utils": "8.18.1",
     "byteranges": "1.1.0",
     "cross-env": "7.0.3",
-    "eslint": "8.57.1",
+    "eslint": "9.18.0",
     "eslint-import-resolver-typescript": "3.7.0",
     "eslint-plugin-import": "2.31.0",
     "eslint-plugin-jsdoc": "50.6.2",
