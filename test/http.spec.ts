@@ -2143,6 +2143,7 @@ describe('http', () => {
 							options?: { end?: boolean },
 						): T {
 							res.destroy();
+							// eslint-disable-next-line @typescript-eslint/no-unsafe-type-assertion
 							return <T> p.call(this, destination, options);
 						};
 						await resp.send(res);
@@ -2210,6 +2211,7 @@ describe('http', () => {
 							options?: { end?: boolean },
 						): T {
 							res.stream.destroy();
+							// eslint-disable-next-line @typescript-eslint/no-unsafe-type-assertion
 							return <T> p.call(this, destination, options);
 						};
 						await resp.send(res);
