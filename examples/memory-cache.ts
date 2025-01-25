@@ -132,7 +132,10 @@ class FullCacheStorage extends GenericFileSystemStorage<CachedFileDescriptor> {
 				...opts,
 			},
 		);
-		this.cached = this.addAllFilesInCache(root);
+		this.cached = this.addAllFilesInCache(root)
+			.catch((err: unknown) => {
+				console.error(err);
+			});
 	}
 
 	async addAllFilesInCache(dir: string) {

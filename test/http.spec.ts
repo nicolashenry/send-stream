@@ -1,6 +1,7 @@
 /* eslint-disable max-classes-per-file */
 /* eslint-disable @typescript-eslint/naming-convention */
-/* eslint-disable max-lines, max-lines-per-function, sonarjs/no-identical-functions */
+/* eslint-disable max-lines, max-lines-per-function */
+/* eslint-disable sonarjs/no-identical-functions */
 /* eslint-env node, mocha */
 
 import { fail, notStrictEqual, ok, strictEqual } from 'node:assert';
@@ -1995,7 +1996,7 @@ describe('http', () => {
 			before(async () => {
 				class ErrorStorage extends FileSystemStorage {
 					override createReadableStream(si: StorageInfo<FileData>): Readable {
-						// eslint-disable-next-line @typescript-eslint/no-this-alias, sonarjs/no-this-alias
+						// eslint-disable-next-line @typescript-eslint/no-this-alias
 						const st = this;
 						return new class extends Readable {
 							// eslint-disable-next-line sonarjs/no-reference-error
@@ -2052,7 +2053,7 @@ describe('http', () => {
 			before(async () => {
 				class ErrorStorage extends FileSystemStorage {
 					override createReadableStream(si: StorageInfo<FileData>): Readable {
-						// eslint-disable-next-line @typescript-eslint/no-this-alias, sonarjs/no-this-alias
+						// eslint-disable-next-line @typescript-eslint/no-this-alias
 						const st = this;
 						return new class extends Readable {
 							override pipe<T extends NodeJS.WritableStream>(
@@ -2108,7 +2109,7 @@ describe('http', () => {
 			before(async () => {
 				class ErrorStorage extends FileSystemStorage {
 					override createReadableStream(si: StorageInfo<FileData>): Readable {
-						// eslint-disable-next-line @typescript-eslint/no-this-alias, sonarjs/no-this-alias
+						// eslint-disable-next-line @typescript-eslint/no-this-alias
 						const st = this;
 						return new class extends Readable {
 							override pipe<T extends NodeJS.WritableStream>(
@@ -2177,7 +2178,7 @@ describe('http', () => {
 			before(done => {
 				class ErrorStorage extends FileSystemStorage {
 					override createReadableStream(si: StorageInfo<FileData>): Readable {
-						// eslint-disable-next-line @typescript-eslint/no-this-alias, sonarjs/no-this-alias
+						// eslint-disable-next-line @typescript-eslint/no-this-alias
 						const st = this;
 						return new class extends Readable {
 							override pipe<T extends NodeJS.WritableStream>(

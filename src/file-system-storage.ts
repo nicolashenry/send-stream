@@ -41,7 +41,7 @@ export function escapeHTMLInPath(path: string): string {
 	return path.replace(/&/ug, '&amp;');
 }
 
-// eslint-disable-next-line no-control-regex, @typescript-eslint/no-inferrable-types, sonarjs/sonar-no-control-regex
+// eslint-disable-next-line no-control-regex, @typescript-eslint/no-inferrable-types, sonarjs/no-control-regex
 export const FORBIDDEN_CHARACTERS: RegExp = /[/?<>\\*|":\u0000-\u001F\u0080-\u009F]/u;
 
 /**

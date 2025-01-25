@@ -1,4 +1,5 @@
-/* eslint-disable max-lines, max-lines-per-function, sonarjs/no-identical-functions */
+/* eslint-disable max-lines, max-lines-per-function */
+/* eslint-disable sonarjs/no-identical-functions */
 /* eslint-env node, mocha */
 
 import { strictEqual, notStrictEqual, fail, deepStrictEqual, ok } from 'node:assert';

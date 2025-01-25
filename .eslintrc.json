@@ -1190,10 +1190,6 @@
     "n/prefer-promises/fs": "warn",
     "n/process-exit-as-throw": "warn",
     "n/shebang": "off", // deprecated: replaced by n/hashbang
-    "sonarjs/accessor-pairs": "off", // not needed: seems useless
-    "sonarjs/alt-text": "off", // not needed: only for html/component
-    "sonarjs/anchor-has-content": "off", // not needed: only for html/component
-    "sonarjs/anchor-is-valid": "off", // not needed: only for html/component
     "sonarjs/anchor-precedence": "warn",
     "sonarjs/argument-type": "warn",
     "sonarjs/arguments-order": "warn",
@@ -1222,8 +1218,8 @@
     "sonarjs/aws-sns-unencrypted-topics": "off", // not needed: seems useless
     "sonarjs/aws-sqs-unencrypted-queue": "off", // not needed: seems useless
     "sonarjs/bitwise-operators": "warn",
+    "sonarjs/block-scoped-var": "warn",
     "sonarjs/bool-param-default": "off", // too restrictive
-    "sonarjs/brace-style": "off", // deprecated
     "sonarjs/call-argument-line": "warn",
     "sonarjs/certificate-transparency": "warn",
     "sonarjs/chai-determinate-assertion": "off", // not needed: seems useless
@@ -1245,7 +1241,6 @@
     "sonarjs/csrf": "warn",
     "sonarjs/cyclomatic-complexity": "off", // too restrictive
     "sonarjs/declarations-in-global-scope": "off", // too restrictive
-    "sonarjs/default-param-last": "warn",
     "sonarjs/deprecation": "off", // not needed: covered by @typescript-eslint/no-deprecated
     "sonarjs/destructuring-assignment-syntax": "warn",
     "sonarjs/different-types-comparison": "off", // not needed: covered by typescript
@@ -1276,36 +1271,28 @@
     "sonarjs/generator-without-yield": "warn",
     "sonarjs/hashing": "warn",
     "sonarjs/hidden-files": "warn",
-    "sonarjs/hook-use-state": "off", // not needed: not react
-    "sonarjs/html-has-lang": "off", // not needed: only for html/component
     "sonarjs/in-operator-type-error": "warn",
     "sonarjs/inconsistent-function-call": "off", // not needed: covered by typescript
     "sonarjs/index-of-compare-to-positive-number": "warn",
     "sonarjs/insecure-cookie": "warn",
     "sonarjs/insecure-jwt-token": "off", // not needed: seems useless
     "sonarjs/inverted-assertion-arguments": "warn",
-    "sonarjs/jsx-key": "off", // not needed: seems useless
-    "sonarjs/jsx-no-constructed-context-values": "off", // not needed: seems useless
-    "sonarjs/jsx-no-useless-fragment": "off", // not needed: seems useless
-    "sonarjs/label-has-associated-control": "off", // not needed: only for html/component
+    "sonarjs/jsx-no-leaked-render": "off", // not needed: seems useless
     "sonarjs/label-position": "warn",
     "sonarjs/link-with-target-blank": "warn",
+    "sonarjs/max-lines": "off", // seems useless
+    "sonarjs/max-lines-per-function": "off", // seems useless
     "sonarjs/max-switch-cases": "warn",
     "sonarjs/max-union-size": "off", // too restrictive
-    "sonarjs/media-has-caption": "off", // not needed: only for html/component
     "sonarjs/misplaced-loop-counter": "warn",
-    "sonarjs/mouse-events-a11y": "off", // not needed: only for html/component
     "sonarjs/nested-control-flow": ["warn", { "maximumNestingLevel": 8 }],
-    "sonarjs/new-cap": "off", // too restrictive
     "sonarjs/new-operator-misuse": "warn",
-    "sonarjs/no-accessor-field-mismatch": "warn",
     "sonarjs/no-all-duplicated-branches": "warn",
     "sonarjs/no-alphabetical-sort": "warn",
     "sonarjs/no-angular-bypass-sanitization": "warn",
     "sonarjs/no-array-delete": "warn",
-    "sonarjs/no-array-index-key": "off", // not needed: seems useless
     "sonarjs/no-associative-arrays": "warn",
-    "sonarjs/no-base-to-string": "warn",
+    "sonarjs/no-async-constructor": "off", // too restrictive
     "sonarjs/no-built-in-override": "warn",
     "sonarjs/no-case-label-in-switch": "warn",
     "sonarjs/no-clear-text-protocols": "warn",
@@ -1313,33 +1300,31 @@
     "sonarjs/no-collapsible-if": "warn",
     "sonarjs/no-collection-size-mischeck": "warn",
     "sonarjs/no-commented-code": "warn",
+    "sonarjs/no-control-regex": "warn",
     "sonarjs/no-dead-store": "warn",
     "sonarjs/no-delete-var": "warn",
-    "sonarjs/no-deprecated-react": "off", // not needed: seems useless
     "sonarjs/no-duplicate-in-composite": "warn",
     "sonarjs/no-duplicate-string": "off", // too restrictive
     "sonarjs/no-duplicated-branches": "warn",
     "sonarjs/no-element-overwrite": "warn",
     "sonarjs/no-empty-after-reluctant": "warn",
     "sonarjs/no-empty-alternatives": "warn",
+    "sonarjs/no-empty-character-class": "warn",
     "sonarjs/no-empty-collection": "warn",
-    "sonarjs/no-empty-function": "warn",
     "sonarjs/no-empty-group": "warn",
-    "sonarjs/no-empty-interface": "warn",
     "sonarjs/no-empty-test-file": "warn",
     "sonarjs/no-equals-in-for-termination": "warn",
     "sonarjs/no-exclusive-tests": "warn",
-    "sonarjs/no-extend-native": "warn",
     "sonarjs/no-extra-arguments": "off", // not needed: covered by typescript
-    "sonarjs/no-extra-semi": "off", // deprecated
-    "sonarjs/no-find-dom-node": "off", // not needed: seems useless
+    "sonarjs/no-fallthrough": "warn",
     "sonarjs/no-for-in-iterable": "warn",
     "sonarjs/no-function-declaration-in-block": "warn",
     "sonarjs/no-global-this": "warn",
     "sonarjs/no-globals-shadowing": "warn",
     "sonarjs/no-gratuitous-expressions": "warn",
-    "sonarjs/no-hardcoded-credentials": "warn",
     "sonarjs/no-hardcoded-ip": "warn",
+    "sonarjs/no-hardcoded-passwords": "warn",
+    "sonarjs/no-hardcoded-secrets": "warn",
     "sonarjs/no-hook-setter-in-body": "off", // not needed: seems useless
     "sonarjs/no-identical-conditions": "warn",
     "sonarjs/no-identical-expressions": "warn",
@@ -1352,18 +1337,18 @@
     "sonarjs/no-incomplete-assertions": "warn",
     "sonarjs/no-inconsistent-returns": "off", // not needed: covered by typescript
     "sonarjs/no-incorrect-string-concat": "off", // not needed: covered by typescript
-    "sonarjs/no-infinite-loop": "warn",
+    "sonarjs/no-internal-api-use": "warn",
     "sonarjs/no-intrusive-permissions": "off", // too restrictive
     "sonarjs/no-invalid-await": "warn",
+    "sonarjs/no-invalid-regexp": "warn",
     "sonarjs/no-invariant-returns": "off", // too restrictive
     "sonarjs/no-inverted-boolean-check": "warn",
     "sonarjs/no-ip-forward": "warn",
     "sonarjs/no-labels": "warn",
     "sonarjs/no-literal-call": "warn",
-    "sonarjs/no-lonely-if": "warn",
     "sonarjs/no-mime-sniff": "warn",
     "sonarjs/no-misleading-array-reverse": "warn",
-    "sonarjs/no-misused-promises": "off", // not needed: prefer @typescript-eslint/no-floating-promises
+    "sonarjs/no-misleading-character-class": "warn",
     "sonarjs/no-mixed-content": "warn",
     "sonarjs/no-nested-assignment": "warn",
     "sonarjs/no-nested-conditional": "off", // not needed: seems useless
@@ -1375,48 +1360,39 @@
     "sonarjs/no-os-command-from-path": "warn",
     "sonarjs/no-parameter-reassignment": "warn",
     "sonarjs/no-primitive-wrappers": "warn",
-    "sonarjs/no-redeclare": "warn",
     "sonarjs/no-redundant-assignments": "warn",
     "sonarjs/no-redundant-boolean": "warn",
     "sonarjs/no-redundant-jump": "warn",
     "sonarjs/no-redundant-optional": "off", // too restrictive
     "sonarjs/no-redundant-parentheses": "off", // deprecated
-    "sonarjs/no-redundant-type-constituents": "warn",
     "sonarjs/no-reference-error": "warn",
     "sonarjs/no-referrer-policy": "warn",
+    "sonarjs/no-regex-spaces": "warn",
     "sonarjs/no-require-or-define": "warn",
     "sonarjs/no-return-type-any": "warn",
     "sonarjs/no-same-argument-assert": "warn",
     "sonarjs/no-same-line-conditional": "warn",
-    "sonarjs/no-self-compare": "warn",
+    "sonarjs/no-selector-parameter": "warn",
+    "sonarjs/no-skipped-tests": "warn",
     "sonarjs/no-small-switch": "warn",
+    "sonarjs/no-sonar-comments": "warn",
     "sonarjs/no-tab": "off", // deprecated
     "sonarjs/no-table-as-layout": "off", // not needed: only for html/component
-    "sonarjs/no-this-alias": "warn",
-    "sonarjs/no-throw-literal": "warn",
     "sonarjs/no-try-promise": "warn",
     "sonarjs/no-undefined-argument": "warn",
     "sonarjs/no-undefined-assignment": "off", // not needed: seems useless
     "sonarjs/no-unenclosed-multiline-block": "warn",
     "sonarjs/no-uniq-key": "off", // not needed: seems useless
-    "sonarjs/no-unknown-property": "off", // not needed: seems useless
-    "sonarjs/no-unreachable": "warn",
-    "sonarjs/no-unsafe": "off", // not needed: seems useless
     "sonarjs/no-unsafe-unzip": "warn",
-    "sonarjs/no-unstable-nested-components": "off", // not needed: seems useless
     "sonarjs/no-unthrown-error": "warn",
     "sonarjs/no-unused-collection": "warn",
-    "sonarjs/no-unused-expressions": "warn",
     "sonarjs/no-unused-function-argument": "warn",
-    "sonarjs/no-unused-private-class-members": "warn",
+    "sonarjs/no-unused-vars": "warn",
     "sonarjs/no-use-of-empty-return-value": "off", // not needed: covered by typescript
-    "sonarjs/no-useless-call": "warn",
     "sonarjs/no-useless-catch": "warn",
-    "sonarjs/no-useless-constructor": "warn",
     "sonarjs/no-useless-increment": "warn",
     "sonarjs/no-useless-intersection": "warn",
     "sonarjs/no-useless-react-setstate": "off", // not needed: seems useless
-    "sonarjs/no-var": "warn",
     "sonarjs/no-variable-usage-before-declaration": "warn",
     "sonarjs/no-vue-bypass-sanitization": "off", // not needed: seems useless
     "sonarjs/no-weak-cipher": "warn",
@@ -1426,24 +1402,16 @@
     "sonarjs/non-number-in-arithmetic-expression": "warn",
     "sonarjs/null-dereference": "warn",
     "sonarjs/object-alt-content": "off", // not needed: only for html/component
-    "sonarjs/object-shorthand": "warn",
     "sonarjs/operation-returning-nan": "warn",
     "sonarjs/os-command": "warn",
     "sonarjs/post-message": "warn",
     "sonarjs/prefer-default-last": "warn",
-    "sonarjs/prefer-enum-initializers": "warn",
-    "sonarjs/prefer-for-of": "warn",
-    "sonarjs/prefer-function-type": "warn",
     "sonarjs/prefer-immediate-return": "warn",
-    "sonarjs/prefer-namespace-keyword": "warn",
-    "sonarjs/prefer-nullish-coalescing": "off", // not needed: seems useless
     "sonarjs/prefer-object-literal": "warn",
-    "sonarjs/prefer-object-spread": "warn",
     "sonarjs/prefer-promise-shorthand": "warn",
+    "sonarjs/prefer-read-only-props": "warn",
+    "sonarjs/prefer-regexp-exec": "warn",
     "sonarjs/prefer-single-boolean-return": "warn",
-    "sonarjs/prefer-spread": "warn",
-    "sonarjs/prefer-string-starts-ends-with": "warn",
-    "sonarjs/prefer-template": "warn",
     "sonarjs/prefer-type-guard": "warn",
     "sonarjs/prefer-while": "warn",
     "sonarjs/process-argv": "off", // deprecated
@@ -1455,32 +1423,12 @@
     "sonarjs/redundant-type-aliases": "warn",
     "sonarjs/regex-complexity": "warn",
     "sonarjs/regular-expr": "off", // deprecated
-    "sonarjs/rules-of-hooks": "off", // not needed: seems useless
-    "sonarjs/semi": "off", // deprecated
     "sonarjs/session-regeneration": "warn",
     "sonarjs/shorthand-property-grouping": "off", // not needed: seems useless
     "sonarjs/single-char-in-character-classes": "warn",
     "sonarjs/single-character-alternation": "warn",
     "sonarjs/slow-regex": "warn",
     "sonarjs/sockets": "off", // deprecated
-    "sonarjs/sonar-block-scoped-var": "warn",
-    "sonarjs/sonar-jsx-no-leaked-render": "off", // not needed: seems useless
-    "sonarjs/sonar-max-lines": "off", // not needed: already handled by other rules
-    "sonarjs/sonar-max-lines-per-function": "off", // not needed: already handled by other rules
-    "sonarjs/sonar-max-params": "off", // not needed: already handled by other rules
-    "sonarjs/sonar-no-control-regex": "warn",
-    "sonarjs/sonar-no-dupe-keys": "warn",
-    "sonarjs/sonar-no-empty-character-class": "warn",
-    "sonarjs/sonar-no-fallthrough": "warn",
-    "sonarjs/sonar-no-invalid-regexp": "warn",
-    "sonarjs/sonar-no-magic-numbers": "off", // too restrictive
-    "sonarjs/sonar-no-misleading-character-class": "warn",
-    "sonarjs/sonar-no-regex-spaces": "warn",
-    "sonarjs/sonar-no-unused-class-component-methods": "warn",
-    "sonarjs/sonar-no-unused-vars": "warn",
-    "sonarjs/sonar-prefer-optional-chain": "off", // not needed: already handled by other rules
-    "sonarjs/sonar-prefer-read-only-props": "warn",
-    "sonarjs/sonar-prefer-regexp-exec": "warn",
     "sonarjs/sql-queries": "warn",
     "sonarjs/stable-tests": "warn",
     "sonarjs/standard-input": "off", // deprecated
@@ -1488,21 +1436,18 @@
     "sonarjs/strict-transport-security": "warn",
     "sonarjs/strings-comparison": "off", // too restrictive
     "sonarjs/super-invocation": "warn",
-    "sonarjs/switch-without-default": "off", // too restrictive
     "sonarjs/table-header": "off", // not needed: only for html/component
     "sonarjs/table-header-reference": "off", // not needed: only for html/component
     "sonarjs/test-check-exception": "warn",
     "sonarjs/todo-tag": "warn",
     "sonarjs/too-many-break-or-continue-in-loop": "off", // too restrictive
     "sonarjs/unicode-aware-regex": "warn",
-    "sonarjs/unnecessary-character-escapes": "warn",
     "sonarjs/unused-import": "warn",
     "sonarjs/unused-named-groups": "off", // bug: false positives
     "sonarjs/unverified-certificate": "warn",
     "sonarjs/unverified-hostname": "warn",
     "sonarjs/updated-const-var": "warn",
     "sonarjs/updated-loop-counter": "warn",
-    "sonarjs/use-isnan": "warn",
     "sonarjs/use-type-alias": "off", // too restrictive
     "sonarjs/useless-string-operation": "off", // deprecated
     "sonarjs/values-not-convertible-to-numbers": "warn",

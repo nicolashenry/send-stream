@@ -30,7 +30,10 @@ class EtagHashCacheStorage extends FileSystemStorage {
 		opts: FileSystemStorageOptions = {},
 	) {
 		super(root, opts);
-		this.etagsCached = this.addAllFilesInEtagCache(root);
+		this.etagsCached = this.addAllFilesInEtagCache(root)
+			.catch((err: unknown) => {
+				console.error(err);
+			});
 	}
 
 	async addAllFilesInEtagCache(dir: string) {
