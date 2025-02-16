@@ -36,7 +36,7 @@
     "@typescript-eslint/utils": "8.24.0",
     "byteranges": "1.1.0",
     "cross-env": "7.0.3",
-    "eslint": "8.57.1",
+    "eslint": "9.20.1",
     "eslint-find-rules": "5.0.0",
     "eslint-import-resolver-typescript": "3.8.0",
     "eslint-plugin-import": "2.31.0",
@@ -46,6 +46,7 @@
     "eslint-plugin-unicorn": "56.0.1",
     "express": "4.21.2",
     "fastify": "5.2.1",
+    "globals": "15.15.0",
     "koa": "2.15.4",
     "memfs": "4.17.0",
     "mocha": "11.1.0",
@@ -54,7 +55,8 @@
     "rimraf": "6.0.1",
     "supertest": "7.0.0",
     "ts-node": "10.9.2",
-    "typescript": "5.7.3"
+    "typescript": "5.7.3",
+    "typescript-eslint": "8.24.0"
   },
   "license": "MIT",
   "dependencies": {
@@ -72,14 +74,14 @@
     "watch": "tsc -b -w",
     "prepublishOnly": "npm run test && npm run lint",
     "prepack": "npm run clean-build",
-    "lint": "eslint . --ext .ts --max-warnings 0 --report-unused-disable-directives",
-    "lint-fix": "eslint . --ext .ts --max-warnings 0 --report-unused-disable-directives --fix",
+    "lint": "eslint . --max-warnings 0 --report-unused-disable-directives",
+    "lint-fix": "eslint . --max-warnings 0 --report-unused-disable-directives --fix",
     "test-no-coverage": "cross-env TS_NODE_PROJECT=test/tsconfig.json mocha test/*.spec.ts",
     "test": "cross-env TS_NODE_PROJECT=test/tsconfig.json nyc mocha test/*.spec.ts",
     "ci": "npm run build && npm run test && npm run lint && npm run eslint-find-unused-rules",
     "clean-ci": "npm run clean && npm run build && npm run test && npm run lint && npm run eslint-find-unused-rules",
-    "eslint-find-unused-rules": "eslint-find-rules -u .eslintrc.json --ext .ts",
-    "eslint-deprecated-rules": "eslint-find-rules -d .eslintrc.json --ext .ts"
+    "eslint-find-unused-rules": "eslint-find-rules -u eslint.config.mjs --flatConfig --ext .ts",
+    "eslint-deprecated-rules": "eslint-find-rules -d eslint.config.mjs --flatConfig --ext .ts"
   },
   "main": "dist/src/send-stream.js",
   "typings": "dist/src/send-stream.d.ts",
