@@ -20,7 +20,7 @@
   "devDependencies": {
     "@istanbuljs/nyc-config-typescript": "1.0.2",
     "@regru/eslint-plugin-prefer-early-return": "1.0.0",
-    "@stylistic/eslint-plugin": "4.1.0",
+    "@stylistic/eslint-plugin": "4.2.0",
     "@types/compressible": "2.0.2",
     "@types/content-disposition": "0.5.8",
     "@types/express": "4.17.21",
