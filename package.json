@@ -28,7 +28,7 @@
     "@types/mime-types": "2.1.4",
     "@types/mocha": "10.0.10",
     "@types/range-parser": "1.2.7",
-    "@types/supertest": "6.0.2",
+    "@types/supertest": "6.0.3",
     "@typescript-eslint/eslint-plugin": "8.27.0",
     "@typescript-eslint/parser": "8.27.0",
     "@typescript-eslint/type-utils": "8.27.0",
