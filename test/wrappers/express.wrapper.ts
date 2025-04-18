@@ -68,9 +68,7 @@ export class ExpressServerWrapper implements ServerWrapper {
 				if (result.error) {
 					result.headers['X-Send-Stream-Error'] = result.error.name;
 				}
-				if (!result.headers['Content-Type']) {
-					result.headers['Content-Type'] = 'application/octet-stream';
-				}
+				result.headers['Content-Type'] ??= 'application/octet-stream';
 				res.status(result.statusCode);
 				res.set(result.headers);
 				await pipeline(result.stream, res);
@@ -109,9 +107,7 @@ export class ExpressServerWrapper implements ServerWrapper {
 				if (result.storageInfo?.attachedData.resolvedPath) {
 					result.headers['X-Send-Stream-Resolved-Path'] = result.storageInfo.attachedData.resolvedPath;
 				}
-				if (!result.headers['Content-Type']) {
-					result.headers['Content-Type'] = 'application/octet-stream';
-				}
+				result.headers['Content-Type'] ??= 'application/octet-stream';
 				res.status(result.statusCode);
 				res.set(result.headers);
 				await pipeline(result.stream, res);
@@ -157,9 +153,7 @@ export class ExpressServerWrapper implements ServerWrapper {
 				if (result.storageInfo?.attachedData.resolvedPath) {
 					result.headers['X-Send-Stream-Resolved-Path'] = result.storageInfo.attachedData.resolvedPath;
 				}
-				if (!result.headers['Content-Type']) {
-					result.headers['Content-Type'] = 'application/octet-stream';
-				}
+				result.headers['Content-Type'] ??= 'application/octet-stream';
 				res.status(result.statusCode);
 				res.set(result.headers);
 				await pipeline(result.stream, res);
