@@ -29,7 +29,7 @@
     "@types/mocha": "10.0.10",
     "@types/range-parser": "1.2.7",
     "@types/supertest": "6.0.3",
-    "@typescript-eslint/eslint-plugin": "8.31.0",
+    "@typescript-eslint/eslint-plugin": "8.32.1",
     "@typescript-eslint/parser": "8.31.0",
     "@typescript-eslint/type-utils": "8.31.0",
     "@typescript-eslint/typescript-estree": "8.31.0",
