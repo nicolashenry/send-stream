@@ -95,7 +95,7 @@ export type StorageSendOptions = PrepareResponseOptions & SendOptions;
 
 interface AcceptEncodingHeader {
 	// eslint-disable-next-line @typescript-eslint/naming-convention
-	'accept-encoding'?: string;
+	'accept-encoding'?: string | undefined;
 }
 
 /**
