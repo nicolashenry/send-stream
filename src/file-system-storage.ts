@@ -181,7 +181,7 @@ export class GenericFileSystemStorage<FileDescriptor> extends Storage<FilePath, 
 			const normalizedPath = pathname + search;
 			if (path !== normalizedPath) {
 				throw new NotNormalizedError(
-					`${ String(path) } is not normalized`,
+					`${ path } is not normalized`,
 					path,
 					pathParts,
 					normalizedPath,
@@ -194,7 +194,7 @@ export class GenericFileSystemStorage<FileDescriptor> extends Storage<FilePath, 
 				|| pathParts[0] !== ''
 				|| pathParts.some(part => /^\.\.?$/u.test(part))
 			) {
-				const pathArray = String(path.map(v => `'${ v }'`).join(', '));
+				const pathArray = path.map(v => `'${ v }'`).join(', ');
 				throw new InvalidPathError(
 					`[${ pathArray }] is not a valid path array (should start with '' and not contain '..' or '.')`,
 					path,
