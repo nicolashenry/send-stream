@@ -13,19 +13,13 @@ app.disable('x-powered-by');
 
 const storage = new FileSystemStorage(join(__dirname, 'assets'));
 
-// eslint-disable-next-line @typescript-eslint/no-misused-promises
-app.get('*', async (req, res, next) => {
-	try {
-		const result = await storage.prepareResponse(req.url, req);
-		if (result.statusCode === 404) {
-			next();
-			return;
-		}
-		await result.send(res);
-	} catch (err: unknown) {
-		// eslint-disable-next-line n/callback-return
-		next(err);
+app.get(/(?<path>.*)/u, async (req, res, next) => {
+	const result = await storage.prepareResponse(req.url, req);
+	if (result.statusCode === 404) {
+		next();
+		return;
 	}
+	await result.send(res);
 });
 
 app.listen(3000, () => {

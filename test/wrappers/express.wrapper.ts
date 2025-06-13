@@ -53,29 +53,23 @@ export class ExpressServerWrapper implements ServerWrapper {
 		reference: Reference,
 		opts: PrepareResponseOptions & { noResult?: boolean } = {},
 	): void {
-		// eslint-disable-next-line @typescript-eslint/no-misused-promises
-		this.app.get('*', async (req, res, next) => {
-			try {
-				if (opts.noResult) {
-					this.context.lastResult = true;
-				}
-				const result = await storage.prepareResponse(
-					reference,
-					req,
-					opts,
-				);
-				this.context.lastResult = result;
-				if (result.error) {
-					result.headers['X-Send-Stream-Error'] = result.error.name;
-				}
-				result.headers['Content-Type'] ??= 'application/octet-stream';
-				res.status(result.statusCode);
-				res.set(result.headers);
-				await pipeline(result.stream, res);
-			} catch (err: unknown) {
-				// eslint-disable-next-line n/callback-return
-				next(err);
+		this.app.get(/(?<path>.*)/u, async (req, res) => {
+			if (opts.noResult) {
+				this.context.lastResult = true;
 			}
+			const result = await storage.prepareResponse(
+				reference,
+				req,
+				opts,
+			);
+			this.context.lastResult = result;
+			if (result.error) {
+				result.headers['X-Send-Stream-Error'] = result.error.name;
+			}
+			result.headers['Content-Type'] ??= 'application/octet-stream';
+			res.status(result.statusCode);
+			res.set(result.headers);
+			await pipeline(result.stream, res);
 		});
 	}
 
@@ -84,37 +78,31 @@ export class ExpressServerWrapper implements ServerWrapper {
 		path?: string | string[],
 		opts?: PrepareResponseOptions & FileSystemStorageOptions & { noResult?: boolean; removeHeader?: string },
 	): void {
-		// eslint-disable-next-line @typescript-eslint/no-misused-promises
-		this.app.get('*', async (req, res, next) => {
-			try {
-				if (opts?.noResult) {
-					this.context.lastResult = true;
-				}
-				if (opts?.removeHeader) {
-					// eslint-disable-next-line @typescript-eslint/no-dynamic-delete
-					delete req.headers[opts.removeHeader];
-				}
-				const storage = new FileSystemStorage(root, opts);
-				const result = await storage.prepareResponse(
-					path ?? req.url,
-					req,
-					opts,
-				);
-				this.context.lastResult = result;
-				if (result.error) {
-					result.headers['X-Send-Stream-Error'] = result.error.name;
-				}
-				if (result.storageInfo?.attachedData.resolvedPath) {
-					result.headers['X-Send-Stream-Resolved-Path'] = result.storageInfo.attachedData.resolvedPath;
-				}
-				result.headers['Content-Type'] ??= 'application/octet-stream';
-				res.status(result.statusCode);
-				res.set(result.headers);
-				await pipeline(result.stream, res);
-			} catch (err: unknown) {
-				// eslint-disable-next-line n/callback-return
-				next(err);
+		this.app.get(/(?<path>.*)/u, async (req, res) => {
+			if (opts?.noResult) {
+				this.context.lastResult = true;
 			}
+			if (opts?.removeHeader) {
+				// eslint-disable-next-line @typescript-eslint/no-dynamic-delete
+				delete req.headers[opts.removeHeader];
+			}
+			const storage = new FileSystemStorage(root, opts);
+			const result = await storage.prepareResponse(
+				path ?? req.url,
+				req,
+				opts,
+			);
+			this.context.lastResult = result;
+			if (result.error) {
+				result.headers['X-Send-Stream-Error'] = result.error.name;
+			}
+			if (result.storageInfo?.attachedData.resolvedPath) {
+				result.headers['X-Send-Stream-Resolved-Path'] = result.storageInfo.attachedData.resolvedPath;
+			}
+			result.headers['Content-Type'] ??= 'application/octet-stream';
+			res.status(result.statusCode);
+			res.set(result.headers);
+			await pipeline(result.stream, res);
 		});
 	}
 
@@ -123,44 +111,38 @@ export class ExpressServerWrapper implements ServerWrapper {
 		path?: string | string[],
 		opts?: PrepareResponseOptions & FileSystemStorageOptions & { noResult?: boolean },
 	): void {
-		// eslint-disable-next-line @typescript-eslint/no-misused-promises
-		this.app.get('*', async (req, res, next) => {
-			try {
-				if (opts?.noResult) {
-					this.context.lastResult = true;
-				}
-				class FileSystemStorageWithError extends FileSystemStorage {
-					override createReadableStream() {
-						return new Readable({
-							read() {
-								process.nextTick(() => {
-									this.destroy(new Error('ooops'));
-								});
-							},
-						});
-					}
-				}
-				const storage = new FileSystemStorageWithError(root, opts);
-				const result = await storage.prepareResponse(
-					path ?? req.url,
-					req,
-					opts,
-				);
-				this.context.lastResult = result;
-				if (result.error) {
-					result.headers['X-Send-Stream-Error'] = result.error.name;
-				}
-				if (result.storageInfo?.attachedData.resolvedPath) {
-					result.headers['X-Send-Stream-Resolved-Path'] = result.storageInfo.attachedData.resolvedPath;
-				}
-				result.headers['Content-Type'] ??= 'application/octet-stream';
-				res.status(result.statusCode);
-				res.set(result.headers);
-				await pipeline(result.stream, res);
-			} catch (err: unknown) {
-				// eslint-disable-next-line n/callback-return
-				next(err);
+		this.app.get(/(?<path>.*)/u, async (req, res) => {
+			if (opts?.noResult) {
+				this.context.lastResult = true;
 			}
+			class FileSystemStorageWithError extends FileSystemStorage {
+				override createReadableStream() {
+					return new Readable({
+						read() {
+							process.nextTick(() => {
+								this.destroy(new Error('ooops'));
+							});
+						},
+					});
+				}
+			}
+			const storage = new FileSystemStorageWithError(root, opts);
+			const result = await storage.prepareResponse(
+				path ?? req.url,
+				req,
+				opts,
+			);
+			this.context.lastResult = result;
+			if (result.error) {
+				result.headers['X-Send-Stream-Error'] = result.error.name;
+			}
+			if (result.storageInfo?.attachedData.resolvedPath) {
+				result.headers['X-Send-Stream-Resolved-Path'] = result.storageInfo.attachedData.resolvedPath;
+			}
+			result.headers['Content-Type'] ??= 'application/octet-stream';
+			res.status(result.statusCode);
+			res.set(result.headers);
+			await pipeline(result.stream, res);
 		});
 	}
 }

@@ -1,52 +1,11 @@
 /* eslint-disable jsdoc/require-jsdoc */
 import { strictEqual, notStrictEqual } from 'node:assert';
-import { Readable, pipeline } from 'node:stream';
-import { createBrotliDecompress } from 'node:zlib';
 import type { Server } from 'node:http';
 import { request as httpRequest } from 'node:http';
 
 import type request from 'supertest';
 import type { BodyPart } from 'byteranges';
 import { parse } from 'byteranges';
-
-export function brotliParser(res: request.Response, cb: (err: Error | null, body: unknown) => void) {
-	const readable = new Readable({
-		// eslint-disable-next-line @typescript-eslint/no-empty-function
-		read() {},
-	});
-
-	res.on('data', chunk => {
-		readable.push(chunk);
-	});
-	res.on('error', (err: Error | undefined) => {
-		readable.destroy(err);
-	});
-	res.on('end', () => {
-		readable.push(null);
-	});
-
-	const decompress = pipeline(readable, createBrotliDecompress(), err => {
-		if (!err) {
-			return;
-		}
-		cb(err, null);
-	});
-
-	const chunks: Buffer[] = [];
-	let length = 0;
-	decompress.on('data', (chunk: Buffer | string) => {
-		const buffer = Buffer.isBuffer(chunk) ? chunk : Buffer.from(chunk);
-		chunks.push(buffer);
-		length += buffer.length;
-	});
-	decompress.on('error', err => {
-		cb(err, null);
-	});
-	decompress.on('end', () => {
-		const concatChunks = Buffer.concat(chunks, length);
-		cb(null, Buffer.isEncoding(res.charset) ? concatChunks.toString(res.charset) : concatChunks.toString());
-	});
-}
 
 export function multipartHandler(
 	res: request.Response,

@@ -15,19 +15,13 @@ app.disable('x-powered-by');
 
 const storage = new FileSystemStorage(join(__dirname, 'assets'));
 
-// eslint-disable-next-line @typescript-eslint/no-misused-promises
-app.get('*', async (req, res, next) => {
-	try {
-		const result = await storage.prepareResponse(req.url, req);
-		if (result.statusCode === 404) {
-			next();
-			return;
-		}
-		await result.send(res);
-	} catch (err: unknown) {
-		// eslint-disable-next-line n/callback-return
-		next(err);
+app.get(/(?<path>.*)/u, async (req, res, next) => {
+	const result = await storage.prepareResponse(req.url, req);
+	if (result.statusCode === 404) {
+		next();
+		return;
 	}
+	await result.send(res);
 });
 
 const server = createServer(
@@ -37,6 +31,7 @@ const server = createServer(
 		// eslint-disable-next-line n/no-sync
 		cert: readFileSync(join(__dirname, 'cert', 'localhost.crt')),
 	},
+	// eslint-disable-next-line @typescript-eslint/no-misused-promises
 	app,
 );
 

@@ -28,7 +28,7 @@ import { FastifyServerWrapper } from './wrappers/fastify.wrapper';
 import { KoaServerWrapper } from './wrappers/koa.wrapper';
 import { ExpressServerWrapper } from './wrappers/express.wrapper';
 import { VanillaServerWrapper } from './wrappers/vanilla.wrapper';
-import { brotliParser, shouldNotHaveHeader, multipartHandler, checkMultipartByteRangeString } from './utils';
+import { shouldNotHaveHeader, multipartHandler, checkMultipartByteRangeString } from './utils';
 
 interface Context {
 	lastResult: StreamResponse<unknown> | true | undefined;
@@ -408,9 +408,8 @@ for (const [frameworkName, frameworkServer] of frameworks) {
 						await app.close();
 					});
 					it('return compressed text', async () => {
-						const { body } = <{ body: string }> await request(app.server)
+						const { text } = await request(app.server)
 							.get('/fixtures-frameworks/some.path/index.json')
-							.parse(brotliParser)
 							.set('Accept-Encoding', 'br, gzip, identity')
 							.expect(
 								'X-Send-Stream-Resolved-Path',
@@ -419,7 +418,7 @@ for (const [frameworkName, frameworkServer] of frameworks) {
 							.expect(shouldNotHaveHeader('Content-Length'))
 							.expect('Content-Encoding', 'br')
 							.expect(200);
-						deepStrictEqual(body, '{\n\t"foo": 123,\n\t"bar": 456\n}\n');
+						deepStrictEqual(text, '{\n\t"foo": 123,\n\t"bar": 456\n}\n');
 					});
 					it('not return compressed text when identity is required', async () => {
 						await request(app.server)
@@ -472,9 +471,8 @@ for (const [frameworkName, frameworkServer] of frameworks) {
 						await app.close();
 					});
 					it('return compressed text', async () => {
-						const { body } = <{ body: string }> await request(app.server)
+						const { text } = await request(app.server)
 							.get('/fixtures-frameworks/some.path/index.json')
-							.parse(brotliParser)
 							.set('Accept-Encoding', 'br, gzip, identity')
 							.expect(
 								'X-Send-Stream-Resolved-Path',
@@ -483,18 +481,17 @@ for (const [frameworkName, frameworkServer] of frameworks) {
 							.expect(shouldNotHaveHeader('Content-Length'))
 							.expect('Content-Encoding', 'br')
 							.expect(200);
-						deepStrictEqual(body, '{\n\t"foo": 123,\n\t"bar": 456\n}\n');
+						deepStrictEqual(text, '{\n\t"foo": 123,\n\t"bar": 456\n}\n');
 					});
 					it('return compressed text when length >= dynamicCompressionMinLength', async () => {
-						const { body } = <{ body: string }> await request(app.server)
+						const { text } = await request(app.server)
 							.get('/fixtures-frameworks/user.json')
-							.parse(brotliParser)
 							.set('Accept-Encoding', 'br, gzip, identity')
 							.expect('X-Send-Stream-Resolved-Path', join(__dirname, '/fixtures-frameworks/user.json'))
 							.expect(shouldNotHaveHeader('Content-Length'))
 							.expect('Content-Encoding', 'br')
 							.expect(200);
-						deepStrictEqual(body, '{ "name": "tobi" }');
+						deepStrictEqual(text, '{ "name": "tobi" }');
 					});
 
 					it('not return compressed text when length < dynamicCompressionMinLength', async () => {
@@ -522,14 +519,13 @@ for (const [frameworkName, frameworkServer] of frameworks) {
 						await app.close();
 					});
 					it('return compressed text', async () => {
-						const { body } = <{ body: string }> await request(app.server)
+						const { text } = await request(app.server)
 							.get('/fixtures-frameworks/')
-							.parse(brotliParser)
 							.set('Accept-Encoding', 'br, gzip, identity')
 							.expect(shouldNotHaveHeader('Content-Length'))
 							.expect('Content-Encoding', 'br')
 							.expect(200);
-						ok(body.startsWith('<!DOCTYPE html>'));
+						ok(text.startsWith('<!DOCTYPE html>'));
 					});
 				});
 
@@ -549,9 +545,8 @@ for (const [frameworkName, frameworkServer] of frameworks) {
 						await app.close();
 					});
 					it('return compressed text', async () => {
-						const { body } = <{ body: string }> await request(app.server)
+						const { text } = await request(app.server)
 							.get('/fixtures-frameworks/some.path/index.json')
-							.parse(brotliParser)
 							.set('Accept-Encoding', 'br, gzip, identity')
 							.expect(
 								'X-Send-Stream-Resolved-Path',
@@ -560,7 +555,7 @@ for (const [frameworkName, frameworkServer] of frameworks) {
 							.expect(shouldNotHaveHeader('Content-Length'))
 							.expect('Content-Encoding', 'br')
 							.expect(200);
-						deepStrictEqual(body, '{\n\t"foo": 123,\n\t"bar": 456\n}\n');
+						deepStrictEqual(text, '{\n\t"foo": 123,\n\t"bar": 456\n}\n');
 					});
 					it('return png without compression', async () => {
 						await request(app.server)
@@ -1202,29 +1197,27 @@ for (const [frameworkName, frameworkServer] of frameworks) {
 						await app.close();
 					});
 					it('should return .br path when .br path exists and brotli requested', async () => {
-						const { body } = <{ body: string }> await request(app.server)
+						const { text } = await request(app.server)
 							.get('/')
-							.parse(brotliParser)
 							.set('Accept-Encoding', 'br, deflate, identity')
 							.expect('X-Send-Stream-Resolved-Path', join(__dirname, '/fixtures-frameworks/gzip.json.br'))
 							.expect('Content-Encoding', 'br')
 							.expect('Content-Length', '22')
 							.expect('Content-Type', /^application\/json/u)
 							.expect(200);
-						deepStrictEqual(body, '{ "name": "tobi" }');
+						deepStrictEqual(text, '{ "name": "tobi" }');
 					});
 
 					it('should return brotli if .gz path exists and gzip weight is set to 0', async () => {
-						const { body } = <{ body: string }> await request(app.server)
+						const { text } = await request(app.server)
 							.get('/')
-							.parse(brotliParser)
 							.set('Accept-Encoding', 'gzip;q=0,*')
 							.expect('X-Send-Stream-Resolved-Path', join(__dirname, '/fixtures-frameworks/gzip.json.br'))
 							.expect('Content-Encoding', 'br')
 							.expect('Content-Length', '22')
 							.expect('Content-Type', /^application\/json/u)
 							.expect(200);
-						deepStrictEqual(body, '{ "name": "tobi" }');
+						deepStrictEqual(text, '{ "name": "tobi" }');
 					});
 				});
 
