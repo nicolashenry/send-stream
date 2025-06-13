@@ -29,7 +29,7 @@ Serve all files from a directory (also serve index.html from directories on trai
 
 See [examples](#examples) for more advanced usages.
 
-Using Fastify (v3.x.x):
+Using Fastify (v3.x.x to v5.x.x):
 
 ```js
 const path = require('path');
@@ -60,7 +60,7 @@ app.listen(3000)
   });
 ```
 
-Using Koa (v2.x.x):
+Using Koa (v2.x.x to v3.x.x):
 
 ```js
 const path = require('path');
@@ -92,7 +92,7 @@ app.listen(3000, () => {
 });
 ```
 
-Using Express (v4.x.x):
+Using Express (v5.x.x):
 
 ```js
 const path = require("path");
@@ -105,20 +105,16 @@ const storage = new FileSystemStorage(
   { onDirectory: 'serve-index' }
 );
 
-app.get('*', async (req, res, next) => {
-  try {
-    let result = await storage.prepareResponse(
-      req.url,
-      req
-    );
-    if (result.statusCode === 404) {
-      next(); // let express handle 404
-      return;
-    }
-    await result.send(res);
-  } catch (err) {
-    next(err);
+app.get(/(?<path>.*)/, async (req, res, next) => {
+  let result = await storage.prepareResponse(
+    req.url,
+    req
+  );
+  if (result.statusCode === 404) {
+    next(); // let express handle 404
+    return;
   }
+  await result.send(res);
 });
 app.listen(3000, () => {
   console.info('listening on http://localhost:3000');
