@@ -35,10 +35,10 @@
     "eslint": "9.29.0",
     "eslint-find-rules": "5.0.0",
     "eslint-import-resolver-typescript": "4.4.3",
-    "eslint-plugin-import": "2.31.0",
-    "eslint-plugin-jsdoc": "51.0.3",
+    "eslint-plugin-import": "2.32.0",
+    "eslint-plugin-jsdoc": "51.1.2",
     "eslint-plugin-n": "17.20.0",
-    "eslint-plugin-sonarjs": "3.0.2",
+    "eslint-plugin-sonarjs": "3.0.3",
     "eslint-plugin-unicorn": "59.0.1",
     "express": "5.1.0",
     "fastify": "5.4.0",
@@ -58,10 +58,10 @@
   "dependencies": {
     "@types/node": ">=18",
     "compressible": "^2.0.18",
-    "content-disposition": "^0.5.3",
-    "mime-types": "^3.0.0",
+    "content-disposition": "^0.5.4",
+    "mime-types": "^3.0.1",
     "range-parser": "^1.2.1",
-    "tslib": "^2.1.0"
+    "tslib": ">=2.1.0"
   },
   "scripts": {
     "clean": "rimraf dist",
