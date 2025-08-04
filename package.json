@@ -25,7 +25,7 @@
     "@types/compressible": "2.0.3",
     "@types/content-disposition": "0.5.9",
     "@types/express": "5.0.3",
-    "@types/koa": "2.15.0",
+    "@types/koa": "3.0.0",
     "@types/mime-types": "3.0.1",
     "@types/mocha": "10.0.10",
     "@types/range-parser": "1.2.7",
