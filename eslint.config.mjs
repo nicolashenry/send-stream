@@ -1279,7 +1279,6 @@ export default tseslint.config(
         "sonarjs/no-nested-incdec": "warn",
         "sonarjs/no-nested-switch": "warn",
         "sonarjs/no-nested-template-literals": "warn",
-        "sonarjs/no-one-iteration-loop": "warn",
         "sonarjs/no-os-command-from-path": "warn",
         "sonarjs/no-parameter-reassignment": "warn",
         "sonarjs/no-primitive-wrappers": "warn",
