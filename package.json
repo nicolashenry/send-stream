@@ -21,7 +21,7 @@
     "@eslint/js": "9.33.0",
     "@istanbuljs/nyc-config-typescript": "1.0.2",
     "@regru/eslint-plugin-prefer-early-return": "1.0.0",
-    "@stylistic/eslint-plugin": "5.2.3",
+    "@stylistic/eslint-plugin": "5.3.1",
     "@types/compressible": "2.0.3",
     "@types/content-disposition": "0.5.9",
     "@types/express": "5.0.3",
