@@ -18,7 +18,7 @@
   ],
   "author": "Nicolas HENRY <icewil@gmail.com>",
   "devDependencies": {
-    "@eslint/js": "9.33.0",
+    "@eslint/js": "9.35.0",
     "@istanbuljs/nyc-config-typescript": "1.0.2",
     "@regru/eslint-plugin-prefer-early-return": "1.0.0",
     "@stylistic/eslint-plugin": "5.3.1",
