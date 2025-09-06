@@ -763,6 +763,7 @@ export default tseslint.config(
         "prefer-rest-params": "warn",
         "prefer-spread": "warn",
         "prefer-template": "warn",
+		"preserve-caught-error": "warn",
         "quote-props": "off",
         quotes: "off",
         radix: "warn",
