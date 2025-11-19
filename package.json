@@ -58,7 +58,7 @@
   "dependencies": {
     "@types/node": ">=18",
     "compressible": "^2.0.18",
-    "content-disposition": "^0.5.4",
+    "content-disposition": "^1.0.1",
     "mime-types": "^3.0.1",
     "range-parser": "^1.2.1",
     "tslib": ">=2.1.0"
