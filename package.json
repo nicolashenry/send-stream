@@ -56,7 +56,7 @@
   },
   "license": "MIT",
   "dependencies": {
-    "@types/node": ">=18",
+    "@types/node": ">=24.10.1",
     "compressible": "^2.0.18",
     "content-disposition": "^1.0.1",
     "mime-types": "^3.0.1",
