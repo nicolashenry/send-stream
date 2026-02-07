@@ -1,23 +1,20 @@
 import { ServerResponse } from 'node:http';
-import type { ServerHttp2Stream } from 'node:http2';
+import type { Http2Stream, ServerHttp2Stream } from 'node:http2';
 import { Http2ServerResponse } from 'node:http2';
 import type { Readable } from 'node:stream';
-import { pipeline as streamPipeline } from 'node:stream';
-import { promisify } from 'node:util';
+import { pipeline } from 'node:stream/promises';
 
 import type { ResponseHeaders } from './utils';
 import type { StorageInfo, SendOptions } from './types';
 import type { StorageError } from './errors';
 
-const promisifiedStreamPipeline = promisify(streamPipeline);
-
-async function pipeline(
+async function pipelineWithError(
 	readStream: Readable,
-	res: ServerResponse | ServerHttp2Stream,
+	res: ServerResponse | ServerHttp2Stream | Http2Stream,
 	ignorePrematureClose: boolean,
-) {
+): Promise<void> {
 	try {
-		await promisifiedStreamPipeline(readStream, res);
+		await pipeline(readStream, res);
 	} catch (err: unknown) {
 		if (ignorePrematureClose) {
 			return;
@@ -53,15 +50,17 @@ export class StreamResponse<AttachedData> {
 	 * @param opts - options
 	 * @param opts.ignorePrematureClose - ignore premature close errors
 	 * @throws error when response is already closed
+	 * is true
+	 * @rejects {Error} when response headers already sent
 	 */
 	async send(
-		res: ServerResponse | Http2ServerResponse | ServerHttp2Stream,
+		res: ServerResponse | Http2ServerResponse | ServerHttp2Stream | Http2Stream,
 		{ ignorePrematureClose = true }: SendOptions = {},
 	): Promise<void> {
 		const { statusCode } = this;
 		const { headers: responseHeaders, stream: readStream } = this;
 
-		if (res.headersSent) {
+		if ('headersSent' in res && res.headersSent) {
 			readStream.destroy();
 			throw new Error('response headers already sent');
 		}
@@ -72,19 +71,24 @@ export class StreamResponse<AttachedData> {
 				return;
 			}
 			res.writeHead(statusCode, responseHeaders);
-			await pipeline(readStream, res, ignorePrematureClose);
+			await pipelineWithError(readStream, res, ignorePrematureClose);
 		} else {
-			const resStream = res instanceof Http2ServerResponse ? res.stream : res;
+			const resStream: ServerHttp2Stream | Http2Stream = res instanceof Http2ServerResponse ? res.stream : res;
 			if (resStream.destroyed || resStream.closed) {
 				readStream.destroy();
 				return;
 			}
-			resStream.respond({
-				// eslint-disable-next-line @typescript-eslint/naming-convention
-				':status': statusCode,
-				...responseHeaders,
-			});
-			await pipeline(readStream, resStream, ignorePrematureClose);
+			if ('respond' in resStream && typeof resStream.respond === 'function') {
+				// eslint-disable-next-line @typescript-eslint/no-unsafe-call
+				resStream.respond({
+					// eslint-disable-next-line @typescript-eslint/naming-convention
+					':status': statusCode,
+					...responseHeaders,
+				});
+			} else {
+				console.warn('Http2Stream.respond is not available, skipping response headers');
+			}
+			await pipelineWithError(readStream, resStream, ignorePrematureClose);
 		}
 	}
 

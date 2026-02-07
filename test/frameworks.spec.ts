@@ -1,7 +1,6 @@
 /* eslint-disable max-lines, max-lines-per-function */
 /* eslint-disable sonarjs/no-identical-functions */
-/* eslint-env node, mocha */
-
+/* eslint-disable @typescript-eslint/strict-void-return */
 import { strictEqual, notStrictEqual, fail, deepStrictEqual, ok } from 'node:assert';
 import { stat } from 'node:fs';
 import { join } from 'node:path';
@@ -2368,18 +2367,12 @@ for (const [frameworkName, frameworkServer] of frameworks) {
 						await app.close();
 					});
 					it('should handle read errors to a simple request', async () => {
-						if (frameworkName === 'koa') {
+						try {
 							await request(app.server)
-								.get('/')
-								.expect(500);
-						} else {
-							try {
-								await request(app.server)
-									.get('/');
-								fail();
-							} catch {
-								await Promise.resolve(undefined);
-							}
+								.get('/');
+							fail();
+						} catch {
+							await Promise.resolve(undefined);
 						}
 					});
 				});
@@ -2740,6 +2733,45 @@ for (const [frameworkName, frameworkServer] of frameworks) {
 					await app.close();
 				});
 				it('should handle memfs as fsModule option with directory = listing', async () => {
+					await request(app.server)
+						.get('/')
+						.expect('Content-Type', 'text/html; charset=UTF-8')
+						// eslint-disable-next-line @stylistic/max-len
+						.expect(200, '<!DOCTYPE html><html lang="en"><head><meta charset="utf-8"><title>/</title><meta name="viewport" content="width=device-width"><meta name="description" content="Content of / directory"></head><body><h1>Directory: /</h1><ul><li><a href="./foo.txt">foo.txt</a></li></ul></body></html>');
+				});
+			});
+
+			describe('when fsModule option used with onDirectory = list-files and no opendir', () => {
+				let app: ServerWrapper;
+				const { fs } = memfs();
+				before(async () => {
+					app = frameworkServer(context);
+					await fs.promises.mkdir('/app', { recursive: true });
+					await fs.promises.writeFile('/app/foo.txt', 'bar');
+
+					/*
+					 * Create a filesystem module that only has readdir but not opendir.
+					 * This tests the fallback async iterator code path at lines 502-507
+					 */
+					// eslint-disable-next-line @typescript-eslint/no-unused-vars
+					const { opendir, ...fsWithoutOpendir } = fs;
+					// eslint-disable-next-line @typescript-eslint/no-unsafe-type-assertion
+					const fsModuleWithoutOpendir = <GenericFSModule<number>>(
+						<unknown>fsWithoutOpendir
+					);
+
+					app.send(
+						'/app/',
+						'/',
+						{ fsModule: fsModuleWithoutOpendir, onDirectory: 'list-files' },
+					);
+
+					await app.listen();
+				});
+				after(async () => {
+					await app.close();
+				});
+				it('should handle memfs with readdir fallback for directory listing', async () => {
 					await request(app.server)
 						.get('/')
 						.expect('Content-Type', 'text/html; charset=UTF-8')

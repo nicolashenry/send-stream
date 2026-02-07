@@ -300,6 +300,16 @@ export class GenericFileSystemStorage<FileDescriptor> extends Storage<FilePath, 
 	 * @param requestHeaders - request headers
 	 * @returns StorageInfo object
 	 * @throws when the file can not be opened
+	 * @rejects {StorageError} when the path is invalid
+	 * @rejects {MalformedPathError} when the path cannot be parsed
+	 * @rejects {NotNormalizedError} when the path is not normalized
+	 * @rejects {InvalidPathError} when the path array is invalid
+	 * @rejects {ConsecutiveSlashesError} when the path has consecutive slashes
+	 * @rejects {ForbiddenCharacterError} when the path has forbidden characters
+	 * @rejects {IgnoredFileError} when the path is ignored
+	 * @rejects {TrailingSlashError} when the path has a trailing slash
+	 * @rejects {IsDirectoryError} when the path is a directory
+	 * @rejects {DoesNotExistError} when the file does not exist
 	 */
 	async open(
 		path: FilePath,
@@ -453,7 +463,7 @@ export class GenericFileSystemStorage<FileDescriptor> extends Storage<FilePath, 
 	/**
 	 * Async generator method to return the directory listing as HTML
 	 * @param storageInfo - storage information
-	 * @yields html parts
+	 * @yields {string} html parts
 	 */
 	async *getDirectoryListing(storageInfo: StorageInfo<GenericFileData<FileDescriptor>>):
 	AsyncGenerator<string, void, void> {

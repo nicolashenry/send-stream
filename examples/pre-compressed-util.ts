@@ -1,3 +1,4 @@
+/* eslint-disable @typescript-eslint/strict-void-return */
 /**
  * This file is an example of file precompressing to use with ./pre-compressed.ts example
  */

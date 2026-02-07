@@ -2,12 +2,11 @@
 /* eslint-disable @typescript-eslint/naming-convention */
 /* eslint-disable max-lines, max-lines-per-function */
 /* eslint-disable sonarjs/no-identical-functions */
-/* eslint-env node, mocha */
-
+/* eslint-disable @typescript-eslint/strict-void-return */
 import { fail, notStrictEqual, ok, strictEqual } from 'node:assert';
 import type { IncomingMessage, Server, ServerResponse } from 'node:http';
 import { createServer } from 'node:http';
-import type { Http2Server, ServerHttp2Session } from 'node:http2';
+import type { Http2Server, ServerHttp2Session, Http2Stream } from 'node:http2';
 import { connect as http2Connect, createServer as http2CreateServer } from 'node:http2';
 import { normalize, join } from 'node:path';
 import { Readable } from 'node:stream';
@@ -2288,7 +2287,10 @@ describe('http', () => {
 						lastResult = result;
 						await result.send(stream);
 					})().catch((err: unknown) => {
-						stream.respond({ ':status': 500 });
+						if ('respond' in stream && typeof stream.respond === 'function') {
+							// eslint-disable-next-line @typescript-eslint/no-unsafe-call
+							stream.respond({ ':status': 500 });
+						}
 						stream.end(String(err));
 					});
 				});
@@ -2337,7 +2339,7 @@ describe('http', () => {
 				req.setEncoding('utf8');
 				let data = '';
 				req.on('data', chunk => {
-					data += chunk;
+					data += String(chunk);
 				});
 				req.on('end', () => {
 					if (data !== 'tobi' && !hasError) {
@@ -2424,7 +2426,7 @@ describe('http', () => {
 				req.setEncoding('utf8');
 				let data = '';
 				req.on('data', chunk => {
-					data += chunk;
+					data += String(chunk);
 				});
 				req.on('end', () => {
 					if (data !== 'tobi' && !hasError) {
@@ -2550,7 +2552,10 @@ describe('http', () => {
 						lastResult = result;
 						await result.send(stream);
 					})().catch((err: unknown) => {
-						stream.respond({ ':status': 500 });
+						if ('respond' in stream && typeof stream.respond === 'function') {
+							// eslint-disable-next-line @typescript-eslint/no-unsafe-call
+							stream.respond({ ':status': 500 });
+						}
 						stream.end(String(err));
 					});
 				});
@@ -2610,13 +2615,124 @@ describe('http', () => {
 				req.setEncoding('utf8');
 				let data = '';
 				req.on('data', chunk => {
-					data += chunk;
+					data += String(chunk);
 				});
 				req.on('end', () => {
 					client.close();
 					if (data !== '' && !hasError) {
 						hasError = true;
 						done(new Error(`body received ${ JSON.stringify(data) } does not equals "tobi"`));
+					}
+				});
+				req.end();
+			});
+		});
+
+		describe('should send response without respond method', () => {
+			let app: Http2Server;
+			let address: AddressInfo;
+			const sessions: ServerHttp2Session[] = [];
+			before(done => {
+				const storage = new FileSystemStorage(fixtures);
+				app = http2CreateServer();
+
+				app.on('stream', (stream, headers) => {
+					(async () => {
+						const result = await storage.prepareResponse(
+							// eslint-disable-next-line @typescript-eslint/no-non-null-assertion
+							headers[':path']!,
+							headers,
+						);
+						lastResult = result;
+						// Create a proxy stream without respond method to test the fallback
+						// eslint-disable-next-line sonarjs/no-reference-error
+						const streamProxy = new Proxy(stream, {
+							get(target, prop: string | symbol) {
+								if (prop === 'respond') {
+									return undefined;
+								}
+								// eslint-disable-next-line @typescript-eslint/no-unsafe-assignment
+								const value = Reflect.get(target, prop);
+								/* eslint-disable @typescript-eslint/no-unsafe-return */
+								/* eslint-disable @typescript-eslint/no-unsafe-call */
+								/* eslint-disable @typescript-eslint/no-unsafe-member-access */
+								return typeof value === 'function' ? value.bind(target) : value;
+								/* eslint-enable @typescript-eslint/no-unsafe-member-access */
+								/* eslint-enable @typescript-eslint/no-unsafe-call */
+								/* eslint-enable @typescript-eslint/no-unsafe-return */
+							},
+						});
+						/* eslint-disable @typescript-eslint/consistent-type-assertions */
+						/* eslint-disable @typescript-eslint/no-unsafe-type-assertion */
+						await result.send(streamProxy as unknown as Http2Stream);
+						/* eslint-enable @typescript-eslint/no-unsafe-type-assertion */
+						/* eslint-enable @typescript-eslint/consistent-type-assertions */
+					})().catch((err: unknown) => {
+						stream.end(String(err));
+					});
+				});
+
+				app.on('session', session => {
+					sessions.push(session);
+				});
+
+				app.listen(0, () => {
+					const newAddress = app.address();
+					if (newAddress === null || typeof newAddress === 'string') {
+						throw new Error('should not happen');
+					}
+					address = newAddress;
+					done();
+				});
+			});
+			after(done => {
+				for (const session of sessions) {
+					session.destroy();
+				}
+				app.close(done);
+			});
+			it('should send response without respond method', done => {
+				const client = http2Connect(`http://localhost:${ address.port }`);
+
+				let hasError = false;
+				client.on('error', err => {
+					client.close();
+					if (!hasError) {
+						hasError = true;
+						done(err);
+					}
+				});
+
+				const req = client.request({ ':path': '/name.txt' });
+
+				req.on('response', headers => {
+					if (headers[':status'] === 200) {
+						return;
+					}
+					client.close();
+					if (!hasError) {
+						hasError = true;
+						done(new Error(`status received ${ headers[':status'] ?? '<no status>' } does not equals 200`));
+					}
+				});
+
+				req.setEncoding('utf8');
+				let data = '';
+				req.on('data', chunk => {
+					data += String(chunk);
+				});
+				req.on('end', () => {
+					if (data !== 'tobi' && !hasError) {
+						hasError = true;
+						done(new Error(`body received ${ JSON.stringify(data) } does not equals "tobi"`));
+					}
+					client.close();
+					if (!hasError) {
+						hasError = true;
+						for (const session of sessions) {
+							session.destroy();
+						}
+						done();
 					}
 				});
 				req.end();
@@ -2643,7 +2759,10 @@ describe('http', () => {
 						lastResult = result;
 						await result.send(stream);
 					})().catch((err: unknown) => {
-						stream.respond({ ':status': 500 });
+						if ('respond' in stream && typeof stream.respond === 'function') {
+							// eslint-disable-next-line @typescript-eslint/no-unsafe-call
+							stream.respond({ ':status': 500 });
+						}
 						stream.end(String(err));
 					});
 				});
@@ -2695,7 +2814,7 @@ describe('http', () => {
 				req.setEncoding('utf8');
 				let data = '';
 				req.on('data', chunk => {
-					data += chunk;
+					data += String(chunk);
 				});
 				req.on('end', () => {
 					client.close();

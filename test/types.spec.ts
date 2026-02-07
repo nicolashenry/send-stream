@@ -5,7 +5,7 @@ export type {
 	ResponseHeaders,
 	Uint8ArrayOrStreamRange,
 	StreamRange,
-	randomBytes,
+	random24Bytes,
 	statsToEtag,
 	millisecondsToUTCString,
 	isRangeFresh,

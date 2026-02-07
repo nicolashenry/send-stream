@@ -1,3 +1,4 @@
+/* eslint-disable @typescript-eslint/strict-void-return */
 /**
  * This example shows how to use this library with Express using HTTPS
  */
@@ -31,7 +32,7 @@ const server = createServer(
 		// eslint-disable-next-line n/no-sync
 		cert: readFileSync(join(__dirname, 'cert', 'localhost.crt')),
 	},
-	// eslint-disable-next-line @typescript-eslint/no-misused-promises
+
 	app,
 );
 

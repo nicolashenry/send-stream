@@ -1,5 +1,6 @@
-import { randomBytes as cryptoRandomBytes } from 'node:crypto';
-import { promisify } from 'node:util';
+import { getRandomValues } from 'node:crypto';
+
+const random24BytesBuffer = Buffer.allocUnsafe(24);
 
 /**
  * Request headers
@@ -71,9 +72,13 @@ export class StreamRange {
 export type Uint8ArrayOrStreamRange = StreamRange | Uint8Array;
 
 /**
- * Random bytes function returing promise
+ * Random 24 bytes function returning hex string
+ * @returns 24 random bytes as hex string
  */
-export const randomBytes: (size: number) => Promise<Buffer> = promisify(cryptoRandomBytes);
+export function random24Bytes(): string {
+	getRandomValues(random24BytesBuffer);
+	return random24BytesBuffer.toString('hex');
+}
 
 /**
  * Transform stats to etag

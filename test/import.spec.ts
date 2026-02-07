@@ -1,10 +1,8 @@
-/* eslint-env node, mocha */
-
 import { notStrictEqual } from 'node:assert';
 
 import {
 	StreamRange,
-	randomBytes,
+	random24Bytes,
 	statsToEtag,
 	millisecondsToUTCString,
 	isRangeFresh,
@@ -46,8 +44,8 @@ describe('exports', () => {
 	it('should have StreamRange', () => {
 		notStrictEqual(StreamRange, undefined);
 	});
-	it('should have randomBytes', () => {
-		notStrictEqual(randomBytes, undefined);
+	it('should have random24Bytes', () => {
+		notStrictEqual(random24Bytes, undefined);
 	});
 	it('should have statsToEtag', () => {
 		notStrictEqual(statsToEtag, undefined);

@@ -1,3 +1,4 @@
+/* eslint-disable @typescript-eslint/strict-void-return */
 /**
  * This file is an example of file/directory upload to MongoDB/GridFS to use with ./mongodb-gridfs.ts example
  */

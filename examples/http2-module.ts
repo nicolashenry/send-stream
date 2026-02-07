@@ -31,19 +31,24 @@ app.on('stream', (stream, headers) => {
 		await result.send(stream);
 	})().catch((err: unknown) => {
 		console.error(err);
-		if (stream.headersSent) {
+		if ('headersSent' in stream && stream.headersSent) {
 			stream.destroy(err instanceof Error ? err : new Error(String(err)));
 			return;
 		}
 		const message = 'Internal Server Error';
-		stream.respond({
-			// eslint-disable-next-line @typescript-eslint/naming-convention
-			':status': 500,
-			// eslint-disable-next-line @typescript-eslint/naming-convention
-			'Content-Type': 'text/plain; charset=UTF-8',
-			// eslint-disable-next-line @typescript-eslint/naming-convention
-			'Content-Length': String(Buffer.byteLength(message)),
-		});
+		if ('respond' in stream && typeof stream.respond === 'function') {
+			// eslint-disable-next-line @typescript-eslint/no-unsafe-call
+			stream.respond({
+				// eslint-disable-next-line @typescript-eslint/naming-convention
+				':status': 500,
+				// eslint-disable-next-line @typescript-eslint/naming-convention
+				'Content-Type': 'text/plain; charset=UTF-8',
+				// eslint-disable-next-line @typescript-eslint/naming-convention
+				'Content-Length': String(Buffer.byteLength(message)),
+			});
+		} else {
+			console.warn('Http2Stream.respond is not available, skipping response headers');
+		}
 		stream.end(message);
 	});
 });

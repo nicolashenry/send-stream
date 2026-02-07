@@ -1,7 +1,7 @@
 export type { RequestHeaders, ResponseHeaders, Uint8ArrayOrStreamRange } from './utils';
 export {
 	StreamRange,
-	randomBytes,
+	random24Bytes,
 	statsToEtag,
 	millisecondsToUTCString,
 	isRangeFresh,

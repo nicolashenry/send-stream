@@ -20,7 +20,7 @@ import {
 	getFreshStatus,
 	isRangeFresh,
 	contentRange,
-	randomBytes,
+	random24Bytes,
 	StreamRange,
 	acceptEncodings,
 } from './utils';
@@ -235,6 +235,7 @@ export abstract class Storage<Reference, AttachedData> {
 	 * @param [opts] - options
 	 * @returns status, response headers and body to use
 	 * @throws when method is incorrect or when storage can not create the storage stream
+	 * @rejects {StorageError} when storage can not open the reference or other unexpected errors occur
 	 */
 	async prepareResponse(
 		reference: Reference,
@@ -350,14 +351,14 @@ export abstract class Storage<Reference, AttachedData> {
 
 				const freshStatus = getFreshStatus(isGetOrHead, requestHeaders, etag, lastModified);
 				switch (freshStatus) {
-				case 304:
-					earlyClose = true;
-					return this.createNotModifiedResponse(responseHeaders, storageInfo);
-				case 412:
-					earlyClose = true;
-					return this.createPreconditionFailedError(isHeadMethod, storageInfo);
-				case 200:
-					break;
+					case 304:
+						earlyClose = true;
+						return this.createNotModifiedResponse(responseHeaders, storageInfo);
+					case 412:
+						earlyClose = true;
+						return this.createPreconditionFailedError(isHeadMethod, storageInfo);
+					case 200:
+						break;
 				}
 			}
 
@@ -420,8 +421,7 @@ export abstract class Storage<Reference, AttachedData> {
 								rangeToUse = new StreamRange(singleRange.start, singleRange.end);
 								contentLength = singleRange.end + 1 - singleRange.start;
 							} else {
-								const randomBytesBuffer = await randomBytes(24);
-								const boundary = `----SendStreamBoundary${ randomBytesBuffer.toString('hex') }`;
+								const boundary = `----SendStreamBoundary${ random24Bytes() }`;
 								responseHeaders['Content-Type'] = `multipart/byteranges; boundary=${ boundary }`;
 								responseHeaders['X-Content-Type-Options'] = 'nosniff';
 								rangeToUse = [];
@@ -532,42 +532,43 @@ export abstract class Storage<Reference, AttachedData> {
 	 */
 	createCompressedStream(stream: Readable, contentEncoding: string, expectedSize?: number): Readable {
 		switch (contentEncoding) {
-		case 'br': {
-			const res = pipeline(
-				stream,
-				createBrotliCompress({
-					params: {
-						[zlibConstants.BROTLI_PARAM_MODE]: zlibConstants.BROTLI_MODE_TEXT,
-						[zlibConstants.BROTLI_PARAM_QUALITY]: 4,
-						[zlibConstants.BROTLI_PARAM_SIZE_HINT]: expectedSize ?? 0,
+			case 'br': {
+				const res = pipeline(
+					stream,
+					createBrotliCompress({
+						params: {
+							[zlibConstants.BROTLI_PARAM_MODE]: zlibConstants.BROTLI_MODE_TEXT,
+							[zlibConstants.BROTLI_PARAM_QUALITY]: 4,
+							[zlibConstants.BROTLI_PARAM_SIZE_HINT]: expectedSize ?? 0,
+						},
+					}),
+					_err => {
+					// noop
 					},
-				}),
-				_err => {
-					// noop
-				},
-			);
-			return res.on('end', () => {
+				);
+				return res.on('end', () => {
 				// force destroy on end
-				res.destroy();
-			});
-		}
-		case 'gzip': {
-			const res = pipeline(
-				stream,
-				createGzip({ level: 6 }),
-				_err => {
+					res.destroy();
+				});
+			}
+			case 'gzip': {
+				const res = pipeline(
+					stream,
+					createGzip({ level: 6 }),
+					_err => {
 					// noop
-				},
-			);
-			return res.on('end', () => {
+					},
+				);
+				return res.on('end', () => {
 				// force destroy on end
-				res.destroy();
-			});
-		}
-		default:
-			throw new Error(`${
-				contentEncoding
-			} is not supported as dynamic compression encoding (you can override createCompressedStream to handle it)`);
+					res.destroy();
+				});
+			}
+			default:
+				throw new Error(
+					`${ contentEncoding } is not supported as dynamic compression encoding `
+					+ '(you can override createCompressedStream to handle it)',
+				);
 		}
 	}
 

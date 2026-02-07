@@ -2,6 +2,7 @@ import { Readable, pipeline as streamPipeline } from 'node:stream';
 import type { Server } from 'node:http';
 import { promisify } from 'node:util';
 
+/* eslint-disable @typescript-eslint/strict-void-return */
 import express from 'express';
 
 import type { Storage, FileSystemStorageOptions, PrepareResponseOptions, StreamResponse } from '../../src/send-stream';
