@@ -382,6 +382,7 @@ export default tseslint.config(
         "@stylistic/dot-location": ["warn", "property"],
         "@stylistic/eol-last": "warn",
         "@stylistic/exp-list-style": "warn",
+        "@stylistic/exp-jsx-props-style": "off",
         "@stylistic/func-call-spacing": "off",
         "@stylistic/function-call-spacing": "warn",
         "@stylistic/function-call-argument-newline": ["warn", "consistent"],
