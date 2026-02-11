@@ -39,7 +39,7 @@
     "eslint-plugin-jsdoc": "62.5.3",
     "eslint-plugin-n": "17.23.2",
     "eslint-plugin-sonarjs": "3.0.6",
-    "eslint-plugin-unicorn": "62.0.0",
+    "eslint-plugin-unicorn": "63.0.0",
     "express": "5.2.1",
     "fastify": "5.7.4",
     "globals": "17.3.0",
