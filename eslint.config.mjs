@@ -968,6 +968,7 @@ export default tseslint.config(
         "unicorn/filename-case": "warn",
         "unicorn/import-index": "off",
         "unicorn/import-style": "off",
+        "unicorn/isolated-functions": "warn",
         "unicorn/new-for-builtins": "warn",
         "unicorn/no-abusive-eslint-disable": "warn",
         "unicorn/no-accessor-recursion": "warn",
