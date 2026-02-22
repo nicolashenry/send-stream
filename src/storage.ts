@@ -409,8 +409,7 @@ export abstract class Storage<Reference, AttachedData> {
 						}
 						if (parsedRanges === -2
 							|| parsedRanges.type !== 'bytes'
-							|| parsedRanges.length > maxRanges
-						) {
+							|| parsedRanges.length > maxRanges) {
 							rangeToUse = new StreamRange(0, size - 1);
 							contentLength = size;
 						} else {

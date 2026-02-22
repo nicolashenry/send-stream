@@ -1,6 +1,6 @@
 import tseslint from "typescript-eslint";
 import stylistic from "@stylistic/eslint-plugin";
-import _import from "eslint-plugin-import";
+import _import from "eslint-plugin-import-x";
 import jsdoc from "eslint-plugin-jsdoc";
 import unicorn from "eslint-plugin-unicorn";
 import n from "eslint-plugin-n";
@@ -8,6 +8,7 @@ import sonarjs from "eslint-plugin-sonarjs";
 import regruPreferEarlyReturn from "@regru/eslint-plugin-prefer-early-return";
 import globals from "globals";
 import tsParser from "@typescript-eslint/parser";
+import { fixupPluginRules } from "@eslint/compat";
 
 export default tseslint.config(
 {
@@ -18,7 +19,7 @@ export default tseslint.config(
     plugins: {
         "@typescript-eslint": tseslint.plugin,
         "@stylistic": stylistic,
-        import: _import,
+        import: fixupPluginRules(_import),
         jsdoc,
         unicorn,
         n,
@@ -805,7 +806,7 @@ export default tseslint.config(
         "import/consistent-type-specifier-style": "warn",
         "import/default": "off",
         "import/dynamic-import-chunkname": "off",
-        "import/enforce-node-protocol-usage": ["warn", "always"],
+        // "import/enforce-node-protocol-usage": ["warn", "always"], // Not available in eslint-plugin-import-x
         "import/export": "off",
         "import/exports-last": "off",
         "import/extensions": "off",
@@ -854,11 +855,11 @@ export default tseslint.config(
         "import/no-unassigned-import": "warn",
         "import/no-unresolved": "off",
 
-        "import/no-unused-modules": ["warn", {
-            missingExports: true,
-            unusedExports: true,
-            ignoreExports: ["examples", "test"],
-        }],
+        // "import/no-unused-modules": ["warn", { // Not compatible with ESLint v10 (uses removed FileEnumerator)
+        //     missingExports: true,
+        //     unusedExports: true,
+        //     ignoreExports: ["examples", "test"],
+        // }],
 
         "import/no-useless-path-segments": "warn",
         "import/no-webpack-loader-syntax": "warn",
