@@ -42,7 +42,7 @@
     "eslint-plugin-unicorn": "63.0.0",
     "express": "5.2.1",
     "fastify": "5.8.0",
-    "globals": "17.3.0",
+    "globals": "17.4.0",
     "koa": "3.1.2",
     "memfs": "4.56.10",
     "mocha": "11.7.5",
