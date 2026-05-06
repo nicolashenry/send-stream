@@ -6,7 +6,7 @@
 import { fail, notStrictEqual, ok, strictEqual } from 'node:assert';
 import type { IncomingMessage, Server, ServerResponse } from 'node:http';
 import { createServer } from 'node:http';
-import type { Http2Server, ServerHttp2Session, Http2Stream } from 'node:http2';
+import type { Http2Server, ServerHttp2Session } from 'node:http2';
 import { connect as http2Connect, createServer as http2CreateServer } from 'node:http2';
 import { normalize, join } from 'node:path';
 import { Readable } from 'node:stream';
@@ -2662,11 +2662,7 @@ describe('http', () => {
 								/* eslint-enable @typescript-eslint/no-unsafe-return */
 							},
 						});
-						/* eslint-disable @typescript-eslint/consistent-type-assertions */
-						/* eslint-disable @typescript-eslint/no-unsafe-type-assertion */
-						await result.send(streamProxy as unknown as Http2Stream);
-						/* eslint-enable @typescript-eslint/no-unsafe-type-assertion */
-						/* eslint-enable @typescript-eslint/consistent-type-assertions */
+						await result.send(streamProxy);
 					})().catch((err: unknown) => {
 						stream.end(String(err));
 					});
