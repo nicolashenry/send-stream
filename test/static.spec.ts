@@ -1,4 +1,3 @@
-/* eslint-disable @typescript-eslint/strict-void-return */
 import { notStrictEqual, ok, strictEqual } from 'node:assert';
 import { once } from 'node:events';
 import type { IncomingMessage, Server, ServerResponse } from 'node:http';
