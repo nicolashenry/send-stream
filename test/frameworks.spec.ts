@@ -1,6 +1,5 @@
 /* eslint-disable max-lines, max-lines-per-function */
 /* eslint-disable sonarjs/no-identical-functions */
-/* eslint-disable @typescript-eslint/strict-void-return */
 import { strictEqual, notStrictEqual, fail, deepStrictEqual, ok } from 'node:assert';
 import { stat } from 'node:fs';
 import { join } from 'node:path';
