@@ -378,6 +378,11 @@ export abstract class Storage<Reference, AttachedData> {
 					contentDispositionFilename,
 					{ type: contentDispositionType },
 				);
+				/*
+				 * content-disposition v2 no longer quotes token-only filename values
+				 * (e.g. filename=user.json). Keep the v1-compatible quoted output for
+				 * token filenames while preserving already quoted/encoded forms.
+				 */
 				responseHeaders['Content-Disposition'] = contentDispositionHeader.replace(
 					/;\s*filename=(?<filename>[!#$%&'*+.^_`|~0-9A-Za-z-]+)/u,
 					'; filename="$<filename>"',
