@@ -384,7 +384,7 @@ export abstract class Storage<Reference, AttachedData> {
 				 * token filenames while preserving already quoted/encoded forms.
 				 */
 				responseHeaders['Content-Disposition'] = contentDispositionHeader.replace(
-					/;\s*filename=(?<filename>[!#$%&'*+.^_`|~0-9A-Za-z-]+)/u,
+					/;\s*filename=(?<filename>[-!#$%&'*+.^_`|~0-9A-Za-z]+)/u,
 					'; filename="$<filename>"',
 				);
 			}
