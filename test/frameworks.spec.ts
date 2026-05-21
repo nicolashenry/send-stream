@@ -1085,7 +1085,7 @@ for (const [frameworkName, frameworkServer] of frameworks) {
 							.set('Accept-Encoding', 'gzip, deflate, identity')
 							.expect('X-Send-Stream-Resolved-Path', join(__dirname, '/fixtures-frameworks/gzip.json.gz'))
 							.expect('Content-Encoding', 'gzip')
-							.expect('Content-Disposition', 'inline; filename="gzip.json"')
+							.expect('Content-Disposition', 'inline; filename=gzip.json')
 							.expect('Content-Length', '48')
 							.expect('Content-Type', /^application\/json/u)
 							.expect('{ "name": "tobi" }')
@@ -1870,7 +1870,7 @@ for (const [frameworkName, frameworkServer] of frameworks) {
 					it('should set the inline Content-Disposition by default', async () => {
 						await request(app.server)
 							.get('/')
-							.expect('Content-Disposition', 'inline; filename="user.json"');
+							.expect('Content-Disposition', 'inline; filename=user.json');
 					});
 				});
 
@@ -1891,7 +1891,7 @@ for (const [frameworkName, frameworkServer] of frameworks) {
 					it('should set the attachment with content-disposition module option', async () => {
 						await request(app.server)
 							.get('/')
-							.expect('Content-Disposition', 'attachment; filename="user.json"');
+							.expect('Content-Disposition', 'attachment; filename=user.json');
 					});
 				});
 
@@ -1913,7 +1913,7 @@ for (const [frameworkName, frameworkServer] of frameworks) {
 					it('should set the attachment with content-disposition module option and filename', async () => {
 						await request(app.server)
 							.get('/')
-							.expect('Content-Disposition', 'attachment; filename="plop.json"');
+							.expect('Content-Disposition', 'attachment; filename=plop.json');
 					});
 				});
 

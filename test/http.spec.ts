@@ -744,7 +744,7 @@ describe('http', () => {
 					.expect('ETag', '"123"')
 					.expect('Last-Modified', 'Thu, 04 Jun 2020 01:53:53 GMT')
 					.expect('Cache-Control', 'no-cache')
-					.expect('Content-Disposition', 'attachment; filename="test.txt"')
+					.expect('Content-Disposition', 'attachment; filename=test.txt')
 					.expect(200);
 			});
 		});
