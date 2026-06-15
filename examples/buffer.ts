@@ -1,5 +1,5 @@
 /**
- * This example shows how to implement a storage returning NodeJS Buffer
+ * This example shows how to implement a storage returning Node.js Buffer
  */
 
 import { Readable } from 'node:stream';

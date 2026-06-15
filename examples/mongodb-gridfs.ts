@@ -37,7 +37,8 @@ class GridFSStorage extends Storage<string, File> {
 	}
 
 	async open(path: string) {
-		const filename = posix.relative('/', decodeURIComponent(new URL(`http://localhost${ path }`).pathname));
+		const url = new URL(`http://localhost${ path }`);
+		const filename = posix.relative('/', decodeURIComponent(url.pathname));
 		const files = await (<FindCursor<File>> this.bucket.find({ filename }, { limit: 1 })).toArray();
 		if (files.length === 0) {
 			throw new StorageError(`filename ${ filename } not found`, path);

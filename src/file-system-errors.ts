@@ -16,6 +16,7 @@ export class FileSystemStorageError extends StorageError<FilePath> {
 	 * @param path - encoded path or path parts
 	 * @param pathParts - path parts relative to root
 	 */
+	// eslint-disable-next-line unicorn/custom-error-definition
 	constructor(message: string, path: FilePath, pathParts: readonly string[]) {
 		super(message, path);
 		this.name = 'FileSystemStorageError';
@@ -33,6 +34,7 @@ export class MalformedPathError extends FileSystemStorageError {
 	 * @param path - encoded path or path parts
 	 * @param pathParts - path parts relative to root
 	 */
+	// eslint-disable-next-line unicorn/custom-error-definition
 	constructor(message: string, path: FilePath, pathParts: readonly string[]) {
 		super(message, path, pathParts);
 		this.name = 'MalformedPathError';
@@ -54,6 +56,7 @@ export class NotNormalizedError extends FileSystemStorageError {
 	 * @param pathParts - path parts relative to root
 	 * @param normalizedPath - encoded path or path parts
 	 */
+	// eslint-disable-next-line unicorn/custom-error-definition
 	constructor(message: string, path: string, pathParts: readonly string[], normalizedPath: string) {
 		super(message, path, pathParts);
 		this.name = 'NotNormalizedError';
@@ -71,6 +74,7 @@ export class InvalidPathError extends FileSystemStorageError {
 	 * @param path - encoded path or path parts
 	 * @param pathParts - path parts relative to root
 	 */
+	// eslint-disable-next-line unicorn/custom-error-definition
 	constructor(message: string, path: FilePath, pathParts: readonly string[]) {
 		super(message, path, pathParts);
 		this.name = 'InvalidPathError';
@@ -87,6 +91,7 @@ export class ConsecutiveSlashesError extends FileSystemStorageError {
 	 * @param path - encoded path or path parts
 	 * @param pathParts - path parts relative to root
 	 */
+	// eslint-disable-next-line unicorn/custom-error-definition
 	constructor(message: string, path: FilePath, pathParts: readonly string[]) {
 		super(message, path, pathParts);
 		this.name = 'ConsecutiveSlashesError';
@@ -103,6 +108,7 @@ export class IgnoredFileError extends FileSystemStorageError {
 	 * @param path - encoded path or path parts
 	 * @param pathParts - path parts relative to root
 	 */
+	// eslint-disable-next-line unicorn/custom-error-definition
 	constructor(message: string, path: FilePath, pathParts: readonly string[]) {
 		super(message, path, pathParts);
 		this.name = 'IgnoredFileError';
@@ -119,6 +125,7 @@ export class ForbiddenCharacterError extends FileSystemStorageError {
 	 * @param path - encoded path or path parts
 	 * @param pathParts - path parts relative to root
 	 */
+	// eslint-disable-next-line unicorn/custom-error-definition
 	constructor(message: string, path: FilePath, pathParts: readonly string[]) {
 		super(message, path, pathParts);
 		this.name = 'ForbiddenCharacterError';
@@ -140,6 +147,7 @@ export class TrailingSlashError extends FileSystemStorageError {
 	 * @param pathParts - path parts relative to root
 	 * @param untrailedPathParts - path parts relative to root (without trailing slash)
 	 */
+	// eslint-disable-next-line unicorn/custom-error-definition
 	constructor(message: string, path: FilePath, pathParts: readonly string[], untrailedPathParts: readonly string[]) {
 		super(message, path, pathParts);
 		this.name = 'TrailingSlashError';
@@ -163,6 +171,7 @@ export class IsDirectoryError extends FileSystemStorageError {
 	 * @param pathParts - path parts
 	 * @param resolvedPath - resolved path
 	 */
+	// eslint-disable-next-line unicorn/custom-error-definition
 	constructor(message: string, path: FilePath, pathParts: readonly string[], resolvedPath: string) {
 		super(message, path, pathParts);
 		this.name = 'IsDirectoryError';
@@ -186,6 +195,7 @@ export class DoesNotExistError extends FileSystemStorageError {
 	 * @param pathParts - path parts
 	 * @param resolvedPath - resolved path
 	 */
+	// eslint-disable-next-line unicorn/custom-error-definition
 	constructor(message: string, path: FilePath, pathParts: readonly string[], resolvedPath: string) {
 		super(message, path, pathParts);
 		this.name = 'DoesNotExistError';

@@ -21,7 +21,7 @@ app.get('*', async (request, reply) => {
 		result = await storage.prepareResponse(
 			['', 'index.html'],
 			request.raw,
-			// if the mime type can be determined from path then this is probably an error so add 404 status
+			// if the MIME type can be determined from path then this is probably an error so add 404 status
 			storage.mimeTypeLookup(pathParts[pathParts.length - 1])
 				? { statusCode: 404 }
 				: {},
