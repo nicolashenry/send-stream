@@ -38,13 +38,13 @@ export interface PrepareResponseOptions {
 	 */
 	etag?: string | false;
 	/**
-	 * Custom mime type for content-type header, overrides storage value
+	 * Custom MIME type for content-type header, overrides storage value
 	 *
 	 * `false` to remove header
 	 */
 	mimeType?: string | false;
 	/**
-	 * Custom mime type charset value, overrides storage value
+	 * Custom MIME type charset value, overrides storage value
 	 *
 	 * `false` to remove charset
 	 */
@@ -69,7 +69,7 @@ export interface PrepareResponseOptions {
 	 */
 	statusCode?: number;
 	/**
-	 * By default GET and HEAD are the only allowed http methods, set this parameter to change allowed methods
+	 * By default GET and HEAD are the only allowed HTTP methods, set this parameter to change allowed methods
 	 *
 	 * Defaults to `['GET', 'HEAD']`
 	 */
@@ -108,12 +108,12 @@ export type StorageRequestHeaders = (IncomingHttpHeaders | Http2IncomingHttpHead
  */
 export interface StorageOptions {
 	/**
-	 * Function used to determine mime type from filename
+	 * Function used to determine MIME type from filename
 	 * `lookup` function from `mime-types` module will be used by default
 	 */
 	mimeTypeLookup?: (filename: string) => string | false;
 	/**
-	 * Function used to determine default charset from mime type
+	 * Function used to determine default charset from MIME type
 	 * `charset` function from `mime-types` module will be used by default
 	 */
 	mimeTypeDefaultCharset?: (type: string) => string | false;
@@ -191,11 +191,11 @@ export interface StorageInfo<AttachedData> {
 	 */
 	contentEncoding?: string | undefined;
 	/**
-	 * Mime type
+	 * MIME type
 	 */
 	mimeType?: string | undefined;
 	/**
-	 * Mime type charset
+	 * MIME type charset
 	 */
 	mimeTypeCharset?: string | undefined;
 	/**

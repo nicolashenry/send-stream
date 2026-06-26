@@ -45,8 +45,8 @@ export class StreamResponse<AttachedData> {
 	) {}
 
 	/**
-	 * Send response to http response
-	 * @param res - http response
+	 * Send response to HTTP response
+	 * @param res - HTTP response
 	 * @param opts - options
 	 * @param opts.ignorePrematureClose - ignore premature close errors
 	 * @throws error when response is already closed

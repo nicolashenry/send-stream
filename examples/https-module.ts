@@ -1,5 +1,5 @@
 /**
- * This example shows how to use this library with vanilla NodeJS https module
+ * This example shows how to use this library with vanilla Node.js HTTPS module
  */
 
 import { readFileSync } from 'node:fs';

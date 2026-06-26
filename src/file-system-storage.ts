@@ -42,7 +42,7 @@ export function escapeHTMLInPath(path: string): string {
 }
 
 // eslint-disable-next-line no-control-regex, @typescript-eslint/no-inferrable-types
-export const FORBIDDEN_CHARACTERS: RegExp = /[/?<>\\*|":\u0000-\u001F\u0080-\u009F]/u;
+export const FORBIDDEN_CHARACTERS: RegExp = /[/?<>\\*|":\u{0}-\u{1F}\u{80}-\u{9F}]/u;
 
 /**
  * File system storage
@@ -152,8 +152,8 @@ export class GenericFileSystemStorage<FileDescriptor> extends Storage<FilePath, 
 	}
 
 	/**
-	 * Parse and check url encoded path or path array
-	 * @param path - url encoded path or path array to be accessed from root
+	 * Parse and check URL encoded path or path array
+	 * @param path - URL encoded path or path array to be accessed from root
 	 * @returns path array
 	 * @throws when the path can not be parsed
 	 */
@@ -342,6 +342,7 @@ export class GenericFileSystemStorage<FileDescriptor> extends Storage<FilePath, 
 				for (const [acceptableEncodingName, { path: acceptableEncodingPath }] of acceptableEncodings) {
 					const encodedPath = resolvedPath.replace(
 						matcher,
+						// eslint-disable-next-line unicorn/no-unsafe-string-replacement
 						acceptableEncodingPath,
 					);
 					// eslint-disable-next-line no-await-in-loop
@@ -422,7 +423,8 @@ export class GenericFileSystemStorage<FileDescriptor> extends Storage<FilePath, 
 						contentDispositionType: undefined,
 						contentDispositionFilename: undefined,
 					};
-				} else if (haveTrailingSlash) {
+				}
+				if (haveTrailingSlash) {
 					throw new TrailingSlashError(
 						`${ String(path) } have a trailing slash but is not a directory`,
 						path,
@@ -463,7 +465,7 @@ export class GenericFileSystemStorage<FileDescriptor> extends Storage<FilePath, 
 	/**
 	 * Async generator method to return the directory listing as HTML
 	 * @param storageInfo - storage information
-	 * @yields {string} html parts
+	 * @yields {string} HTML parts
 	 */
 	async *getDirectoryListing(storageInfo: StorageInfo<GenericFileData<FileDescriptor>>):
 	AsyncGenerator<string, void, void> {

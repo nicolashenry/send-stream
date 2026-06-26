@@ -139,7 +139,7 @@ export interface RegexpContentEncodingMapping {
  */
 export interface GenericFileSystemStorageOptions<FileDescriptor> extends StorageOptions {
 	/**
-	 * Content encoding mapping, e.g. [{ matcher: /^(.+\\.json)$/, encodings: [{ name: 'gzip', path: '$1.gz' }] }]
+	 * Content encoding mapping, e.g. [{ matcher: /^(.+\\.JSON)$/, encodings: [{ name: 'gzip', path: '$1.gz' }] }]
 	 */
 	contentEncodingMappings?: readonly ContentEncodingMapping[];
 	/**
