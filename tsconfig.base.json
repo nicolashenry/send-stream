@@ -15,6 +15,7 @@
     "incremental": true,
     "exactOptionalPropertyTypes": true,
     "useUnknownInCatchVariables": true,
-    "typeRoots": ["./node_modules/@types/"]
+    "typeRoots": ["./node_modules/@types/"],
+    "skipLibCheck": true
   }
 }
