@@ -902,6 +902,7 @@ export default tseslint.config(
         "jsdoc/no-restricted-syntax": "off",
         "jsdoc/no-types": "warn",
         "jsdoc/no-undefined-types": "warn",
+        "jsdoc/normalize-see-links": "warn",
         "jsdoc/prefer-import-tag": "warn",
         "jsdoc/reject-any-type": "warn",
         "jsdoc/reject-function-type": "warn",
