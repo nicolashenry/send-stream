@@ -42,7 +42,8 @@ let contentDispositionPromise: Promise<typeof createContentDisposition> | undefi
 
 async function getContentDisposition(): Promise<typeof createContentDisposition> {
 	contentDispositionPromise ??= import('content-disposition').then(module => module.create);
-	return contentDispositionPromise;
+	const contentDisposition = await contentDispositionPromise;
+	return contentDisposition;
 }
 
 const DEFAULT_ALLOWED_METHODS = <const> ['GET', 'HEAD'];
