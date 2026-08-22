@@ -67,6 +67,7 @@ export function checkMultipartByteRangeString({
 	length: number;
 	stringValue: string;
 }) {
+	// eslint-disable-next-line unicorn/no-unreadable-object-destructuring
 	const { [index]: part } = parts;
 	if (part.type !== type) {
 		throw new Error(`wrong type for part at index ${ index }: ${ part.type } instead of ${ type }`);
@@ -101,6 +102,7 @@ export function checkMultipartByteRangeString({
 
 export function shouldNotHaveHeader(header: string) {
 	return (res: request.Response) => {
+		// eslint-disable-next-line unicorn/no-unreadable-object-destructuring
 		const { [header.toLowerCase()]: value } = <Record<string, string>> res.header;
 		strictEqual(
 			value,
@@ -112,6 +114,7 @@ export function shouldNotHaveHeader(header: string) {
 
 export function shouldHaveHeader(header: string) {
 	return (res: request.Response) => {
+		// eslint-disable-next-line unicorn/no-unreadable-object-destructuring
 		const { [header.toLowerCase()]: value } = <Record<string, string>> res.header;
 		notStrictEqual(
 			value,
@@ -193,11 +196,7 @@ class RawTestImpl implements PromiseLike<void> {
 
 export function rawRequest(appObj: Server) {
 	return {
-		get(path: string) {
-			return new RawTestImpl(appObj, 'GET', path);
-		},
-		head(path: string) {
-			return new RawTestImpl(appObj, 'HEAD', path);
-		},
+		get: (path: string) => new RawTestImpl(appObj, 'GET', path),
+		head: (path: string) => new RawTestImpl(appObj, 'HEAD', path),
 	};
 }

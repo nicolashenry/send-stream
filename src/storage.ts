@@ -48,7 +48,7 @@ const DEFAULT_MAX_RANGES = 200;
  */
 export abstract class Storage<Reference, AttachedData> {
 	/**
-	 * Default mime type or false
+	 * Default MIME type or false
 	 */
 	readonly defaultMimeType: string | false;
 
@@ -63,25 +63,25 @@ export abstract class Storage<Reference, AttachedData> {
 	readonly weakEtags: boolean;
 
 	/**
-	 * Mime type lookup function
+	 * MIME type lookup function
 	 */
 	readonly mimeTypeLookup: NonNullable<StorageOptions['mimeTypeLookup']>;
 
 	/**
-	 * Mime type default charset function
+	 * MIME type default charset function
 	 */
 	readonly mimeTypeDefaultCharset: NonNullable<StorageOptions['mimeTypeDefaultCharset']>;
 
 	/**
 	 * Dynamic compression preferences or false
 	 */
-	readonly dynamicCompression: {
+	readonly dynamicCompression: false | {
 		encodingPreferences: ReadonlyMap<string, { order: number }>;
 		identityEncodingPreference: { order: number };
-	} | false;
+	};
 
 	/**
-	 * Mime type compressible function
+	 * MIME type compressible function
 	 */
 	readonly mimeTypeCompressible: NonNullable<StorageOptions['mimeTypeCompressible']>;
 
@@ -167,9 +167,9 @@ export abstract class Storage<Reference, AttachedData> {
 	}
 
 	/**
-	 * Create mime type for content-type header value from storage information
+	 * Create MIME type for content-type header value from storage information
 	 * @param storageInfo - storage information (unused unless overriden)
-	 * @returns mime type
+	 * @returns MIME type
 	 */
 	createMimeType(storageInfo: StorageInfo<AttachedData>): string | false {
 		const { mimeType } = storageInfo;
@@ -188,9 +188,9 @@ export abstract class Storage<Reference, AttachedData> {
 	}
 
 	/**
-	 * Create charset that will be appended with mime type into content-type header
+	 * Create charset that will be appended with MIME type into content-type header
 	 * @param storageInfo - storage information (unused unless overriden)
-	 * @param mimeType - mime type
+	 * @param mimeType - MIME type
 	 * @returns charset
 	 */
 	createMimeTypeCharset(storageInfo: StorageInfo<AttachedData>, mimeType: string): string | false {
@@ -502,7 +502,7 @@ export abstract class Storage<Reference, AttachedData> {
 	 * Send file directly to response
 	 * @param reference - file reference
 	 * @param req - request headers or request objects
-	 * @param res - http response
+	 * @param res - HTTP response
 	 * @param [opts] - options
 	 * @throws when method is incorrect or when storage can not create the storage stream
 	 */
@@ -700,7 +700,7 @@ export abstract class Storage<Reference, AttachedData> {
 
 	/**
 	 * Create the successful OK (200) or Partial Content (206) response
-	 * (the http code could also be the one set in parameters)
+	 * (the HTTP code could also be the one set in parameters)
 	 * @param statusCode - 200 or 206 or the statusCode set in parameters
 	 * @param responseHeaders - the response headers
 	 * @param stream - the content stream

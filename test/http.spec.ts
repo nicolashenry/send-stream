@@ -351,7 +351,8 @@ describe('http', () => {
 						.get('/name.txt')
 						.expect(200);
 					const lmod = Date.parse((<Record<string, string>> res.header)['last-modified']);
-					const date = new Date(lmod - 60_000).toUTCString();
+					const dateObj = new Date(lmod - 60_000);
+					const date = dateObj.toUTCString();
 					await request(app)
 						.get('/name.txt')
 						.set('If-Unmodified-Since', date)
@@ -563,10 +564,11 @@ describe('http', () => {
 						.get('/nums.txt')
 						.expect(200);
 					const modified = Date.parse((<Record<string, string>> res.header)['last-modified']) - 20_000;
+					const modifiedDate = new Date(modified);
 
 					await request(app)
 						.get('/nums.txt')
-						.set('If-Range', new Date(modified).toUTCString())
+						.set('If-Range', modifiedDate.toUTCString())
 						.set('Range', 'bytes=0-0')
 						.expect(200, '123456789');
 				});
@@ -1997,7 +1999,7 @@ describe('http', () => {
 					override createReadableStream(si: StorageInfo<FileData>): Readable {
 						// eslint-disable-next-line @typescript-eslint/no-this-alias
 						const st = this;
-						return new class extends Readable {
+						class ErrorReadable extends Readable {
 							// eslint-disable-next-line sonarjs/no-reference-error
 							override pipe<T extends NodeJS.WritableStream>(
 								destination: T,
@@ -2012,7 +2014,8 @@ describe('http', () => {
 								await st.close(si);
 								callback(error);
 							}
-						}();
+						}
+						return new ErrorReadable();
 					}
 				}
 
@@ -2054,7 +2057,7 @@ describe('http', () => {
 					override createReadableStream(si: StorageInfo<FileData>): Readable {
 						// eslint-disable-next-line @typescript-eslint/no-this-alias
 						const st = this;
-						return new class extends Readable {
+						class ErrorReadable extends Readable {
 							override pipe<T extends NodeJS.WritableStream>(
 								destination: T,
 								options?: { end?: boolean },
@@ -2068,7 +2071,8 @@ describe('http', () => {
 								await st.close(si);
 								callback(error);
 							}
-						}();
+						}
+						return new ErrorReadable();
 					}
 				}
 
@@ -2110,7 +2114,7 @@ describe('http', () => {
 					override createReadableStream(si: StorageInfo<FileData>): Readable {
 						// eslint-disable-next-line @typescript-eslint/no-this-alias
 						const st = this;
-						return new class extends Readable {
+						class ErrorReadable extends Readable {
 							override pipe<T extends NodeJS.WritableStream>(
 								destination: T,
 								options?: { end?: boolean },
@@ -2124,7 +2128,8 @@ describe('http', () => {
 								await st.close(si);
 								callback(error);
 							}
-						}();
+						}
+						return new ErrorReadable();
 					}
 				}
 
@@ -2179,7 +2184,7 @@ describe('http', () => {
 					override createReadableStream(si: StorageInfo<FileData>): Readable {
 						// eslint-disable-next-line @typescript-eslint/no-this-alias
 						const st = this;
-						return new class extends Readable {
+						class ErrorReadable extends Readable {
 							override pipe<T extends NodeJS.WritableStream>(
 								destination: T,
 								options?: { end?: boolean },
@@ -2193,7 +2198,8 @@ describe('http', () => {
 								await st.close(si);
 								callback(error);
 							}
-						}();
+						}
+						return new ErrorReadable();
 					}
 				}
 

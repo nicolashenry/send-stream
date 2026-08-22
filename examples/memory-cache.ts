@@ -60,7 +60,7 @@ class FullCacheStorage extends GenericFileSystemStorage<CachedFileDescriptor> {
 								callback(null, cache);
 							})
 							.catch((err: unknown) => {
-								callback(err instanceof Error ? err : new Error(String(err)), Number.NaN);
+								callback(err instanceof Error ? err : new Error(String(err)), NaN);
 							});
 					},
 					fstat: (
@@ -90,14 +90,16 @@ class FullCacheStorage extends GenericFileSystemStorage<CachedFileDescriptor> {
 						},
 					) => {
 						if (!fd) {
-							return start !== undefined && end !== undefined
-								? createReadStream(path, { start, end, autoClose })
-								: createReadStream(path, { autoClose });
+							return createReadStream(
+								path,
+								start !== undefined && end !== undefined ? { start, end, autoClose } : { autoClose },
+							);
 						}
 						if (typeof fd === 'number') {
-							return start !== undefined && end !== undefined
-								? createReadStream(path, { fd, start, end, autoClose })
-								: createReadStream(path, { fd, autoClose });
+							const options = start !== undefined && end !== undefined
+								? { fd, start, end, autoClose }
+								: { fd, autoClose };
+							return createReadStream(path, options);
 						}
 						const rangeStart = start ?? 0;
 						const rangeEnd = end ?? fd.size - 1;
@@ -142,6 +144,7 @@ class FullCacheStorage extends GenericFileSystemStorage<CachedFileDescriptor> {
 		const files = await opendir(dir);
 		for await (const file of files) {
 			const filePath = join(dir, file.name);
+			// eslint-disable-next-line unicorn/prefer-minimal-ternary
 			await (file.isDirectory() ? this.addAllFilesInCache(filePath) : this.addFileInCache(filePath));
 		}
 	}

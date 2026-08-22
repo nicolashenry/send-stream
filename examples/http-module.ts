@@ -1,5 +1,5 @@
 /**
- * This example shows how to use this library with vanilla NodeJS http module
+ * This example shows how to use this library with vanilla Node.js HTTP module
  */
 
 import { createServer } from 'node:http';
