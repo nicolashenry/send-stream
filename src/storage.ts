@@ -6,7 +6,7 @@ import type { Readable } from 'node:stream';
 import { pipeline } from 'node:stream';
 import { createBrotliCompress, createGzip, constants as zlibConstants } from 'node:zlib';
 
-import type { create as createContentDisposition } from 'content-disposition';
+import { create as createContentDisposition } from 'content-disposition';
 import { lookup, charset } from 'mime-types';
 import parseRange from 'range-parser';
 import compressible from 'compressible';
@@ -37,14 +37,6 @@ import {
 	RangeNotSatisfiableStorageError,
 	StorageError,
 } from './errors';
-
-let contentDispositionPromise: Promise<typeof createContentDisposition> | undefined;
-
-async function getContentDisposition(): Promise<typeof createContentDisposition> {
-	contentDispositionPromise ??= import('content-disposition').then(module => module.create);
-	const contentDisposition = await contentDispositionPromise;
-	return contentDisposition;
-}
 
 const DEFAULT_ALLOWED_METHODS = <const> ['GET', 'HEAD'];
 const DEFAULT_MAX_RANGES = 200;
@@ -382,7 +374,6 @@ export abstract class Storage<Reference, AttachedData> {
 			}
 
 			if (contentDispositionType) {
-				const contentDisposition = await getContentDisposition();
 				responseHeaders['Content-Disposition'] = contentDisposition(
 					contentDispositionFilename,
 					{ type: contentDispositionType },
