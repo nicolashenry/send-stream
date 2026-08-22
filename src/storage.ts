@@ -374,7 +374,7 @@ export abstract class Storage<Reference, AttachedData> {
 			}
 
 			if (contentDispositionType) {
-				responseHeaders['Content-Disposition'] = contentDisposition(
+				responseHeaders['Content-Disposition'] = createContentDisposition(
 					contentDispositionFilename,
 					{ type: contentDispositionType },
 				);
