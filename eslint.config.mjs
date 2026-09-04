@@ -805,7 +805,6 @@ export default tseslint.config(
         "import/consistent-type-specifier-style": "warn",
         "import/default": "off",
         "import/dynamic-import-chunkname": "off",
-        "import/enforce-node-protocol-usage": ["warn", "always"],
         "import/export": "off",
         "import/exports-last": "off",
         "import/extensions": "off",
