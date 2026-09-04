@@ -846,6 +846,7 @@ export default tseslint.config(
         "import/no-named-export": "off",
         "import/no-namespace": "off",
         "import/no-nodejs-modules": "off",
+        "import/no-rename-default": "warn",
         "import/no-relative-packages": "warn",
         "import/no-relative-parent-imports": "off",
         "import/no-restricted-paths": "off",
@@ -867,6 +868,7 @@ export default tseslint.config(
         }],
 
         "import/prefer-default-export": "off",
+        "import/prefer-namespace-import": "off",
         "import/unambiguous": "warn",
         "jsdoc/check-access": "warn",
         "jsdoc/check-alignment": "warn",
