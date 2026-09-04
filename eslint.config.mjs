@@ -856,7 +856,7 @@ export default tseslint.config(
         "import/no-unused-modules": ["warn", {
             missingExports: true,
             unusedExports: true,
-            ignoreExports: ["examples", "test"],
+            ignoreExports: ["examples/**/*", "test/**/*"],
         }],
 
         "import/no-useless-path-segments": "warn",
