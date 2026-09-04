@@ -1,6 +1,6 @@
 import tseslint from "typescript-eslint";
 import stylistic from "@stylistic/eslint-plugin";
-import _import from "eslint-plugin-import";
+import _import from "eslint-plugin-import-x";
 import jsdoc from "eslint-plugin-jsdoc";
 import unicorn from "eslint-plugin-unicorn";
 import n from "eslint-plugin-n";
