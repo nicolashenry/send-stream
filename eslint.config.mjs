@@ -1,6 +1,6 @@
 import tseslint from "typescript-eslint";
 import stylistic from "@stylistic/eslint-plugin";
-import _import from "eslint-plugin-import";
+import _import from "eslint-plugin-import-x";
 import jsdoc from "eslint-plugin-jsdoc";
 import unicorn from "eslint-plugin-unicorn";
 import n from "eslint-plugin-n";
@@ -805,7 +805,6 @@ export default tseslint.config(
         "import/consistent-type-specifier-style": "warn",
         "import/default": "off",
         "import/dynamic-import-chunkname": "off",
-        "import/enforce-node-protocol-usage": ["warn", "always"],
         "import/export": "off",
         "import/exports-last": "off",
         "import/extensions": "off",
@@ -847,6 +846,7 @@ export default tseslint.config(
         "import/no-named-export": "off",
         "import/no-namespace": "off",
         "import/no-nodejs-modules": "off",
+        "import/no-rename-default": "warn",
         "import/no-relative-packages": "warn",
         "import/no-relative-parent-imports": "off",
         "import/no-restricted-paths": "off",
@@ -857,7 +857,7 @@ export default tseslint.config(
         "import/no-unused-modules": ["warn", {
             missingExports: true,
             unusedExports: true,
-            ignoreExports: ["examples", "test"],
+            ignoreExports: ["examples/**/*", "test/**/*"],
         }],
 
         "import/no-useless-path-segments": "warn",
@@ -868,6 +868,7 @@ export default tseslint.config(
         }],
 
         "import/prefer-default-export": "off",
+        "import/prefer-namespace-import": "off",
         "import/unambiguous": "warn",
         "jsdoc/check-access": "warn",
         "jsdoc/check-alignment": "warn",
