@@ -2042,9 +2042,10 @@ for (const [frameworkName, frameworkServer] of frameworks) {
 				});
 				it('should answer 304 when data is fresh', async () => {
 					const stats = await promisify(stat)(join(__dirname, '/fixtures-frameworks/user.json'));
+					const mtime = new Date(stats.mtimeMs);
 					await request(app.server)
 						.get('/')
-						.set('If-Modified-Since', new Date(stats.mtimeMs).toUTCString())
+						.set('If-Modified-Since', mtime.toUTCString())
 						.expect(304);
 				});
 			});
@@ -2086,10 +2087,11 @@ for (const [frameworkName, frameworkServer] of frameworks) {
 					});
 					it('should respond 206 to a range request if range fresh (last modified)', async () => {
 						const stats = await promisify(stat)(join(__dirname, '/fixtures-frameworks/hello.txt'));
+						const mtime = new Date(stats.mtimeMs);
 						await request(app.server)
 							.get('/')
 							.set('Range', 'bytes=0-0')
-							.set('If-Range', new Date(stats.mtimeMs).toUTCString())
+							.set('If-Range', mtime.toUTCString())
 							.expect(206)
 							.expect('Content-Range', 'bytes 0-0/5')
 							.expect('Content-Length', '1');
@@ -2109,10 +2111,11 @@ for (const [frameworkName, frameworkServer] of frameworks) {
 						await app.close();
 					});
 					it('should respond 200 to a range request if range not fresh (last modified)', async () => {
+						const now = new Date();
 						await request(app.server)
 							.get('/')
 							.set('Range', 'bytes=0-0')
-							.set('If-Range', new Date().toUTCString())
+							.set('If-Range', now.toUTCString())
 							.expect(200);
 					});
 				});
@@ -2152,10 +2155,11 @@ for (const [frameworkName, frameworkServer] of frameworks) {
 					});
 					it('should respond 206 to a range request if range fresh (empty last modified)', async () => {
 						const stats = await promisify(stat)(join(__dirname, '/fixtures-frameworks/hello.txt'));
+						const mtime = new Date(stats.mtimeMs);
 						await request(app.server)
 							.get('/')
 							.set('Range', 'bytes=0-0')
-							.set('If-Range', new Date(stats.mtimeMs).toUTCString())
+							.set('If-Range', mtime.toUTCString())
 							.expect(200);
 					});
 				});

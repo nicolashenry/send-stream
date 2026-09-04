@@ -41,6 +41,7 @@ async function uploadToGridFS(rootPath: string, directoryPath: string, bucket: G
 			throw new TypeError('hash calculation failed');
 		}
 		const etag = `"${ etagStr }"`;
+		const lastModifiedDate = new Date(stat.mtimeMs);
 		const uploadCopy = fs.createReadStream(filepath);
 		await promisifiedStreamPipeline(
 			uploadCopy,
@@ -53,7 +54,7 @@ async function uploadToGridFS(rootPath: string, directoryPath: string, bucket: G
 						mimeType,
 						mimeTypeCharset,
 						mtimeMs: stat.mtimeMs,
-						lastModified: new Date(stat.mtimeMs).toUTCString(),
+						lastModified: lastModifiedDate.toUTCString(),
 						etag,
 					},
 				},

@@ -107,7 +107,8 @@ export function statsToEtag(size: number, mtimeMs: number, contentEncoding?: str
  * @returns utc string
  */
 export function millisecondsToUTCString(timeMs: number): string {
-	return new Date(timeMs).toUTCString();
+	const date = new Date(timeMs);
+	return date.toUTCString();
 }
 
 /**
@@ -273,7 +274,7 @@ export function acceptEncodings<T extends { order: number }>(
 		result.set('identity', { ...identityEncodingPreference, weight: -1 });
 	}
 
-	const resultEntries = [...result.entries()].filter(([, { weight }]) => weight !== 0);
+	const resultEntries = [...result].filter(([, { weight }]) => weight !== 0);
 	resultEntries.sort(([, { weight: aWeight, order: aOrder }], [, { weight: bWeight, order: bOrder }]) => {
 		let diff = bWeight - aWeight;
 		if (diff === 0) {
@@ -287,7 +288,7 @@ export function acceptEncodings<T extends { order: number }>(
 
 /**
  * Get fresh status (ETag, Last-Modified handling)
- * @param isGetOrHead - http method is GET or HEAD
+ * @param isGetOrHead - HTTP method is GET or HEAD
  * @param requestHeaders - request headers
  * @param etag - etag response header
  * @param lastModified - last modified response header
@@ -310,8 +311,8 @@ export function getFreshStatus(
 			!etag
 			|| (
 				ifMatch !== '*'
-				&& !parseMultiValueHeader(ifMatch)
-					.some(ifMatchEtag => strongEtagMatch(ifMatchEtag, etag))
+				&& parseMultiValueHeader(ifMatch)
+					.every(ifMatchEtag => !strongEtagMatch(ifMatchEtag, etag))
 			)
 		) {
 			return 412;

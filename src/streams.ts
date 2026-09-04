@@ -96,7 +96,7 @@ export class MultiStream extends PassThrough {
 		const listenerMap = new Map<string, (() => void) | ((err: Error) => void)>();
 
 		const onClose = () => {
-			for (const [eventType, listener] of listenerMap.entries()) {
+			for (const [eventType, listener] of listenerMap) {
 				stream.off(eventType, listener);
 			}
 		};

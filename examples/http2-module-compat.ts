@@ -1,5 +1,5 @@
 /**
- * This example shows how to use this library with vanilla NodeJS http2 module (compat API)
+ * This example shows how to use this library with vanilla Node.js http2 module (compat API)
  */
 
 import { readFileSync } from 'node:fs';
