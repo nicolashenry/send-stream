@@ -6,7 +6,7 @@ import type { Readable } from 'node:stream';
 import { pipeline } from 'node:stream';
 import { createBrotliCompress, createGzip, constants as zlibConstants } from 'node:zlib';
 
-import contentDisposition from 'content-disposition';
+import { create as createContentDisposition } from 'content-disposition';
 import { lookup, charset } from 'mime-types';
 import parseRange from 'range-parser';
 import compressible from 'compressible';
@@ -374,7 +374,7 @@ export abstract class Storage<Reference, AttachedData> {
 			}
 
 			if (contentDispositionType) {
-				responseHeaders['Content-Disposition'] = contentDisposition(
+				responseHeaders['Content-Disposition'] = createContentDisposition(
 					contentDispositionFilename,
 					{ type: contentDispositionType },
 				);
