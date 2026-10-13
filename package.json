@@ -40,7 +40,7 @@
     "eslint-plugin-n": "18.2.1",
     "eslint-plugin-sonarjs": "4.0.3",
     "eslint-plugin-unicorn": "65.0.1",
-    "express": "5.2.1",
+    "express": "5.3.0",
     "fastify": "5.12.1",
     "globals": "17.11.0",
     "koa": "3.2.1",
