@@ -1175,6 +1175,7 @@ export default tseslint.config(
         }],
 
         "n/no-unsupported-features/node-builtins": "warn",
+        "n/prefer-import/assert-strict": "off",
         "n/prefer-global/buffer": "warn",
         "n/prefer-global/console": "warn",
         "n/prefer-global/crypto": "warn",
@@ -1187,6 +1188,7 @@ export default tseslint.config(
         "n/prefer-node-protocol": "warn",
         "n/prefer-promises/dns": "warn",
         "n/prefer-promises/fs": "warn",
+        "n/prefer-process-get-builtin-module": "warn",
         "n/process-exit-as-throw": "warn",
         "n/shebang": "off",
         "sonarjs/anchor-precedence": "warn",
