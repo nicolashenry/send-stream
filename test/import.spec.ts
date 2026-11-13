@@ -35,7 +35,7 @@ import {
 
 // test that all exports are present
 describe('exports', () => {
-	it('should have FileSystemStorage', () => {
+	it('should have the FileSystemStorage constructor', () => {
 		notStrictEqual(FileSystemStorage, undefined);
 	});
 	it('should have Storage', () => {

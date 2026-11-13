@@ -636,7 +636,7 @@ for (const [frameworkName, frameworkServer] of frameworks) {
 							await Promise.resolve(undefined);
 						}
 					});
-					it('should throw error', async () => {
+					it('should throw error for gzip', async () => {
 						try {
 							await request(app.server)
 								.get('/fixtures-frameworks/some.path/index.json')
