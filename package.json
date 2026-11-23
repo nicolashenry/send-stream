@@ -60,7 +60,7 @@
     "compressible": "^2.0.18",
     "content-disposition": "^3.0.0",
     "mime-types": "^3.0.2",
-    "range-parser": "^1.2.1",
+    "range-parser": "^2.0.0",
     "tslib": ">=2.8.1"
   },
   "scripts": {
